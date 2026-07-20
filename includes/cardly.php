@@ -124,11 +124,28 @@ function cardly_public(array $card): array
     return $card;
 }
 
+/**
+ * Is this username actually taken? A card only "reserves" its username once it
+ * has been saved (published). A freshly-created, never-saved draft does NOT
+ * hold the username — so abandoned claims stay available to others.
+ * Legacy cards (created before drafts existed, i.e. no 'published' key) count
+ * as published/taken so they are never overwritten.
+ */
+function cardly_is_taken(string $slug): bool
+{
+    $c = cardly_load($slug);
+    if (!$c) {
+        return false;
+    }
+    return !(array_key_exists('published', $c) && $c['published'] === false);
+}
+
 /** A fresh, empty card skeleton. */
 function cardly_blank(string $template = 'default'): array
 {
     return [
         'template' => $template,
+        'published' => false,
         'name' => '', 'tagline' => '', 'about' => '',
         'photo' => '', 'cover' => '',
         'contact' => ['phone' => '', 'email' => '', 'whatsapp' => '', 'website' => '', 'address' => ''],

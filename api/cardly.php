@@ -40,7 +40,8 @@ if ($action === 'check') {
     if (!cardly_slug_valid($u)) {
         json_response(['ok' => true, 'available' => false, 'reason' => 'invalid']);
     }
-    json_response(['ok' => true, 'available' => !cardly_exists($u)]);
+    // Available unless a *saved* (published) card holds this username.
+    json_response(['ok' => true, 'available' => !cardly_is_taken($u)]);
 }
 
 /* --------------------------------------------------------------------- create */
@@ -52,7 +53,9 @@ if ($action === 'create') {
     if (!cardly_slug_valid($u)) {
         json_error('Choose a username of 3–30 letters, numbers or hyphens.');
     }
-    if (cardly_exists($u)) {
+    // Only a saved (published) card holds a username. Unsaved drafts can be
+    // reclaimed, so starting a card no longer permanently reserves the link.
+    if (cardly_is_taken($u)) {
         json_error('That username is already taken.');
     }
     $tpl = (string)($_POST['template'] ?? 'default');
@@ -148,6 +151,9 @@ if ($action === 'save') {
     foreach (array_keys($card['sections']) as $k) {
         $card['sections'][$k] = !empty($inSec[$k]);
     }
+
+    // A real save publishes the card — from now on it holds its username.
+    $card['published'] = true;
 
     if (!cardly_save($slug, $card)) {
         json_error('Could not save. Please try again.', 500);
