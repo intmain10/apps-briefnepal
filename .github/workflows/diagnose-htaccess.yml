@@ -1,0 +1,40 @@
+name: Diagnose - find original .htaccess
+
+# Read-only: downloads the deployment zips already on the server, searches them
+# for an .htaccess, and prints what it finds. Uploads nothing.
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download zips and search for .htaccess
+        env:
+          FTP_HOST: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y lftp unzip
+          mkdir -p dl && cd dl
+          lftp -u "$FTP_USER","$FTP_PASS" "$FTP_HOST" <<'EOF'
+          set ftp:ssl-allow no
+          set net:timeout 30
+          mget -O . *.zip
+          bye
+          EOF
+          echo "=== downloaded zips ==="; ls -la
+          for z in *.zip; do
+            echo; echo "================ $z ================"
+            unzip -l "$z" 2>/dev/null | grep -iE "htaccess" || echo "  (no .htaccess in $z)"
+          done
+          echo; echo "=== extracting any .htaccess found ==="
+          mkdir -p ex
+          for z in *.zip; do
+            unzip -o -j "$z" '*.htaccess' '.htaccess' -d "ex/${z%.zip}" 2>/dev/null || true
+          done
+          echo "--- .htaccess files recovered ---"
+          find ex -name '.htaccess' -o -name '*htaccess*' 2>/dev/null | while read f; do
+            echo; echo ">>>>>> $f ($(wc -l < "$f") lines) <<<<<<"
+            cat "$f"
+          done
