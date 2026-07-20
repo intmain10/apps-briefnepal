@@ -1,0 +1,53 @@
+name: Deploy to Hostinger
+
+# Runs automatically on every push to main, and can be triggered manually.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ftp-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: FTP Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sync files to Hostinger via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          # --- Connection (set these as repo Secrets, never hardcode) ---
+          server: ${{ secrets.FTP_SERVER }}       # e.g. ftp.briefnepal.com  (or 93.127.208.217)
+          username: ${{ secrets.FTP_USERNAME }}   # e.g. u682902872
+          password: ${{ secrets.FTP_PASSWORD }}   # your FTP password
+          port: 21
+          protocol: ftp                           # switch to "ftps" if your host requires TLS
+
+          # --- Where files land on the server ---
+          # Main account "u682902872" logs into the home dir, so we target /public_html/.
+          # If you use a jailed sub-account (e.g. u682902872.apps) instead, change this to "./".
+          server-dir: /public_html/
+
+          # Incremental sync: only changed files are uploaded (state file kept on server).
+          # Files you delete from the repo are also removed from the server.
+          dangerous-clean-slate: false
+
+          # --- Never upload these ---
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            **/.DS_Store
+            README.md
+            .gitignore
+            database/**
+            /uploads/**
+            **/*.log
+            # Keep production config.php on the server — uncomment the next line
+            # once you've set your real DB credentials in config.php on the host:
+            # config.php
