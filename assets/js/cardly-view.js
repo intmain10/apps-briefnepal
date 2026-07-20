@@ -90,101 +90,160 @@
     return lines.length;
   }
 
+  // Dynamic call-to-action + role emoji per profile template.
+  const CTA = {
+    music:        ['🎵 Listen Now',        '🎤'],
+    creator:      ['📺 Watch My Videos',    '🎬'],
+    developer:    ['💻 View My Work',       '👨‍💻'],
+    business:     ['📞 Get in Touch',       '💼'],
+    photographer: ['📸 Explore My Work',    '📷'],
+    freelancer:   ['💼 Work With Me',       '✍️'],
+    student:      ['🎓 Connect With Me',    '🎓'],
+    gym:          ['💪 Train With Me',      '🔥'],
+    startup:      ['🚀 Check Us Out',       '⚡'],
+    doctor:       ['🩺 Book Appointment',   '🩺'],
+    realestate:   ['🏠 View Listings',      '🏡'],
+    wedding:      ["💍 You're Invited",     '💐'],
+    event:        ['🎉 Join the Event',     '🎊'],
+    default:      ['👋 Connect With Me',    '✨'],
+  };
+
+  function coverSrc() {
+    const el = wrap.querySelector('.cardly__cover');
+    if (!el) return '';
+    const bg = el.style.backgroundImage || getComputedStyle(el).backgroundImage || '';
+    const m = bg.match(/url\(["']?(.*?)["']?\)/);
+    return m ? m[1] : '';
+  }
+
   async function buildStoryImage() {
     const canvas = await drawStory();
     return new Promise(res => canvas.toBlob(res, 'image/png', 0.95));
   }
 
+  // A premium, content-first 1080×1920 story image (an ad, not a screenshot).
   async function drawStory() {
     const W = 1080, H = 1920;
     const c1 = cssVar('--c1', '#0071e3'), c2 = cssVar('--c2', '#7c3aed');
-    const nameEl = wrap.querySelector('.cardly__name');
-    const tagEl = wrap.querySelector('.cardly__tagline');
-    const avatarEl = wrap.querySelector('.cardly__avatar img, img.cardly__avatar');
-    const name = nameEl ? nameEl.textContent.trim() : 'My Card';
-    const tagline = tagEl ? tagEl.textContent.trim() : '';
-    const photoSrc = avatarEl ? avatarEl.getAttribute('src') : '';
+    const tplKey = wrap.dataset.template || 'default';
+    const [ctaText] = CTA[tplKey] || CTA.default;
+    const name = (wrap.querySelector('.cardly__name')?.textContent || 'My Card').trim();
+    const tagline = (wrap.querySelector('.cardly__tagline')?.textContent || '').trim();
+    const photoSrc = wrap.querySelector('.cardly__avatar img, img.cardly__avatar')?.getAttribute('src') || '';
 
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
     ctx.textAlign = 'center';
 
-    // Background: dark with an accent gradient glow.
-    ctx.fillStyle = '#0a0a12'; ctx.fillRect(0, 0, W, H);
-    const bg = ctx.createLinearGradient(0, 0, W, H);
-    bg.addColorStop(0, c1); bg.addColorStop(1, c2);
-    ctx.globalAlpha = 0.22; ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
-
-    // Header
-    ctx.fillStyle = 'rgba(255,255,255,.85)';
-    ctx.font = '600 44px -apple-system, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText("Let’s connect 👋", W / 2, 170);
-
-    // Card panel
-    const cx = 110, cy = 250, cw = W - 220, ch = 1200, r = 56;
-    ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 60; ctx.shadowOffsetY = 20;
-    roundRect(ctx, cx, cy, cw, ch, r); ctx.fillStyle = '#16161f'; ctx.fill();
-    ctx.restore();
-
-    // Cover band (rounded top) with accent gradient
-    ctx.save();
-    roundRect(ctx, cx, cy, cw, ch, r); ctx.clip();
-    const cover = ctx.createLinearGradient(cx, cy, cx + cw, cy);
-    cover.addColorStop(0, c1); cover.addColorStop(1, c2);
-    ctx.fillStyle = cover; ctx.fillRect(cx, cy, cw, 300);
-    ctx.restore();
-
-    // Avatar
-    const ax = W / 2, ay = cy + 300, ar = 130;
-    const photo = await loadImg(photoSrc);
-    ctx.save();
-    ctx.beginPath(); ctx.arc(ax, ay, ar + 8, 0, Math.PI * 2); ctx.fillStyle = '#16161f'; ctx.fill();
-    ctx.beginPath(); ctx.arc(ax, ay, ar, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
-    if (photo) {
-      ctx.drawImage(photo, ax - ar, ay - ar, ar * 2, ar * 2);
+    /* ---- Background: cover image (with overlay) or rich multi-stop gradient ---- */
+    const cover = await loadImg(coverSrc());
+    if (cover) {
+      // cover-fit
+      const s = Math.max(W / cover.width, H / cover.height);
+      const dw = cover.width * s, dh = cover.height * s;
+      ctx.drawImage(cover, (W - dw) / 2, (H - dh) / 2, dw, dh);
+      // dark + accent overlay for legibility & mood
+      const ov = ctx.createLinearGradient(0, 0, 0, H);
+      ov.addColorStop(0, 'rgba(8,8,16,.55)'); ov.addColorStop(0.5, 'rgba(8,8,16,.35)'); ov.addColorStop(1, 'rgba(6,6,12,.92)');
+      ctx.fillStyle = ov; ctx.fillRect(0, 0, W, H);
+      ctx.globalAlpha = 0.18; const at = ctx.createLinearGradient(0, 0, W, H); at.addColorStop(0, c1); at.addColorStop(1, c2); ctx.fillStyle = at; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
     } else {
-      const g = ctx.createLinearGradient(ax - ar, ay - ar, ax + ar, ay + ar);
-      g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillRect(ax - ar, ay - ar, ar * 2, ar * 2);
-      ctx.fillStyle = '#fff'; ctx.font = '700 120px -apple-system, sans-serif';
-      ctx.fillText((name[0] || '?').toUpperCase(), ax, ay + 44);
+      const g = ctx.createLinearGradient(0, 0, W, H);
+      g.addColorStop(0, '#0a0a14'); g.addColorStop(0.35, c2); g.addColorStop(0.7, c1); g.addColorStop(1, '#0a0a14');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      // radial glow top
+      const rg = ctx.createRadialGradient(W / 2, 380, 40, W / 2, 380, 700);
+      rg.addColorStop(0, 'rgba(255,255,255,.18)'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
+    }
+    // subtle particles
+    for (let i = 0; i < 40; i++) {
+      ctx.globalAlpha = 0.05 + Math.random() * 0.15;
+      ctx.beginPath(); ctx.arc(Math.random() * W, Math.random() * H, Math.random() * 3 + 1, 0, 6.28);
+      ctx.fillStyle = '#fff'; ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    const shadow = on => { if (on) { ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 4; } else { ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0; } };
+
+    /* ---- Top brand ---- */
+    shadow(true);
+    ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.font = '700 40px -apple-system,"Segoe UI",Roboto,sans-serif';
+    ctx.fillText('✨ ' + name.split(' ')[0] + '’s card', W / 2, 130);
+
+    /* ---- Big avatar ---- */
+    const ax = W / 2, ay = 560, ar = 215;
+    const photo = await loadImg(photoSrc);
+    ctx.save(); shadow(true);
+    ctx.beginPath(); ctx.arc(ax, ay, ar + 10, 0, 6.2832); ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fill();
+    shadow(false);
+    ctx.beginPath(); ctx.arc(ax, ay, ar, 0, 6.2832); ctx.clip();
+    if (photo) {
+      const s = Math.max((ar * 2) / photo.width, (ar * 2) / photo.height);
+      ctx.drawImage(photo, ax - photo.width * s / 2, ay - photo.height * s / 2, photo.width * s, photo.height * s);
+    } else {
+      const g = ctx.createLinearGradient(ax - ar, ay - ar, ax + ar, ay + ar); g.addColorStop(0, c1); g.addColorStop(1, c2);
+      ctx.fillStyle = g; ctx.fillRect(ax - ar, ay - ar, ar * 2, ar * 2);
+      ctx.fillStyle = '#fff'; ctx.font = '700 190px -apple-system,sans-serif'; ctx.fillText((name[0] || '?').toUpperCase(), ax, ay + 68);
     }
     ctx.restore();
 
-    // Name + tagline
-    ctx.fillStyle = '#fff';
-    ctx.font = '700 66px -apple-system, "Segoe UI", Roboto, sans-serif';
-    const nameLines = wrapText(ctx, name, W / 2, ay + ar + 100, cw - 120, 76, 2);
-    let ty = ay + ar + 100 + nameLines * 76 + 10;
+    /* ---- Name + role ---- */
+    shadow(true);
+    ctx.fillStyle = '#fff'; ctx.font = '800 82px -apple-system,"Segoe UI",Roboto,sans-serif';
+    const nLines = wrapText(ctx, name, W / 2, ay + ar + 130, W - 140, 90, 2);
+    let ty = ay + ar + 130 + nLines * 90 + 8;
     if (tagline) {
-      ctx.fillStyle = 'rgba(255,255,255,.7)';
-      ctx.font = '400 38px -apple-system, "Segoe UI", Roboto, sans-serif';
-      ty += wrapText(ctx, tagline, W / 2, ty, cw - 160, 48, 2) * 48;
+      ctx.fillStyle = 'rgba(255,255,255,.82)'; ctx.font = '500 40px -apple-system,"Segoe UI",Roboto,sans-serif';
+      ty += wrapText(ctx, tagline, W / 2, ty, W - 200, 52, 2) * 52;
     }
+    shadow(false);
 
-    // QR code
+    /* ---- Prominent CTA pill (the hero) ---- */
+    ctx.font = '800 46px -apple-system,"Segoe UI",Roboto,sans-serif';
+    const ctaW = Math.min(W - 160, ctx.measureText(ctaText).width + 130);
+    const ctaH = 122, ctaX = (W - ctaW) / 2, ctaY = 1230;
+    ctx.save(); shadow(true);
+    roundRect(ctx, ctaX, ctaY, ctaW, ctaH, 61);
+    const pg = ctx.createLinearGradient(ctaX, ctaY, ctaX + ctaW, ctaY); pg.addColorStop(0, c1); pg.addColorStop(1, c2);
+    ctx.fillStyle = pg; ctx.fill(); ctx.restore();
+    ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle';
+    ctx.fillText(ctaText, W / 2, ctaY + ctaH / 2 + 2); ctx.textBaseline = 'alphabetic';
+
+    ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '500 32px -apple-system,sans-serif';
+    ctx.fillText('Tap the link or scan below ↓', W / 2, ctaY + ctaH + 62);
+
+    /* ---- QR bottom-left corner (secondary) ---- */
     if (window.OmniLib && OmniLib.QR) {
-      const qc = OmniLib.qrToCanvas(OmniLib.QR.encode(url, 'MEDIUM'), 8, 2, '#111111', '#ffffff');
-      const qs = 340, qx = (W - qs) / 2, qy = cy + ch - qs - 120;
-      ctx.save(); roundRect(ctx, qx - 18, qy - 18, qs + 36, qs + 36, 24); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
-      ctx.drawImage(qc, qx, qy, qs, qs);
-      ctx.fillStyle = 'rgba(255,255,255,.75)';
-      ctx.font = '600 34px -apple-system, sans-serif';
-      ctx.fillText('Scan to open my card', W / 2, qy + qs + 60);
+      const qs = 210, pad = 16, qx = 90, qy = H - qs - pad * 2 - 70;
+      ctx.save(); shadow(true); roundRect(ctx, qx, qy, qs + pad * 2, qs + pad * 2, 26); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
+      const qc = OmniLib.qrToCanvas(OmniLib.QR.encode(url, 'MEDIUM'), 8, 1, '#111', '#fff');
+      ctx.drawImage(qc, qx + pad, qy + pad, qs, qs);
+      // text to the right of the QR
+      ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.font = '700 38px -apple-system,sans-serif';
+      ctx.fillText('Scan to connect', qx + qs + pad * 2 + 34, qy + 78);
+      ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = '500 30px -apple-system,sans-serif';
+      ctx.fillText(url.replace(/^https?:\/\//, ''), qx + qs + pad * 2 + 34, qy + 128);
+      ctx.textAlign = 'center';
     }
 
-    // Footer
-    ctx.fillStyle = 'rgba(255,255,255,.9)';
-    ctx.font = '600 38px -apple-system, sans-serif';
-    ctx.fillText(url.replace(/^https?:\/\//, ''), W / 2, cy + ch + 90);
-    ctx.fillStyle = 'rgba(255,255,255,.5)';
-    ctx.font = '400 30px -apple-system, sans-serif';
-    ctx.fillText('Made with Cardly', W / 2, cy + ch + 140);
+    /* ---- Footer branding ---- */
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = '500 30px -apple-system,sans-serif';
+    ctx.fillText('Made with Cardly · ' + (window.OMNITOOLS_BASE || 'apps.briefnepal.com').replace(/^https?:\/\//, ''), W / 2, H - 44);
 
     return canvas;
   }
 
   // Exposed for automated visual testing.
   window.__cardlyDrawStory = drawStory;
+
+  // Temporary preview mode: /cardly/<slug>?story-preview renders just the story image.
+  if (location.search.indexOf('story-preview') > -1) {
+    drawStory().then(c => {
+      document.body.innerHTML = ''; document.body.style.background = '#000';
+      c.style.height = '100vh'; c.style.maxWidth = '100%'; c.style.margin = '0 auto'; c.style.display = 'block';
+      document.body.appendChild(c);
+    });
+  }
 })();

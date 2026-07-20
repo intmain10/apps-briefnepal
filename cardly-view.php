@@ -55,7 +55,7 @@ $page = [
 
 require __DIR__ . '/includes/header.php';
 ?>
-<div class="cardly" style="--c1:<?= eattr($a1) ?>;--c2:<?= eattr($a2) ?>" data-card-url="<?= eattr($cardUrl) ?>">
+<div class="cardly" style="--c1:<?= eattr($a1) ?>;--c2:<?= eattr($a2) ?>" data-card-url="<?= eattr($cardUrl) ?>" data-template="<?= eattr($card['template'] ?? 'default') ?>">
   <div class="cardly__sheet">
     <div class="cardly__cover" <?= $card['cover'] ? 'style="background-image:url(\'' . eattr($card['cover']) . '\')"' : '' ?>></div>
 
