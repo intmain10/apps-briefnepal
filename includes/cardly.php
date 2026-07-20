@@ -146,6 +146,39 @@ function cardly_media_url(string $slug): string
     return url('uploads/cardly/media/' . $slug);
 }
 
+/**
+ * The primary call-to-action for a card: [label, url] based on template +
+ * available links. Returns null if no suitable destination exists.
+ */
+function cardly_cta(array $card): ?array
+{
+    $s = $card['socials'] ?? [];
+    $c = $card['contact'] ?? [];
+    $web = $c['website'] ?? '';
+    $tel = !empty($c['phone']) ? 'tel:' . preg_replace('/[^0-9+]/', '', $c['phone']) : '';
+    $wa  = !empty($c['whatsapp']) ? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $c['whatsapp']) : '';
+    $mail = !empty($c['email']) ? 'mailto:' . $c['email'] : '';
+    $first = function (...$opts) { foreach ($opts as $o) { if (!empty($o)) return $o; } return ''; };
+
+    [$label, $url] = match ($card['template'] ?? 'default') {
+        'music'        => ['🎵 Listen Now',       $first($s['spotify'] ?? '', $s['youtube'] ?? '', $web)],
+        'creator'      => ['📺 Watch My Videos',   $first($s['youtube'] ?? '', $s['instagram'] ?? '', $web)],
+        'developer'    => ['💻 View My Work',       $first($web, $s['github'] ?? '')],
+        'business'     => ['📞 Get in Touch',       $first($tel, $wa, $mail, $web)],
+        'photographer' => ['📸 Explore My Work',    $first($web, $s['instagram'] ?? '')],
+        'freelancer'   => ['💼 Work With Me',       $first($web, $s['linkedin'] ?? '', $mail)],
+        'doctor'       => ['🩺 Book Appointment',   $first($tel, $web, $wa)],
+        'realestate'   => ['🏠 View Listings',      $first($web, $tel)],
+        'startup'      => ['🚀 Check Us Out',       $first($web, $s['linkedin'] ?? '')],
+        'gym'          => ['💪 Train With Me',      $first($wa, $tel, $s['instagram'] ?? '')],
+        'student'      => ['🎓 Connect With Me',    $first($s['linkedin'] ?? '', $web, $mail)],
+        'wedding'      => ['💌 View Invitation',    $first($web)],
+        'event'        => ['🎉 Join the Event',     $first($web)],
+        default        => ['👋 Connect With Me',    $first($web, $s['instagram'] ?? '', $s['linkedin'] ?? '', $mail)],
+    };
+    return $url ? [$label, $url] : null;
+}
+
 /** Build a vCard (VCF 3.0) string from a card. */
 function cardly_vcf(array $card): string
 {

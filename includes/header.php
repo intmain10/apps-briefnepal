@@ -104,6 +104,7 @@ if (!empty($breadcrumb)) {
 </script>
 
 <link rel="preconnect" href="<?= eattr(SITE_URL) ?>">
+<link rel="preload" href="<?= eattr(url('assets/fonts/sora.woff2')) ?>" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="<?= eattr(url('assets/css/style.css?v=' . OMNITOOLS_VERSION)) ?>">
 <?php if (!empty($page['is_cardly'])): ?>
 <link rel="stylesheet" href="<?= eattr(url('assets/css/cardly.css?v=' . OMNITOOLS_VERSION)) ?>">

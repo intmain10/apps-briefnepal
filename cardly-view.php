@@ -68,8 +68,12 @@ require __DIR__ . '/includes/header.php';
       <h1 class="cardly__name"><?= e($name) ?></h1>
       <?php if ($card['tagline']): ?><p class="cardly__tagline"><?= e($card['tagline']) ?></p><?php endif; ?>
 
+      <?php $cta = cardly_cta($card); if ($cta): ?>
+        <a class="cardly__cta-primary" href="<?= eattr($cta[1]) ?>"<?= str_starts_with($cta[1], 'http') ? ' target="_blank" rel="noopener"' : '' ?>><?= e($cta[0]) ?></a>
+      <?php endif; ?>
+
       <div class="cardly__actions">
-        <a class="cardly__btn cardly__btn--primary" href="<?= eattr(url('api/cardly.php') . '?action=vcf&slug=' . $slug) ?>">Save Contact</a>
+        <a class="cardly__btn" href="<?= eattr(url('api/cardly.php') . '?action=vcf&slug=' . $slug) ?>">Save Contact</a>
         <button class="cardly__btn" id="cardlyShare" type="button">Share</button>
         <button class="cardly__btn" id="cardlyStory" type="button">📸 Story</button>
         <button class="cardly__btn" id="cardlyQr" type="button">QR</button>
