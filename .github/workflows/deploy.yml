@@ -29,9 +29,9 @@ jobs:
           protocol: ftp                           # switch to "ftps" if your host requires TLS
 
           # --- Where files land on the server ---
-          # Main account "u682902872" logs into the home dir, so we target /public_html/.
-          # If you use a jailed sub-account (e.g. u682902872.apps) instead, change this to "./".
-          server-dir: /public_html/
+          # Sub-account "u682902872.apps" is jailed to public_html, so we land
+          # directly in the web root and upload with "./".
+          server-dir: ./
 
           # Incremental sync: only changed files are uploaded (state file kept on server).
           # Files you delete from the repo are also removed from the server.
