@@ -93,88 +93,112 @@
   };
   let _fontLoaded = false;
   async function ensureFont() {
-    if (_fontLoaded || !window.FontFace) return;
-    const base = window.OMNITOOLS_BASE || '';
-    const fonts = [
-      new FontFace('Clash Display', "url('" + base + "/assets/fonts/clash-700.woff2')", { weight: '700' }),
-      new FontFace('Satoshi', "url('" + base + "/assets/fonts/satoshi-500.woff2')", { weight: '500' }),
-      new FontFace('Satoshi', "url('" + base + "/assets/fonts/satoshi-700.woff2')", { weight: '700' }),
-    ];
-    try { await Promise.all(fonts.map(f => f.load())); fonts.forEach(f => document.fonts.add(f)); } catch (e) {}
+    if (_fontLoaded) return;
+    try {
+      if (document.fonts && document.fonts.load) {
+        await Promise.allSettled([
+          document.fonts.load("700 82px 'Clash Display'"),
+          document.fonts.load("600 82px 'Clash Display'"),
+          document.fonts.load("500 40px 'Satoshi'"),
+          document.fonts.load("700 40px 'Satoshi'"),
+        ]);
+        if (document.fonts.ready) await document.fonts.ready;
+      }
+    } catch (e) {}
     _fontLoaded = true;
   }
-  function drawPattern(ctx, key, c1, c2, W, H) {
-    const style = ({ music: 'waves', developer: 'grid', business: 'grid', startup: 'grid', creator: 'rays', event: 'rays', wedding: 'blobs', freelancer: 'blobs', student: 'blobs', photographer: 'rings', doctor: 'rings', gym: 'streaks', realestate: 'streaks' })[key] || 'blobs';
-    const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    const v = ctx.createLinearGradient(0, 0, 0, H); v.addColorStop(0, 'rgba(8,8,18,.45)'); v.addColorStop(.45, 'rgba(8,8,18,.12)'); v.addColorStop(1, 'rgba(6,6,14,.86)'); ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
-    ctx.save();
-    if (style === 'waves') { ctx.strokeStyle = '#fff'; ctx.lineWidth = 6; for (let k = 0; k < 6; k++) { ctx.beginPath(); const base = H * 0.6 + k * 40; for (let x = 0; x <= W; x += 12) { const y = base + Math.sin((x / W) * Math.PI * 4 + k) * (46 + k * 6); x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); } ctx.globalAlpha = 0.12 - k * 0.015; ctx.stroke(); } }
-    else if (style === 'grid') { ctx.globalAlpha = .08; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; for (let x = 0; x <= W; x += 72) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); } for (let y = 0; y <= H; y += 72) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); } }
-    else if (style === 'rays') { ctx.globalAlpha = .07; ctx.fillStyle = '#fff'; const cx = W / 2, cy = -120, len = H * 1.6; for (let a = 0; a < 22; a++) { const ang = (a / 22) * Math.PI; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(ang) * len, cy + Math.sin(ang) * len); ctx.lineTo(cx + Math.cos(ang + .045) * len, cy + Math.sin(ang + .045) * len); ctx.closePath(); ctx.fill(); } }
-    else if (style === 'rings') { ctx.globalAlpha = .1; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; for (let r = 120; r < 1500; r += 120) { ctx.beginPath(); ctx.arc(W / 2, H * 0.42, r, 0, 6.2832); ctx.stroke(); } }
-    else if (style === 'streaks') { ctx.globalAlpha = .1; ctx.strokeStyle = '#fff'; ctx.lineWidth = 42; for (let i = -2; i < 15; i++) { ctx.beginPath(); ctx.moveTo(i * 130 - 200, H + 120); ctx.lineTo(i * 130 + 340, -120); ctx.stroke(); } }
-    else { [[W * .2, H * .2, '#fff'], [W * .85, H * .32, c1], [W * .25, H * .82, c2], [W * .82, H * .86, '#fff']].forEach(([bx, by, col]) => { const rg = ctx.createRadialGradient(bx, by, 10, bx, by, 540); ctx.globalAlpha = .22; rg.addColorStop(0, col); rg.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H); }); }
-    ctx.restore(); ctx.globalAlpha = 1;
-  }
-
   async function buildStoryImage() { return new Promise(async res => { const c = await drawStory(); c.toBlob(b => res(b), 'image/png', 0.95); }); }
 
+  const hex2rgb = h => { h = h.replace('#', ''); if (h.length === 3) h = h.split('').map(x => x + x).join(''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
+
+  // Premium, cinematic 1080×1920 story — designed background, not a raw photo.
   async function drawStory() {
     const W = 1080, H = 1920;
     const c1 = cssVar('--c1', '#0071e3'), c2 = cssVar('--c2', '#7c3aed');
+    const [r1, g1, b1] = hex2rgb(c1), [r2, g2, b2] = hex2rgb(c2);
     const tplKey = D.template || 'default';
     const ctaText = CTA[tplKey] || CTA.default;
     const name = (D.name || 'My Card').trim();
     const tagline = (D.tagline || '').trim();
     await ensureFont();
+
     const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d'); ctx.textAlign = 'center';
 
+    /* ---------- Cinematic background (designed, moody) ---------- */
+    ctx.fillStyle = '#07070c'; ctx.fillRect(0, 0, W, H);
+    // faint real-photo texture (cover) — barely visible for depth
     const cover = await loadImg(D.cover);
     if (cover) {
       const s = Math.max(W / cover.width, H / cover.height), dw = cover.width * s, dh = cover.height * s;
-      ctx.drawImage(cover, (W - dw) / 2, (H - dh) / 2, dw, dh);
-      const ov = ctx.createLinearGradient(0, 0, 0, H); ov.addColorStop(0, 'rgba(8,8,16,.55)'); ov.addColorStop(.5, 'rgba(8,8,16,.35)'); ov.addColorStop(1, 'rgba(6,6,12,.92)'); ctx.fillStyle = ov; ctx.fillRect(0, 0, W, H);
-    } else drawPattern(ctx, tplKey, c1, c2, W, H);
-    for (let i = 0; i < 36; i++) { ctx.globalAlpha = .05 + Math.random() * .12; ctx.beginPath(); ctx.arc(Math.random() * W, Math.random() * H, Math.random() * 3 + 1, 0, 6.28); ctx.fillStyle = '#fff'; ctx.fill(); }
+      ctx.globalAlpha = 0.28; ctx.drawImage(cover, (W - dw) / 2, (H - dh) / 2, dw, dh); ctx.globalAlpha = 1;
+      ctx.fillStyle = 'rgba(7,7,12,.62)'; ctx.fillRect(0, 0, W, H);
+    }
+    // accent glows
+    const glow = (x, y, rad, r, g, b, a) => { const rg = ctx.createRadialGradient(x, y, 0, x, y, rad); rg.addColorStop(0, `rgba(${r},${g},${b},${a})`); rg.addColorStop(1, `rgba(${r},${g},${b},0)`); ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H); };
+    glow(W / 2, 560, 700, r1, g1, b1, 0.38);
+    glow(W * 0.15, 1350, 620, r2, g2, b2, 0.30);
+    glow(W * 0.9, 1650, 520, r1, g1, b1, 0.22);
+    // fine grain
+    for (let i = 0; i < 90; i++) { ctx.globalAlpha = 0.03 + Math.random() * 0.07; ctx.beginPath(); ctx.arc(Math.random() * W, Math.random() * H, Math.random() * 2.2 + 0.5, 0, 6.28); ctx.fillStyle = '#fff'; ctx.fill(); }
     ctx.globalAlpha = 1;
+    // vignette
+    const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.72); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.55)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
 
-    const shadow = on => { ctx.shadowColor = on ? 'rgba(0,0,0,.45)' : 'transparent'; ctx.shadowBlur = on ? 24 : 0; ctx.shadowOffsetY = on ? 4 : 0; };
-    shadow(true);
-    ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.font = "700 40px 'Clash Display',sans-serif";
-    ctx.fillText('✨ ' + name.split(' ')[0] + '’s card', W / 2, 130);
+    const shadow = on => { ctx.shadowColor = on ? 'rgba(0,0,0,.5)' : 'transparent'; ctx.shadowBlur = on ? 22 : 0; ctx.shadowOffsetY = on ? 4 : 0; };
 
-    const ax = W / 2, ay = 560, ar = 215;
+    /* ---------- Kicker ---------- */
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = "500 30px 'Satoshi',sans-serif";
+    ctx.save(); ctx.translate(W / 2, 150); ctx.fillText('L E T ’ S   C O N N E C T', 0, 0); ctx.restore();
+
+    /* ---------- Avatar with gradient ring + glow ---------- */
+    const ax = W / 2, ay = 600, ar = 220;
     const photo = await loadImg(D.photo);
-    ctx.save(); shadow(true); ctx.beginPath(); ctx.arc(ax, ay, ar + 10, 0, 6.2832); ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fill(); shadow(false);
-    ctx.beginPath(); ctx.arc(ax, ay, ar, 0, 6.2832); ctx.clip();
+    // glow
+    ctx.save(); const ring = ctx.createLinearGradient(ax - ar, ay - ar, ax + ar, ay + ar); ring.addColorStop(0, c1); ring.addColorStop(1, c2);
+    ctx.shadowColor = `rgba(${r1},${g1},${b1},.6)`; ctx.shadowBlur = 60;
+    ctx.beginPath(); ctx.arc(ax, ay, ar + 12, 0, 6.2832); ctx.fillStyle = ring; ctx.fill(); ctx.restore();
+    // inner dark gap
+    ctx.beginPath(); ctx.arc(ax, ay, ar + 4, 0, 6.2832); ctx.fillStyle = '#07070c'; ctx.fill();
+    ctx.save(); ctx.beginPath(); ctx.arc(ax, ay, ar, 0, 6.2832); ctx.clip();
     if (photo) { const s = Math.max((ar * 2) / photo.width, (ar * 2) / photo.height); ctx.drawImage(photo, ax - photo.width * s / 2, ay - photo.height * s / 2, photo.width * s, photo.height * s); }
-    else { const g = ctx.createLinearGradient(ax - ar, ay - ar, ax + ar, ay + ar); g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillRect(ax - ar, ay - ar, ar * 2, ar * 2); ctx.fillStyle = '#fff'; ctx.font = "700 190px 'Clash Display',sans-serif"; ctx.fillText((name[0] || '?').toUpperCase(), ax, ay + 68); }
+    else { ctx.fillStyle = ring; ctx.fillRect(ax - ar, ay - ar, ar * 2, ar * 2); ctx.fillStyle = '#fff'; ctx.font = "700 190px 'Clash Display',sans-serif"; ctx.fillText((name[0] || '?').toUpperCase(), ax, ay + 68); }
     ctx.restore();
 
+    /* ---------- Name (Clash Display) + role (Satoshi) ---------- */
     shadow(true);
-    ctx.fillStyle = '#fff'; ctx.font = "700 82px 'Clash Display',sans-serif";
-    const nLines = wrapText(ctx, name, W / 2, ay + ar + 130, W - 140, 90, 2);
-    let ty = ay + ar + 130 + nLines * 90 + 8;
-    if (tagline) { ctx.fillStyle = 'rgba(255,255,255,.82)'; ctx.font = '500 40px Satoshi,sans-serif'; ty += wrapText(ctx, tagline, W / 2, ty, W - 200, 52, 2) * 52; }
+    ctx.fillStyle = '#fff'; ctx.font = "700 90px 'Clash Display',sans-serif";
+    const nLines = wrapText(ctx, name, W / 2, ay + ar + 140, W - 120, 96, 2);
+    let ty = ay + ar + 140 + nLines * 96 + 6;
+    if (tagline) { ctx.fillStyle = 'rgba(255,255,255,.78)'; ctx.font = "500 38px 'Satoshi',sans-serif"; ty += wrapText(ctx, tagline, W / 2, ty, W - 220, 50, 2) * 50; }
     shadow(false);
 
-    ctx.font = "700 46px 'Clash Display',sans-serif";
-    const ctaW = Math.min(W - 160, ctx.measureText(ctaText).width + 130), ctaH = 122, ctaX = (W - ctaW) / 2, ctaY = 1230;
-    ctx.save(); shadow(true); roundRect(ctx, ctaX, ctaY, ctaW, ctaH, 61); const pg = ctx.createLinearGradient(ctaX, ctaY, ctaX + ctaW, ctaY); pg.addColorStop(0, c1); pg.addColorStop(1, c2); ctx.fillStyle = pg; ctx.fill(); ctx.restore();
-    ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(ctaText, W / 2, ctaY + ctaH / 2 + 2); ctx.textBaseline = 'alphabetic';
-    ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '500 32px Satoshi,sans-serif'; ctx.fillText('Tap the link or scan below ↓', W / 2, ctaY + ctaH + 62);
+    // gradient divider
+    const dv = ctx.createLinearGradient(W / 2 - 70, 0, W / 2 + 70, 0); dv.addColorStop(0, c1); dv.addColorStop(1, c2);
+    ctx.fillStyle = dv; roundRect(ctx, W / 2 - 70, ty + 18, 140, 6, 3); ctx.fill();
 
+    /* ---------- CTA pill ---------- */
+    ctx.font = "700 48px 'Clash Display',sans-serif";
+    const ctaW = Math.min(W - 150, ctx.measureText(ctaText).width + 140), ctaH = 128, ctaX = (W - ctaW) / 2, ctaY = 1300;
+    ctx.save(); ctx.shadowColor = `rgba(${r1},${g1},${b1},.55)`; ctx.shadowBlur = 40; ctx.shadowOffsetY = 12;
+    roundRect(ctx, ctaX, ctaY, ctaW, ctaH, 64); const pg = ctx.createLinearGradient(ctaX, ctaY, ctaX + ctaW, ctaY); pg.addColorStop(0, c1); pg.addColorStop(1, c2); ctx.fillStyle = pg; ctx.fill(); ctx.restore();
+    ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(ctaText, W / 2, ctaY + ctaH / 2 + 3); ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = "500 31px 'Satoshi',sans-serif"; ctx.fillText('Tap the link or scan below', W / 2, ctaY + ctaH + 60);
+
+    /* ---------- QR (glass frame, bottom-left) ---------- */
     if (window.OmniLib && OmniLib.QR) {
-      const qs = 210, pad = 16, qx = 90, qy = H - qs - pad * 2 - 70;
-      ctx.save(); shadow(true); roundRect(ctx, qx, qy, qs + pad * 2, qs + pad * 2, 26); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
-      ctx.drawImage(OmniLib.qrToCanvas(OmniLib.QR.encode(url, 'MEDIUM'), 8, 1, '#111', '#fff'), qx + pad, qy + pad, qs, qs);
-      ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.font = '700 38px Satoshi,sans-serif'; ctx.fillText('Scan to connect', qx + qs + pad * 2 + 34, qy + 78);
-      ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = '500 30px Satoshi,sans-serif'; ctx.fillText(url.replace(/^https?:\/\//, ''), qx + qs + pad * 2 + 34, qy + 128);
+      const qs = 200, pad = 18, qx = 88, qy = H - qs - pad * 2 - 78;
+      ctx.save(); ctx.shadowColor = `rgba(${r1},${g1},${b1},.5)`; ctx.shadowBlur = 34; roundRect(ctx, qx, qy, qs + pad * 2, qs + pad * 2, 28); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
+      ctx.drawImage(OmniLib.qrToCanvas(OmniLib.QR.encode(url, 'MEDIUM'), 8, 1, '#0a0a0f', '#fff'), qx + pad, qy + pad, qs, qs);
+      ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.font = "700 40px 'Clash Display',sans-serif"; ctx.fillText('Scan to connect', qx + qs + pad * 2 + 34, qy + 82);
+      ctx.fillStyle = 'rgba(255,255,255,.72)'; ctx.font = "500 30px 'Satoshi',sans-serif"; ctx.fillText(url.replace(/^https?:\/\//, ''), qx + qs + pad * 2 + 34, qy + 132);
       ctx.textAlign = 'center';
     }
-    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = '500 30px Satoshi,sans-serif';
+    /* ---------- Footer ---------- */
+    ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = "500 29px 'Satoshi',sans-serif";
     ctx.fillText('Made with Cardly · ' + (window.OMNITOOLS_BASE || 'apps.briefnepal.com').replace(/^https?:\/\//, ''), W / 2, H - 44);
     return canvas;
   }
+
+  if (location.search.indexOf('story-preview') > -1) { drawStory().then(c => { document.body.innerHTML = ''; document.body.style.background = '#000'; c.style.height = '100vh'; c.style.maxWidth = '100%'; c.style.margin = '0 auto'; c.style.display = 'block'; document.body.appendChild(c); }); }
 })();
