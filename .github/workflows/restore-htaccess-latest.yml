@@ -22,9 +22,12 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y lftp
           echo "=== .htaccess to upload ($(wc -l < .github/main.htaccess) lines) ==="
           head -18 .github/main.htaccess
-          lftp -u "$FTP_USER","$FTP_PASS" "$FTP_HOST" <<'EOF'
+          timeout 100 lftp -u "$FTP_USER","$FTP_PASS" "$FTP_HOST" <<'EOF'
           set ftp:ssl-allow no
-          set net:timeout 30
+          set ftp:passive-mode on
+          set net:timeout 15
+          set net:max-retries 3
+          set net:reconnect-interval-base 5
           put .github/main.htaccess -o .htaccess
           cls -la .htaccess
           bye
