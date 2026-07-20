@@ -1,0 +1,107 @@
+# =========================================================================
+# OmniTools — Apache configuration (shared-hosting friendly)
+# =========================================================================
+
+# ---- Default charset & directory behaviour -----------------------------
+AddDefaultCharset UTF-8
+DirectoryIndex index.php
+Options -Indexes +FollowSymLinks
+
+# ---- Custom error document ---------------------------------------------
+ErrorDocument 404 /404.php
+
+# =========================================================================
+# URL rewriting — clean, SEO-friendly URLs
+# =========================================================================
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Force HTTPS (comment out if your host handles this at the proxy layer)
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+    # Strip trailing slash (except real directories)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.+)/$ /$1 [R=301,L]
+
+    # Sitemaps & robots
+    RewriteRule ^sitemap\.xml$ sitemap.php [L]
+    RewriteRule ^sitemap-index\.xml$ sitemap.php?type=index [L]
+    RewriteRule ^sitemap-([a-z]+)\.xml$ sitemap.php?type=$1 [L]
+    RewriteRule ^robots\.txt$ robots.php [L]
+
+    # All-tools directory
+    RewriteRule ^tools/?$ tools.php [L,QSA]
+
+    # Categories
+    RewriteRule ^category/([a-z0-9-]+)/?$ category.php?cat=$1 [L,QSA]
+
+    # Blog
+    RewriteRule ^blog/?$ blog/index.php [L,QSA]
+    RewriteRule ^blog/([a-z0-9-]+)/?$ blog/post.php?slug=$1 [L,QSA]
+
+    # Static pages
+    RewriteRule ^(about|privacy|terms|contact|changelog|sitemap|feedback)/?$ page.php?p=$1 [L,QSA]
+
+    # Fallback: single clean segment → tool page (only if not a real file/dir)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^([a-z0-9-]+)/?$ tool.php?slug=$1 [L,QSA]
+</IfModule>
+
+# =========================================================================
+# Performance — compression
+# =========================================================================
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+    AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+    AddOutputFilterByType DEFLATE application/json application/xml
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# =========================================================================
+# Performance — browser caching
+# =========================================================================
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Long cache for static assets
+    <FilesMatch "\.(css|js|svg|png|jpg|jpeg|webp|woff2|ico)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+
+    # Security headers
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# =========================================================================
+# Security — block access to sensitive files
+# =========================================================================
+<FilesMatch "^(config\.php|\.htaccess|.*\.sql|.*\.log|composer\.(json|lock))$">
+    Require all denied
+</FilesMatch>
+
+# Block access to the includes directory from the web
+RewriteRule ^includes/ - [F,L]
+
+# PHP upload limits (works on hosts using PHP as an Apache module)
+<IfModule mod_php.c>
+    php_value upload_max_filesize 50M
+    php_value post_max_size 52M
+    php_value max_execution_time 120
+</IfModule>

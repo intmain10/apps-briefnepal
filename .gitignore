@@ -1,0 +1,18 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.qodo/
+.idea/
+.vscode/
+
+# Runtime uploads & logs (keep the folders, ignore contents)
+/uploads/*
+!/uploads/.htaccess
+!/uploads/tmp/
+/uploads/tmp/*
+!/uploads/tmp/.gitkeep
+*.log
+
+# Local environment overrides
+config.local.php
+.env

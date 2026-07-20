@@ -1,0 +1,10 @@
+# Never execute code from the uploads directory — serve/deny only.
+php_flag engine off
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule \.(php|phtml|php3|php4|php5|phps|cgi|pl)$ - [F]
+</IfModule>
+<FilesMatch "\.(php|phtml|php3|php4|php5|phps|cgi|pl)$">
+    Require all denied
+</FilesMatch>
+Options -Indexes
