@@ -1,0 +1,40 @@
+name: Cleanup main domain root
+
+# One-off, manual only. Removes the OmniTools copy that earlier deploys placed
+# in public_html ROOT (briefnepal.com), WITHOUT touching the apps/ folder
+# (apps.briefnepal.com). Everything removed is just a copy of this repo, so it
+# is fully reversible by re-deploying.
+on:
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove OmniTools files from public_html root (keep /apps)
+        env:
+          FTP_HOST: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y lftp
+          lftp -u "$FTP_USER","$FTP_PASS" "$FTP_HOST" <<'EOF'
+          set ftp:ssl-allow no
+          set net:max-retries 2
+          set net:timeout 25
+          echo ">>> Before cleanup:"
+          cls -la
+          # Delete the top-level files this project deployed to the root.
+          rm -f index.php tool.php tools.php category.php page.php robots.php sitemap.php 404.php config.php .htaccess .ftp-deploy-sync-state.json
+          # Delete the directories this project deployed to the root (NOT apps/).
+          rm -rf api
+          rm -rf assets
+          rm -rf blog
+          rm -rf includes
+          rm -rf uploads
+          rm -rf database
+          rm -rf admin
+          echo ">>> After cleanup (the apps/ folder must still be present):"
+          cls -la
+          bye
+          EOF
