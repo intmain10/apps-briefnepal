@@ -16,3 +16,6 @@ Thumbs.db
 # Local environment overrides
 config.local.php
 .env
+
+# Local agent state
+.claude/

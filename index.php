@@ -75,6 +75,24 @@ require __DIR__ . '/includes/header.php';
   </div>
 </section>
 
+<!-- Personalised: Recently used + Favourites (filled from localStorage by JS) -->
+<section class="section container hidden" id="personalSection">
+  <div id="recentBlock" class="hidden">
+    <div class="section__head">
+      <div><h2 class="section__title"><?= icon_svg('clock') ?> Recently Used</h2>
+      <p class="section__desc">Jump back into your last-used tools.</p></div>
+    </div>
+    <div class="cards" id="recentCards"></div>
+  </div>
+  <div id="favBlock" class="hidden" style="margin-top:44px">
+    <div class="section__head">
+      <div><h2 class="section__title" style="color:var(--danger)"><?= icon_svg('heart') ?> Your Favourites</h2>
+      <p class="section__desc">Tools you've saved with the ♥ button.</p></div>
+    </div>
+    <div class="cards" id="favCards"></div>
+  </div>
+</section>
+
 <!-- Popular tools -->
 <section class="section container">
   <div class="section__head">
@@ -167,5 +185,7 @@ require __DIR__ . '/includes/header.php';
     <?php endforeach; ?>
   </div>
 </section>
+
+<script>window.OMNITOOLS_INDEX = <?= json_html(omnitools_client_index()) ?>;</script>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>

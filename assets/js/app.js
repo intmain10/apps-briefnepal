@@ -223,4 +223,54 @@
 
   /* Expose a way for tool pages to preload the client-side index (fallback). */
   window.__setOmniIndex = (arr) => { allToolsCache = arr; };
+
+  /* ------------------------------------------------ Personalised sections */
+  // Renders "Recently Used" and "Your Favourites" on the homepage from
+  // localStorage. Recent visits are recorded on every tool page (below).
+  (function personalise() {
+    const idx = window.OMNITOOLS_INDEX;
+    if (!idx || !idx.tools) return;
+
+    function card(slug) {
+      const t = idx.tools[slug];
+      if (!t) return '';
+      const c = idx.cats[t.cat] || { color: 'var(--accent)', icon: '' };
+      return `<a class="tool-card" href="${BASE}/${slug}">
+        <span class="tool-card__icon" style="background:${c.color}">${c.icon}</span>
+        <div class="tool-card__title">${OmniUtil.escape(t.name)}</div>
+        <div class="tool-card__desc">${OmniUtil.escape(t.desc)}</div></a>`;
+    }
+    function read(key) {
+      try { return (JSON.parse(localStorage.getItem(key) || '[]') || []).filter(s => idx.tools[s]); }
+      catch (e) { return []; }
+    }
+    function fill(cardsId, blockId, list) {
+      const el = document.getElementById(cardsId);
+      if (!el || !list.length) return false;
+      el.innerHTML = list.slice(0, 8).map(card).join('');
+      const block = document.getElementById(blockId);
+      if (block) block.classList.remove('hidden');
+      return true;
+    }
+
+    const section = document.getElementById('personalSection');
+    if (!section) return;
+    const hasRecent = fill('recentCards', 'recentBlock', read('omnitools-recent'));
+    const hasFavs = fill('favCards', 'favBlock', read('omnitools-favs'));
+    if (hasRecent || hasFavs) section.classList.remove('hidden');
+  })();
+
+  /* Record the current tool page into the "recently used" list. */
+  (function recordRecent() {
+    const ws = document.querySelector('[data-tool]');
+    if (!ws) return;
+    const slug = ws.getAttribute('data-tool');
+    if (!slug) return;
+    try {
+      let recent = JSON.parse(localStorage.getItem('omnitools-recent') || '[]');
+      recent = recent.filter(s => s !== slug);
+      recent.unshift(slug);
+      localStorage.setItem('omnitools-recent', JSON.stringify(recent.slice(0, 12)));
+    } catch (e) {}
+  })();
 })();

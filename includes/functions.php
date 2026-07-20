@@ -237,6 +237,25 @@ function render_tool_card(array $tool): string
         . '</a>';
 }
 
+/**
+ * Compact tool/category index for client-side rendering (recently used,
+ * favourites). Kept small: category colour + icon SVG, and per-tool name/desc.
+ *
+ * @return array<string,mixed>
+ */
+function omnitools_client_index(): array
+{
+    $cats = [];
+    foreach (omnitools_categories() as $slug => $c) {
+        $cats[$slug] = ['color' => $c['color'], 'icon' => icon_svg($c['icon'])];
+    }
+    $tools = [];
+    foreach (omnitools_tools() as $t) {
+        $tools[$t['slug']] = ['name' => $t['name'], 'desc' => $t['desc'], 'cat' => $t['category']];
+    }
+    return ['cats' => $cats, 'tools' => $tools];
+}
+
 /** Render a category card. */
 function render_category_card(string $slug, array $cat): string
 {

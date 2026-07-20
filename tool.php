@@ -52,6 +52,7 @@ $page = [
     'description' => $metaDesc,
     'canonical'   => url($slug),
     'is_tool'     => true,
+    'is_pdf'      => ($tool['category'] === 'pdf'),
     'body_class'  => 'page-tool',
     'breadcrumb'  => [
         ['name' => 'Home', 'url' => url()],
@@ -171,6 +172,20 @@ require __DIR__ . '/includes/header.php';
     </aside>
   </div>
 </div>
+
+<?php if ($related): ?>
+<!-- You might also like -->
+<section class="section container">
+  <div class="section__head">
+    <div><h2 class="section__title">You might also like</h2>
+    <p class="section__desc">Popular <?= e($cat['name']) ?> tools people use next.</p></div>
+    <a class="section__link" href="<?= eattr(url('category/' . $cat['slug'])) ?>">See all <?= icon_svg('arrow') ?></a>
+  </div>
+  <div class="cards">
+    <?php foreach ($related as $r) echo render_tool_card($r); ?>
+  </div>
+</section>
+<?php endif; ?>
 
 <script>
 // Favourites (localStorage — no login needed).

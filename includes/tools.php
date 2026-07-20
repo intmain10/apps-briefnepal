@@ -79,6 +79,28 @@ function omnitools_tools(): array
     $t('pdf-to-jpg', 'pdf', 'PDF to JPG', 'Convert each page of a PDF into a high-quality JPG image.', ['trending'], 'pdf image export pages');
     $t('jpg-to-pdf', 'pdf', 'JPG to PDF', 'Turn one or many images into a single PDF document.', ['popular'], 'image to pdf photo pdf');
     $t('word-to-pdf', 'pdf', 'Word to PDF', 'Convert Word / text documents into PDF files.', [], 'doc docx pdf convert');
+    $t('pdf-to-word', 'pdf', 'PDF to Word', 'Extract a PDF into an editable Word document.', ['popular'], 'pdf doc docx convert export');
+    $t('pdf-to-powerpoint', 'pdf', 'PDF to PowerPoint', 'Convert a PDF into an editable PowerPoint presentation.', [], 'pdf ppt pptx slides convert');
+    $t('pdf-to-excel', 'pdf', 'PDF to Excel', 'Pull data from a PDF into an Excel spreadsheet.', [], 'pdf xls xlsx sheet convert');
+    $t('powerpoint-to-pdf', 'pdf', 'PowerPoint to PDF', 'Convert PPT and PPTX slideshows into PDF.', [], 'ppt pptx slides pdf convert');
+    $t('excel-to-pdf', 'pdf', 'Excel to PDF', 'Convert Excel spreadsheets into PDF documents.', [], 'xls xlsx sheet pdf convert');
+    $t('edit-pdf', 'pdf', 'Edit PDF', 'Add text and notes anywhere on your PDF.', ['trending'], 'annotate add text pdf editor');
+    $t('sign-pdf', 'pdf', 'Sign PDF', 'Draw and place your signature on a PDF.', ['popular'], 'signature esign sign document');
+    $t('watermark-pdf', 'pdf', 'Watermark PDF', 'Stamp text watermarks across every page.', [], 'stamp watermark brand overlay');
+    $t('html-to-pdf', 'pdf', 'HTML to PDF', 'Convert HTML content into a PDF document.', [], 'webpage html pdf convert');
+    $t('organize-pdf', 'pdf', 'Organize PDF', 'Reorder and delete pages visually.', [], 'reorder delete pages arrange');
+    $t('pdf-to-pdfa', 'pdf', 'PDF to PDF/A', 'Convert to the ISO PDF/A archival format.', [], 'pdfa archive iso long term');
+    $t('repair-pdf', 'pdf', 'Repair PDF', 'Recover data from a damaged or corrupt PDF.', [], 'fix damaged corrupt recover');
+    $t('page-numbers-pdf', 'pdf', 'Add Page Numbers', 'Insert page numbers anywhere on your PDF.', [], 'page numbers pagination');
+    $t('scan-to-pdf', 'pdf', 'Scan to PDF', 'Capture pages with your camera into a PDF.', ['new'], 'camera scan document pdf');
+    $t('ocr-pdf', 'pdf', 'OCR PDF', 'Make scanned PDFs searchable and selectable.', [], 'ocr searchable scan text recognize');
+    $t('compare-pdf', 'pdf', 'Compare PDF', 'View two PDFs side by side to spot changes.', [], 'diff compare versions changes');
+    $t('redact-pdf', 'pdf', 'Redact PDF', 'Permanently black out sensitive content.', [], 'redact hide censor remove sensitive');
+    $t('crop-pdf', 'pdf', 'Crop PDF', 'Trim margins and crop PDF pages.', [], 'trim margins crop pages');
+    $t('pdf-forms', 'pdf', 'Fill PDF Forms', 'Detect and fill interactive PDF form fields.', [], 'forms acroform fill fields');
+    $t('pdf-summarizer', 'pdf', 'PDF Summarizer', 'Summarise a PDF into key points — on device.', ['new'], 'summary tldr ai pdf');
+    $t('translate-pdf', 'pdf', 'Translate PDF', 'Translate the text content of a PDF.', [], 'translate language pdf convert');
+    $t('pdf-to-markdown', 'pdf', 'PDF to Markdown', 'Extract PDF text as clean Markdown.', ['new'], 'md markdown extract text pdf');
 
     /* -------------------------------------------------------------- Image */
     $t('compress-image', 'image', 'Compress Image', 'Reduce JPG, PNG and WebP file size with adjustable quality — on device.', ['popular'], 'shrink photo reduce jpg png');

@@ -74,6 +74,12 @@ $footerCats = array_slice($cats, 0, 8, true);
 <script src="<?= eattr(url('assets/js/app.js?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
 <?php if (!empty($page['is_tool'])): ?>
 <script src="<?= eattr(url('assets/js/lib.js?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
+<?php if (!empty($page['is_pdf'])): ?>
+<!-- PDF libraries (vendored locally) — loaded only on PDF tool pages -->
+<script src="<?= eattr(url('assets/js/vendor/pdf-lib.min.js?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
+<script src="<?= eattr(url('assets/js/vendor/pdf.min.js?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
+<script src="<?= eattr(url('assets/js/pdf-tools.js?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
+<?php endif; ?>
 <script src="<?= eattr(url('assets/js/tools.js?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
 <?php endif; ?>
 </body>

@@ -8,7 +8,9 @@
 
   const U = window.OmniUtil;
   const Lib = window.OmniLib || {};
-  const engines = {};
+  // Shared, global engine registry so other files (e.g. pdf-tools.js) can
+  // register engines that this bootstrap will also pick up.
+  const engines = (window.OmniEngines = window.OmniEngines || {});
   const reg = (slug, fn) => { engines[slug] = fn; };
   const esc = s => U.escape(s);
 
@@ -1331,28 +1333,9 @@
     makeDropzone(q('#drop', root), { accept: 'image/*', onFiles: f => { const r = new FileReader(); r.onload = () => { const uri = r.result; q('#out', root).innerHTML = `<img src="${uri}" style="max-height:160px;border-radius:12px;border:1px solid var(--border)" class="mb-4"><label class="field__label mt-4">Data URI (${fmtBytes(uri.length)})</label><div class="output-box">${esc(uri)}</div><div class="btn-row mt-4"><button class="btn btn--primary" id="cp">Copy Data URI</button><button class="btn btn--ghost" id="cc">Copy as CSS</button></div>`; q('#cp', root).addEventListener('click', () => U.copy(uri)); q('#cc', root).addEventListener('click', () => U.copy('background-image: url("' + uri + '");')); }; r.readAsDataURL(f[0]); } });
   });
 
-  reg('jpg-to-pdf', root => {
-    root.innerHTML = `<div id="drop"></div><div id="list" class="mt-4"></div><div id="msg" class="mt-4"></div>
-      <div class="btn-row mt-4 hidden" id="bar"><button class="btn btn--primary" id="go">Create PDF</button></div>`;
-    const files = [];
-    makeDropzone(q('#drop', root), { accept: 'image/*', multiple: true, onFiles: fl => { Array.from(fl).forEach(f => files.push(f)); render(); } });
-    const render = () => { q('#list', root).innerHTML = files.map((f, i) => `<div class="row" style="align-items:center;border-bottom:1px solid var(--border);padding:8px 0"><span>${esc(f.name)}</span><span class="muted" style="text-align:right;flex:none">${fmtBytes(f.size)}</span></div>`).join(''); q('#bar', root).classList.toggle('hidden', !files.length); };
-    q('#go', root).addEventListener('click', async () => {
-      q('#msg', root).innerHTML = '<div class="row"><div class="spinner"></div><span>Building PDF…</span></div>';
-      const images = [];
-      for (const f of files) {
-        const img = await loadImageFile(f);
-        const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
-        const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0);
-        const blob = await canvasToBlob(c, 'image/jpeg', 0.92);
-        const bytes = new Uint8Array(await blob.arrayBuffer());
-        images.push({ bytes, width: c.width, height: c.height });
-      }
-      const pdf = Lib.PDF.fromJpegs(images);
-      U.download('images.pdf', pdf);
-      q('#msg', root).innerHTML = '<div class="notice notice--success">PDF created with ' + images.length + ' page(s).</div>';
-    });
-  });
+  // PDF-category engines (merge, split, jpg-to-pdf, watermark, …) live in
+  // assets/js/pdf-tools.js, which uses pdf-lib + pdf.js and is loaded only on
+  // PDF tool pages.
 
   /* =====================================================================
      VIDEO TOOLS
@@ -1448,49 +1431,7 @@
     });
   });
 
-  /* =====================================================================
-     PDF TOOLS requiring server processing (merge/split/etc.)
-     These POST to /api/pdf.php which uses Imagick/Ghostscript when the
-     host provides them, and returns a clear message otherwise.
-     ================================================================== */
-  function serverPdfTool(root, action, opts) {
-    opts = opts || {};
-    root.innerHTML = `<div id="drop"></div>
-      <div id="extra" class="hidden mt-4">${opts.extra || ''}</div>
-      <div id="list" class="mt-4"></div>
-      <div class="btn-row mt-4 hidden" id="bar"><button class="btn btn--primary" id="go">${opts.label || 'Process'}</button></div>
-      <div id="msg" class="mt-4"></div>
-      <div class="notice notice--info mt-4">Files are uploaded over HTTPS, processed on the server and deleted immediately after. For fully local processing use our image &amp; text tools.</div>`;
-    const files = [];
-    makeDropzone(q('#drop', root), { accept: 'application/pdf', multiple: !!opts.multiple, hint: 'PDF files up to 50 MB.', onFiles: fl => { Array.from(fl).forEach(f => files.push(f)); q('#extra', root).classList.remove('hidden'); q('#bar', root).classList.remove('hidden'); render(); } });
-    const render = () => q('#list', root).innerHTML = files.map(f => `<div class="row" style="border-bottom:1px solid var(--border);padding:8px 0"><span>${esc(f.name)}</span><span class="muted" style="text-align:right;flex:none">${fmtBytes(f.size)}</span></div>`).join('');
-    q('#go', root).addEventListener('click', async () => {
-      q('#msg', root).innerHTML = '<div class="row"><div class="spinner"></div><span>Processing on server…</span></div>';
-      const fd = new FormData();
-      fd.append('action', action);
-      files.forEach(f => fd.append('files[]', f));
-      qa('[data-p]', root).forEach(i => fd.append(i.dataset.p, i.value));
-      try {
-        const res = await fetch(`${window.OMNITOOLS_BASE}/api/pdf.php`, { method: 'POST', body: fd });
-        if (res.headers.get('content-type')?.includes('application/json')) {
-          const j = await res.json();
-          q('#msg', root).innerHTML = `<div class="notice notice--${j.ok ? 'success' : 'error'}">${esc(j.error || j.message || 'Done')}</div>`;
-          return;
-        }
-        const blob = await res.blob();
-        U.download(opts.outName || 'output.pdf', blob);
-        q('#msg', root).innerHTML = '<div class="notice notice--success">Done — your file has downloaded.</div>';
-      } catch (e) { q('#msg', root).innerHTML = `<div class="notice notice--error">Upload failed: ${esc(e.message)}</div>`; }
-    });
-  }
-  reg('merge-pdf', r => serverPdfTool(r, 'merge', { multiple: true, label: 'Merge PDFs', outName: 'merged.pdf' }));
-  reg('split-pdf', r => serverPdfTool(r, 'split', { extra: '<label class="field__label">Pages (e.g. 1-3,5)</label><input class="input" data-p="pages" placeholder="1-3,5">', label: 'Split PDF', outName: 'split.pdf' }));
-  reg('rotate-pdf', r => serverPdfTool(r, 'rotate', { extra: '<label class="field__label">Angle</label><select class="select" data-p="angle"><option>90</option><option>180</option><option>270</option></select>', label: 'Rotate PDF', outName: 'rotated.pdf' }));
-  reg('compress-pdf', r => serverPdfTool(r, 'compress', { label: 'Compress PDF', outName: 'compressed.pdf' }));
-  reg('unlock-pdf', r => serverPdfTool(r, 'unlock', { extra: '<label class="field__label">Password</label><input class="input" type="password" data-p="password">', label: 'Unlock PDF', outName: 'unlocked.pdf' }));
-  reg('protect-pdf', r => serverPdfTool(r, 'protect', { extra: '<label class="field__label">Set password</label><input class="input" type="password" data-p="password">', label: 'Protect PDF', outName: 'protected.pdf' }));
-  reg('pdf-to-jpg', r => serverPdfTool(r, 'pdf-to-jpg', { label: 'Convert to JPG', outName: 'pages.zip' }));
-  reg('word-to-pdf', r => serverPdfTool(r, 'word-to-pdf', { label: 'Convert to PDF', outName: 'document.pdf' }));
+  // (All PDF-category engines now live in assets/js/pdf-tools.js.)
 
   /* =====================================================================
      BOOTSTRAP
