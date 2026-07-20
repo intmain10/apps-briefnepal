@@ -84,6 +84,14 @@ define('ADSENSE_ENABLED', false);
 define('ADSENSE_CLIENT', 'ca-pub-0000000000000000'); // your AdSense publisher ID
 
 /* -------------------------------------------------------------------------
+ * Search engine verification
+ * Paste ONLY the token (the content="..." value) from Google Search Console's
+ * "HTML tag" method — e.g. 'AbCdEf12345...'. Leave blank to disable.
+ * ---------------------------------------------------------------------- */
+define('GOOGLE_SITE_VERIFICATION', getenv('GOOGLE_SITE_VERIFICATION') ?: '');
+define('BING_SITE_VERIFICATION', getenv('BING_SITE_VERIFICATION') ?: '');
+
+/* -------------------------------------------------------------------------
  * Session (secure cookies)
  * ---------------------------------------------------------------------- */
 if (session_status() === PHP_SESSION_NONE) {
