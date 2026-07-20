@@ -5,18 +5,17 @@
    ========================================================================= */
 
 /* ---------------------------------------------------------------- Fonts */
-@font-face {
-  font-family: 'Sora';
-  src: url('../fonts/sora.woff2') format('woff2');
-  font-weight: 100 800;
-  font-style: normal;
-  font-display: swap;
-}
+/* Body: Satoshi (refined, premium). Headings/display: Clash Display (striking). */
+@font-face { font-family: 'Satoshi'; src: url('../fonts/satoshi-400.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Satoshi'; src: url('../fonts/satoshi-500.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Satoshi'; src: url('../fonts/satoshi-700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Clash Display'; src: url('../fonts/clash-600.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Clash Display'; src: url('../fonts/clash-700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
 
 /* ---------------------------------------------------------------- Tokens */
 :root {
-  --font-sans: 'Sora', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-display: 'Sora', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: 'Satoshi', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: 'Clash Display', 'Satoshi', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
 
   /* Light theme */
@@ -103,7 +102,7 @@ a { color: inherit; text-decoration: none; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; border: none; }
 ul { list-style: none; padding: 0; }
-h1, h2, h3, h4 { line-height: 1.2; font-weight: 700; letter-spacing: -.02em; }
+h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.15; font-weight: 700; letter-spacing: -.02em; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 
 .container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 22px; }

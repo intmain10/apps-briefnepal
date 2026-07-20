@@ -94,7 +94,13 @@
   let _fontLoaded = false;
   async function ensureFont() {
     if (_fontLoaded || !window.FontFace) return;
-    try { const f = new FontFace('Sora', "url('" + (window.OMNITOOLS_BASE || '') + "/assets/fonts/sora.woff2')", { weight: '100 800' }); await f.load(); document.fonts.add(f); } catch (e) {}
+    const base = window.OMNITOOLS_BASE || '';
+    const fonts = [
+      new FontFace('Clash Display', "url('" + base + "/assets/fonts/clash-700.woff2')", { weight: '700' }),
+      new FontFace('Satoshi', "url('" + base + "/assets/fonts/satoshi-500.woff2')", { weight: '500' }),
+      new FontFace('Satoshi', "url('" + base + "/assets/fonts/satoshi-700.woff2')", { weight: '700' }),
+    ];
+    try { await Promise.all(fonts.map(f => f.load())); fonts.forEach(f => document.fonts.add(f)); } catch (e) {}
     _fontLoaded = true;
   }
   function drawPattern(ctx, key, c1, c2, W, H) {
@@ -135,7 +141,7 @@
 
     const shadow = on => { ctx.shadowColor = on ? 'rgba(0,0,0,.45)' : 'transparent'; ctx.shadowBlur = on ? 24 : 0; ctx.shadowOffsetY = on ? 4 : 0; };
     shadow(true);
-    ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.font = '700 40px Sora,sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.font = "700 40px 'Clash Display',sans-serif";
     ctx.fillText('✨ ' + name.split(' ')[0] + '’s card', W / 2, 130);
 
     const ax = W / 2, ay = 560, ar = 215;
@@ -143,31 +149,31 @@
     ctx.save(); shadow(true); ctx.beginPath(); ctx.arc(ax, ay, ar + 10, 0, 6.2832); ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fill(); shadow(false);
     ctx.beginPath(); ctx.arc(ax, ay, ar, 0, 6.2832); ctx.clip();
     if (photo) { const s = Math.max((ar * 2) / photo.width, (ar * 2) / photo.height); ctx.drawImage(photo, ax - photo.width * s / 2, ay - photo.height * s / 2, photo.width * s, photo.height * s); }
-    else { const g = ctx.createLinearGradient(ax - ar, ay - ar, ax + ar, ay + ar); g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillRect(ax - ar, ay - ar, ar * 2, ar * 2); ctx.fillStyle = '#fff'; ctx.font = '700 190px Sora,sans-serif'; ctx.fillText((name[0] || '?').toUpperCase(), ax, ay + 68); }
+    else { const g = ctx.createLinearGradient(ax - ar, ay - ar, ax + ar, ay + ar); g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillRect(ax - ar, ay - ar, ar * 2, ar * 2); ctx.fillStyle = '#fff'; ctx.font = "700 190px 'Clash Display',sans-serif"; ctx.fillText((name[0] || '?').toUpperCase(), ax, ay + 68); }
     ctx.restore();
 
     shadow(true);
-    ctx.fillStyle = '#fff'; ctx.font = '800 82px Sora,sans-serif';
+    ctx.fillStyle = '#fff'; ctx.font = "700 82px 'Clash Display',sans-serif";
     const nLines = wrapText(ctx, name, W / 2, ay + ar + 130, W - 140, 90, 2);
     let ty = ay + ar + 130 + nLines * 90 + 8;
-    if (tagline) { ctx.fillStyle = 'rgba(255,255,255,.82)'; ctx.font = '500 40px Sora,sans-serif'; ty += wrapText(ctx, tagline, W / 2, ty, W - 200, 52, 2) * 52; }
+    if (tagline) { ctx.fillStyle = 'rgba(255,255,255,.82)'; ctx.font = '500 40px Satoshi,sans-serif'; ty += wrapText(ctx, tagline, W / 2, ty, W - 200, 52, 2) * 52; }
     shadow(false);
 
-    ctx.font = '800 46px Sora,sans-serif';
+    ctx.font = "700 46px 'Clash Display',sans-serif";
     const ctaW = Math.min(W - 160, ctx.measureText(ctaText).width + 130), ctaH = 122, ctaX = (W - ctaW) / 2, ctaY = 1230;
     ctx.save(); shadow(true); roundRect(ctx, ctaX, ctaY, ctaW, ctaH, 61); const pg = ctx.createLinearGradient(ctaX, ctaY, ctaX + ctaW, ctaY); pg.addColorStop(0, c1); pg.addColorStop(1, c2); ctx.fillStyle = pg; ctx.fill(); ctx.restore();
     ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(ctaText, W / 2, ctaY + ctaH / 2 + 2); ctx.textBaseline = 'alphabetic';
-    ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '500 32px Sora,sans-serif'; ctx.fillText('Tap the link or scan below ↓', W / 2, ctaY + ctaH + 62);
+    ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '500 32px Satoshi,sans-serif'; ctx.fillText('Tap the link or scan below ↓', W / 2, ctaY + ctaH + 62);
 
     if (window.OmniLib && OmniLib.QR) {
       const qs = 210, pad = 16, qx = 90, qy = H - qs - pad * 2 - 70;
       ctx.save(); shadow(true); roundRect(ctx, qx, qy, qs + pad * 2, qs + pad * 2, 26); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
       ctx.drawImage(OmniLib.qrToCanvas(OmniLib.QR.encode(url, 'MEDIUM'), 8, 1, '#111', '#fff'), qx + pad, qy + pad, qs, qs);
-      ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.font = '700 38px Sora,sans-serif'; ctx.fillText('Scan to connect', qx + qs + pad * 2 + 34, qy + 78);
-      ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = '500 30px Sora,sans-serif'; ctx.fillText(url.replace(/^https?:\/\//, ''), qx + qs + pad * 2 + 34, qy + 128);
+      ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.font = '700 38px Satoshi,sans-serif'; ctx.fillText('Scan to connect', qx + qs + pad * 2 + 34, qy + 78);
+      ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = '500 30px Satoshi,sans-serif'; ctx.fillText(url.replace(/^https?:\/\//, ''), qx + qs + pad * 2 + 34, qy + 128);
       ctx.textAlign = 'center';
     }
-    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = '500 30px Sora,sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = '500 30px Satoshi,sans-serif';
     ctx.fillText('Made with Cardly · ' + (window.OMNITOOLS_BASE || 'apps.briefnepal.com').replace(/^https?:\/\//, ''), W / 2, H - 44);
     return canvas;
   }
