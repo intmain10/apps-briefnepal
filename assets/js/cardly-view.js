@@ -127,12 +127,15 @@
 
     /* ---------- Cinematic background (designed, moody) ---------- */
     ctx.fillStyle = '#07070c'; ctx.fillRect(0, 0, W, H);
-    // faint real-photo texture (cover) — barely visible for depth
-    const cover = await loadImg(D.cover);
-    if (cover) {
-      const s = Math.max(W / cover.width, H / cover.height), dw = cover.width * s, dh = cover.height * s;
-      ctx.globalAlpha = 0.28; ctx.drawImage(cover, (W - dw) / 2, (H - dh) / 2, dw, dh); ctx.globalAlpha = 1;
-      ctx.fillStyle = 'rgba(7,7,12,.62)'; ctx.fillRect(0, 0, W, H);
+    // Faint photo texture for depth — use the banner/cover, else fall back to
+    // the profile photo so the story never looks empty.
+    const bg = await loadImg(D.cover || D.photo);
+    if (bg) {
+      const s = Math.max(W / bg.width, H / bg.height), dw = bg.width * s, dh = bg.height * s;
+      // Profile photos (used as fallback) are portraits → keep them a touch
+      // dimmer so the foreground avatar/name still reads clearly.
+      ctx.globalAlpha = D.cover ? 0.28 : 0.22; ctx.drawImage(bg, (W - dw) / 2, (H - dh) / 2, dw, dh); ctx.globalAlpha = 1;
+      ctx.fillStyle = D.cover ? 'rgba(7,7,12,.62)' : 'rgba(7,7,12,.72)'; ctx.fillRect(0, 0, W, H);
     }
     // accent glows
     const glow = (x, y, rad, r, g, b, a) => { const rg = ctx.createRadialGradient(x, y, 0, x, y, rad); rg.addColorStop(0, `rgba(${r},${g},${b},${a})`); rg.addColorStop(1, `rgba(${r},${g},${b},0)`); ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H); };

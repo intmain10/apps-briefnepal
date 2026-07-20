@@ -47,6 +47,9 @@
 .cardly-upload { display: inline-flex; align-items: center; gap: 8px; border: 1px dashed var(--border-strong); border-radius: 12px; padding: 8px 12px; cursor: pointer; }
 .cardly-upload--wide { width: 100%; justify-content: center; }
 .cardly-upbtn { font-size: 13px; font-weight: 600; color: var(--accent); }
+.cardly-imgrow { display: flex; align-items: center; gap: 8px; }
+.cardly-imgrm { width: 34px; height: 34px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); color: var(--danger); cursor: pointer; flex: none; font-size: 13px; line-height: 1; }
+.cardly-imgrm:hover { background: color-mix(in srgb, var(--danger) 14%, transparent); border-color: var(--danger); }
 .cardly-upimg { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
 .cardly-linkrow .input { min-width: 0; }
 .cardly-gallery-edit { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; }

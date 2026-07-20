@@ -142,8 +142,8 @@
 
       <div class="cardly-grp"><h3>Images</h3>
         <div class="row">
-          <div><label class="field__label">Profile photo</label><div class="cardly-upload" data-up="photo"><img class="cardly-upimg ${s.photo ? '' : 'hidden'}" data-img="photo" src="${esc(s.photo)}"><span class="cardly-upbtn">${s.photo ? 'Change' : 'Upload'}</span></div></div>
-          <div><label class="field__label">Cover image</label><div class="cardly-upload" data-up="cover"><img class="cardly-upimg ${s.cover ? '' : 'hidden'}" data-img="cover" src="${esc(s.cover)}"><span class="cardly-upbtn">${s.cover ? 'Change' : 'Upload'}</span></div></div>
+          <div><label class="field__label">Profile photo</label><div class="cardly-imgrow"><div class="cardly-upload" data-up="photo"><img class="cardly-upimg ${s.photo ? '' : 'hidden'}" data-img="photo" src="${esc(s.photo)}"><span class="cardly-upbtn">${s.photo ? 'Change' : 'Upload'}</span></div><button type="button" class="cardly-imgrm ${s.photo ? '' : 'hidden'}" data-rmimg="photo" title="Remove">✕</button></div></div>
+          <div><label class="field__label">Cover image</label><div class="cardly-imgrow"><div class="cardly-upload" data-up="cover"><img class="cardly-upimg ${s.cover ? '' : 'hidden'}" data-img="cover" src="${esc(s.cover)}"><span class="cardly-upbtn">${s.cover ? 'Change' : 'Upload'}</span></div><button type="button" class="cardly-imgrm ${s.cover ? '' : 'hidden'}" data-rmimg="cover" title="Remove">✕</button></div></div>
         </div>
       </div>
 
@@ -209,6 +209,14 @@
     form.querySelectorAll('[data-sec]').forEach(t => t.addEventListener('change', () => { s.sections[t.dataset.sec] = t.checked; renderPreview(s); }));
     // uploads
     form.querySelectorAll('[data-up]').forEach(u => u.addEventListener('click', () => pickImage(u.dataset.up, s)));
+    // remove photo / cover
+    form.querySelectorAll('[data-rmimg]').forEach(btn => btn.addEventListener('click', () => {
+      const kind = btn.dataset.rmimg; s[kind] = '';
+      const img = root.querySelector(`[data-img="${kind}"]`); if (img) { img.src = ''; img.classList.add('hidden'); }
+      const up = root.querySelector(`[data-up="${kind}"] .cardly-upbtn`); if (up) up.textContent = 'Upload';
+      btn.classList.add('hidden');
+      renderPreview(s);
+    }));
     // skills
     renderSkills(s);
     const si = form.querySelector('#cSkillInput');
@@ -256,6 +264,8 @@
       else {
         s[kind] = r.url;
         const img = root.querySelector(`[data-img="${kind}"]`); if (img) { img.src = r.url; img.classList.remove('hidden'); }
+        const up = root.querySelector(`[data-up="${kind}"] .cardly-upbtn`); if (up) up.textContent = 'Change';
+        const rm = root.querySelector(`[data-rmimg="${kind}"]`); if (rm) rm.classList.remove('hidden');
       }
       renderPreview(s); U.toast('Image added');
     };
