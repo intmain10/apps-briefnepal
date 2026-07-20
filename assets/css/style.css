@@ -73,6 +73,10 @@
 /* -------------------------------------------------------------- Reset */
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; }
+/* The [hidden] attribute must always win, even over component display rules
+   (e.g. .search-overlay { display:flex }). Without this the search overlay
+   and mobile menu would render on page load. */
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 body {
   font-family: var(--font-sans);

@@ -68,7 +68,7 @@ $footerCats = array_slice($cats, 0, 8, true);
   </div>
 </footer>
 
-<button class="to-top" id="toTop" aria-label="Back to top" hidden><?= icon_svg('arrow', 'icon to-top__icon') ?></button>
+<button class="to-top" id="toTop" aria-label="Back to top"><?= icon_svg('arrow', 'icon to-top__icon') ?></button>
 
 <script>window.OMNITOOLS_BASE = <?= json_html(SITE_URL) ?>;</script>
 <script src="<?= eattr(url('assets/js/app.js?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
