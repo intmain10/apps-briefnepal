@@ -8,9 +8,11 @@ declare(strict_types=1);
 
 $cats = omnitools_categories();
 $footerCats = array_slice($cats, 0, 8, true);
+$bare = !empty($page['bare']);
 ?>
 </main>
 
+<?php if (!$bare): ?>
 <footer class="footer">
   <div class="container">
     <div class="footer__grid">
@@ -71,6 +73,7 @@ $footerCats = array_slice($cats, 0, 8, true);
 </footer>
 
 <button class="to-top" id="toTop" aria-label="Back to top"><?= icon_svg('arrow', 'icon to-top__icon') ?></button>
+<?php endif; /* !bare */ ?>
 
 <script>window.OMNITOOLS_BASE = <?= json_html(SITE_URL) ?>;</script>
 <script src="<?= eattr(url('assets/js/app.js?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
@@ -83,6 +86,12 @@ $footerCats = array_slice($cats, 0, 8, true);
 <script src="<?= eattr(url('assets/js/pdf-tools.js?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
 <?php endif; ?>
 <script src="<?= eattr(url('assets/js/tools.js?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
+<?php endif; ?>
+<?php if (!empty($page['load_lib'])): ?>
+<script src="<?= eattr(url('assets/js/lib.js?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
+<?php endif; ?>
+<?php if (!empty($page['cardly_js'])): ?>
+<script src="<?= eattr(url('assets/js/' . $page['cardly_js'] . '?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
 <?php endif; ?>
 </body>
 </html>

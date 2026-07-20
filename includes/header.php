@@ -105,6 +105,9 @@ if (!empty($breadcrumb)) {
 
 <link rel="preconnect" href="<?= eattr(SITE_URL) ?>">
 <link rel="stylesheet" href="<?= eattr(url('assets/css/style.css?v=' . OMNITOOLS_VERSION)) ?>">
+<?php if (!empty($page['is_cardly'])): ?>
+<link rel="stylesheet" href="<?= eattr(url('assets/css/cardly.css?v=' . OMNITOOLS_VERSION)) ?>">
+<?php endif; ?>
 
 <?php foreach ($jsonldBlocks as $block): ?>
 <script type="application/ld+json"><?= json_html($block) ?></script>
@@ -116,5 +119,5 @@ if (!empty($breadcrumb)) {
 </head>
 <body class="<?= eattr($bodyClass) ?>">
 <a class="skip-link" href="#main">Skip to content</a>
-<?php require __DIR__ . '/navbar.php'; ?>
+<?php if (empty($page['bare'])) require __DIR__ . '/navbar.php'; ?>
 <main id="main" class="main">

@@ -1,0 +1,99 @@
+/* =========================================================================
+   Cardly — landing, builder & public card styles.
+   Uses the OmniTools design tokens from style.css.
+   ========================================================================= */
+
+/* ------------------------------------------------------------- Landing */
+.cardly-hero { text-align: center; padding: 72px 0 40px; background: var(--gradient-hero); }
+.cardly-hero h1 { font-size: clamp(34px, 6vw, 60px); letter-spacing: -.03em; line-height: 1.05; }
+.cardly-hero__sub { font-size: clamp(16px, 2.4vw, 20px); color: var(--text-2); max-width: 620px; margin: 18px auto 0; }
+.cardly-features { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.cardly-feature { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.cardly-feature h3 { font-size: 17px; margin-bottom: 6px; }
+.cardly-feature p { color: var(--text-3); font-size: 14px; }
+.cardly-templates { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.cardly-tpl { display: flex; flex-direction: column; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; transition: transform .2s, box-shadow .2s; }
+.cardly-tpl:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.cardly-tpl__swatch { height: 80px; border-radius: 12px; background: linear-gradient(135deg, var(--c1), var(--c2)); }
+.cardly-tpl__name { font-weight: 600; font-size: 14px; }
+
+/* ------------------------------------------------------------- Claim */
+.cardly-claim { max-width: 520px; margin: 40px auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow); }
+.cardly-claim h1 { font-size: 28px; }
+.cardly-claim__url { display: flex; align-items: center; gap: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 4px 4px 12px; }
+.cardly-claim__url span { color: var(--text-3); font-size: 14px; white-space: nowrap; }
+.cardly-claim__url .input { border: none; background: none; padding: 8px 6px; }
+.cardly-claim__msg { font-size: 13px; margin-top: 6px; min-height: 18px; }
+.cardly-claim__msg.ok { color: var(--success); }
+.cardly-claim__msg.err { color: var(--danger); }
+.cardly-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.cardly-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; }
+.cardly-chip__dot { width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, var(--c1), var(--c2)); }
+.cardly-chip.is-active { border-color: var(--text); box-shadow: 0 0 0 2px var(--text) inset; }
+
+/* ------------------------------------------------------------- Builder */
+.cardly-topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px 0; position: sticky; top: var(--nav-h); background: var(--bg); z-index: 20; border-bottom: 1px solid var(--border); }
+.cardly-topbar a { color: var(--accent); }
+.cardly-topbar__actions { display: flex; gap: 8px; }
+.cardly-editor { display: grid; grid-template-columns: 1fr 380px; gap: 26px; align-items: start; padding: 20px 0 60px; }
+.cardly-form { min-width: 0; }
+.cardly-grp { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
+.cardly-grp h3 { font-size: 15px; margin-bottom: 12px; }
+.cardly-previewcol { position: sticky; top: calc(var(--nav-h) + 80px); }
+.cardly-phone { background: #111; border-radius: 36px; padding: 10px; box-shadow: var(--shadow-lg); margin: 0 auto; max-width: 360px; }
+.cardly-phone__screen { background: var(--bg); border-radius: 28px; overflow: hidden; height: 640px; overflow-y: auto; }
+.cardly-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cardly-toggle { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; font-size: 14px; cursor: pointer; }
+.cardly-upload { display: inline-flex; align-items: center; gap: 8px; border: 1px dashed var(--border-strong); border-radius: 12px; padding: 8px 12px; cursor: pointer; }
+.cardly-upload--wide { width: 100%; justify-content: center; }
+.cardly-upbtn { font-size: 13px; font-weight: 600; color: var(--accent); }
+.cardly-upimg { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
+.cardly-linkrow .input { min-width: 0; }
+.cardly-gallery-edit { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; }
+.cardly-gthumb { position: relative; }
+.cardly-gthumb img { width: 100%; height: 70px; object-fit: cover; border-radius: 8px; }
+.cardly-gthumb button { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; background: var(--danger); color: #fff; border: none; cursor: pointer; }
+
+/* ------------------------------------------------------- Public card */
+.cardly-page { background: linear-gradient(160deg, color-mix(in srgb, var(--c1) 10%, var(--bg)), var(--bg) 60%); }
+.cardly { --c1: #0071e3; --c2: #7c3aed; padding: 24px 16px 60px; }
+.cardly__sheet { max-width: 460px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-lg); }
+.cardly__sheet--preview { box-shadow: none; border: none; border-radius: 0; max-width: none; }
+.cardly__cover { height: 130px; background: linear-gradient(135deg, var(--c1), var(--c2)); background-size: cover; background-position: center; }
+.cardly__head { text-align: center; padding: 0 22px 18px; margin-top: -46px; }
+.cardly__avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 4px solid var(--surface); margin: 0 auto; background: var(--surface-2); box-shadow: var(--shadow); }
+.cardly__avatar--ph { display: grid; place-items: center; font-size: 40px; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--c1), var(--c2)); }
+.cardly__name { font-size: 24px; margin-top: 12px; letter-spacing: -.02em; }
+.cardly__tagline { color: var(--text-2); margin-top: 4px; }
+.cardly__actions { display: flex; gap: 8px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+.cardly__btn { padding: 10px 18px; border-radius: 999px; font-weight: 600; font-size: 14px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); cursor: pointer; }
+.cardly__btn--primary { background: linear-gradient(135deg, var(--c1), var(--c2)); color: #fff; border: none; }
+.cardly__body { padding: 6px 22px 22px; }
+.cardly__sec { margin-top: 22px; }
+.cardly__sec h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-3); margin-bottom: 10px; }
+.cardly__about { color: var(--text-2); line-height: 1.6; }
+.cardly__contact { display: flex; flex-direction: column; gap: 6px; }
+.cardly__row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; }
+.cardly__row-label { color: var(--text-3); font-size: 13px; }
+.cardly__row-val { font-weight: 500; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cardly__socials, .cardly__links { display: flex; flex-wrap: wrap; gap: 8px; }
+.cardly__social, .cardly__link { padding: 10px 16px; border-radius: 999px; background: var(--bg); border: 1px solid var(--border); font-weight: 600; font-size: 14px; color: var(--text); text-transform: capitalize; }
+.cardly__link { width: 100%; text-align: center; background: linear-gradient(135deg, var(--c1), var(--c2)); color: #fff; border: none; }
+.cardly__tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.cardly__tag { padding: 6px 12px; border-radius: 999px; background: color-mix(in srgb, var(--c1) 14%, transparent); color: var(--text); font-size: 13px; font-weight: 500; }
+.cardly__gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cardly__gallery img { width: 100%; height: 120px; object-fit: cover; border-radius: 12px; }
+.cardly__map { width: 100%; height: 200px; border: 0; border-radius: 12px; }
+.cardly__foot { text-align: center; padding: 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+.cardly__foot a { font-size: 13px; color: var(--text-3); }
+.cardly__cta { color: var(--accent) !important; font-weight: 600; }
+.cardly__qrmodal { position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,.6); display: grid; place-items: center; padding: 20px; }
+.cardly__qrbox { background: var(--surface); border-radius: var(--radius-lg); padding: 24px; text-align: center; }
+.cardly__qrbox #cardlyQrCanvas { display: grid; place-items: center; }
+
+@media (max-width: 900px) {
+  .cardly-editor { grid-template-columns: 1fr; }
+  .cardly-previewcol { position: static; order: -1; }
+  .cardly-phone { max-width: 320px; }
+  .cardly-phone__screen { height: 520px; }
+}

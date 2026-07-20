@@ -128,6 +128,20 @@ require __DIR__ . '/includes/header.php';
   </div>
 </section>
 
+<!-- Cardly promo -->
+<section class="section--tight container">
+  <a href="<?= eattr(url('cardly')) ?>" style="display:block;border-radius:var(--radius-lg);overflow:hidden;background:linear-gradient(135deg,#0071e3,#7c3aed);color:#fff;padding:34px;box-shadow:var(--shadow-lg)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.85">✨ New — Cardly</div>
+        <h2 style="font-size:clamp(24px,3.4vw,32px);margin-top:6px">Your own digital business card</h2>
+        <p style="opacity:.9;margin-top:6px;max-width:520px">One smart link for Instagram, LinkedIn, WhatsApp, resumes &amp; email — with Save-to-contact and QR. Free.</p>
+      </div>
+      <span class="btn" style="background:#fff;color:#0071e3;font-weight:700;flex:none">Create free card →</span>
+    </div>
+  </a>
+</section>
+
 <!-- Trending -->
 <section class="section container">
   <div class="section__head">

@@ -44,6 +44,12 @@ ErrorDocument 404 /404.php
     # Founder / person entity page
     RewriteRule ^(shushant-singh|founder)/?$ founder.php [L,QSA]
 
+    # Cardly — digital business cards (order: specific routes before the catch-all)
+    RewriteRule ^cardly/?$ cardly.php [L,QSA]
+    RewriteRule ^cardly/new/?$ cardly-edit.php [L,QSA]
+    RewriteRule ^cardly/([a-z0-9-]+)/edit/?$ cardly-edit.php?slug=$1 [L,QSA]
+    RewriteRule ^cardly/([a-z0-9-]+)/?$ cardly-view.php?slug=$1 [L,QSA]
+
     # Static pages
     RewriteRule ^(about|privacy|terms|contact|changelog|sitemap|feedback)/?$ page.php?p=$1 [L,QSA]
 
