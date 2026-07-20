@@ -1,0 +1,52 @@
+name: Fix card tagline (one-off)
+
+# One-off, manual. Downloads a Cardly card's JSON, strips a leading "Role:"
+# from its tagline, and re-uploads it. Targets uploads/cardly/cards/<slug>.json.
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: 'Card slug (username)'
+        required: true
+        default: 'shushant'
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Patch tagline over FTP
+        env:
+          FTP_HOST: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+          SLUG: ${{ github.event.inputs.slug }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y lftp
+          REMOTE="uploads/cardly/cards/${SLUG}.json"
+          # download
+          timeout 90 lftp -u "$FTP_USER","$FTP_PASS" "$FTP_HOST" <<EOF
+          set ftp:ssl-allow no
+          set ftp:passive-mode on
+          set net:timeout 20
+          get "$REMOTE" -o card.json
+          bye
+          EOF
+          echo "=== before ==="; python3 -c "import json;print(json.load(open('card.json')).get('tagline'))"
+          # strip a leading 'Role:' (case-insensitive) and re-save, preserving all other fields
+          python3 - <<'PY'
+          import json, re, datetime
+          d = json.load(open('card.json'))
+          d['tagline'] = re.sub(r'^\s*role\s*:\s*', '', d.get('tagline',''), flags=re.I).strip()
+          d['updatedAt'] = datetime.datetime.utcnow().isoformat()
+          json.dump(d, open('card.json','w'), ensure_ascii=False, indent=2)
+          PY
+          echo "=== after ==="; python3 -c "import json;print(json.load(open('card.json')).get('tagline'))"
+          # upload back
+          timeout 90 lftp -u "$FTP_USER","$FTP_PASS" "$FTP_HOST" <<EOF
+          set ftp:ssl-allow no
+          set ftp:passive-mode on
+          set net:timeout 20
+          put card.json -o "$REMOTE"
+          bye
+          EOF
+          echo "Done."
