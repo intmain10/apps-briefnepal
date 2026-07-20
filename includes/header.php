@@ -17,7 +17,7 @@ $pageTitle       = $page['title']       ?? SITE_NAME . ' — ' . SITE_TAGLINE;
 $pageDesc        = $page['description'] ?? SITE_DESCRIPTION;
 $canonical       = $page['canonical']   ?? (SITE_URL . strtok($_SERVER['REQUEST_URI'] ?? '/', '?'));
 $ogType          = $page['og_type']     ?? 'website';
-$ogImage         = $page['image']       ?? url('assets/images/og-default.svg');
+$ogImage         = $page['image']       ?? url('assets/images/og-default.png');
 $bodyClass       = $page['body_class']  ?? '';
 $breadcrumb      = $page['breadcrumb']  ?? [];
 $noindex         = $page['noindex']     ?? false;
@@ -59,7 +59,8 @@ if (!empty($breadcrumb)) {
 <?php if ($noindex): ?>
 <meta name="robots" content="noindex, nofollow">
 <?php else: ?>
-<meta name="robots" content="index, follow, max-image-preview:large">
+<!-- max-snippet:-1 lets AI engines (ChatGPT, Perplexity, Gemini) quote a full answer -->
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <?php endif; ?>
 <link rel="canonical" href="<?= eattr($canonical) ?>">
 
@@ -70,6 +71,9 @@ if (!empty($breadcrumb)) {
 <meta property="og:description" content="<?= eattr($pageDesc) ?>">
 <meta property="og:url" content="<?= eattr($canonical) ?>">
 <meta property="og:image" content="<?= eattr($ogImage) ?>">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="<?= eattr($pageTitle) ?>">
 <meta property="og:locale" content="<?= eattr(SITE_LOCALE) ?>">
 
 <!-- Twitter Card -->

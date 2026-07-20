@@ -34,11 +34,18 @@ $page = [
             ],
         ],
         [
-            '@context' => 'https://schema.org',
-            '@type'    => 'Organization',
-            'name'     => SITE_NAME,
-            'url'      => SITE_URL,
-            'slogan'   => SITE_TAGLINE,
+            '@context'    => 'https://schema.org',
+            '@type'       => 'Organization',
+            'name'        => SITE_NAME,
+            'url'         => SITE_URL,
+            'slogan'      => SITE_TAGLINE,
+            'description' => SITE_DESCRIPTION,
+            'logo'        => [
+                '@type'  => 'ImageObject',
+                'url'    => url('assets/images/og-default.png'),
+                'width'  => 1200,
+                'height' => 630,
+            ],
         ],
     ],
 ];

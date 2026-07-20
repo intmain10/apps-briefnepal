@@ -47,6 +47,14 @@ $faqs = [
 $metaTitle = $tool['name'] . ' — Free Online Tool | ' . SITE_NAME;
 $metaDesc  = $tool['desc'] . ' Free, fast and private. No signup required.';
 
+// Crawlable how-to steps (reused for visible text + HowTo JSON-LD → GEO/AI citations).
+$howtoSteps = [
+    ['name' => 'Open the ' . $tool['name'], 'text' => 'Open the ' . $tool['name'] . ' on this page — there is nothing to install and no account needed.'],
+    ['name' => 'Add your input', 'text' => (in_array($tool['category'], ['pdf', 'image', 'video', 'audio'], true) ? 'Upload your file by clicking the upload area or dragging it in.' : 'Type or paste your input into the tool.')],
+    ['name' => 'Adjust options', 'text' => 'Choose any options you need — the ' . $tool['name'] . ' updates instantly.'],
+    ['name' => 'Get your result', 'text' => 'Click the action button to download or copy your result. It is 100% free.'],
+];
+
 $page = [
     'title'       => $metaTitle,
     'description' => $metaDesc,
@@ -79,6 +87,20 @@ $page = [
                 'name'  => $f[0],
                 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f[1]],
             ], $faqs),
+        ],
+        [
+            '@context' => 'https://schema.org',
+            '@type'    => 'HowTo',
+            'name'     => 'How to use the ' . $tool['name'],
+            'description' => 'Step-by-step guide to using the free ' . $tool['name'] . ' on ' . SITE_NAME . '.',
+            'totalTime' => 'PT1M',
+            'step'     => array_map(fn($i, $s) => [
+                '@type'    => 'HowToStep',
+                'position' => $i + 1,
+                'name'     => $s['name'],
+                'text'     => $s['text'],
+                'url'      => url($slug) . '#how-to',
+            ], array_keys($howtoSteps), $howtoSteps),
         ],
     ],
 ];
@@ -123,6 +145,13 @@ require __DIR__ . '/includes/header.php';
         <h2>About the <?= e($tool['name']) ?></h2>
         <p>The <strong><?= e($tool['name']) ?></strong> is a free online tool that lets you <?= e(lcfirst($tool['desc'])) ?> There's nothing to install and no account to create — just open the tool, do what you need, and you're done.</p>
         <p>It's part of the <?= e($cat['name']) ?> collection on <?= e(SITE_NAME) ?>, a growing platform of <?= tools_count() ?>+ free, privacy-first tools built for speed and a great experience on every device.</p>
+
+        <h2 id="how-to">How to use the <?= e($tool['name']) ?></h2>
+        <ol>
+          <?php foreach ($howtoSteps as $s): ?>
+            <li><strong><?= e($s['name']) ?>.</strong> <?= e($s['text']) ?></li>
+          <?php endforeach; ?>
+        </ol>
 
         <h3>Frequently Asked Questions</h3>
       </article>

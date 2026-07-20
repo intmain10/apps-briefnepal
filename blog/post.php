@@ -67,9 +67,15 @@ $page = [
         'headline'      => $post['title'],
         'description'   => $post['excerpt'],
         'datePublished' => $post['date'],
-        'author'        => ['@type' => 'Organization', 'name' => $post['author']],
-        'publisher'     => ['@type' => 'Organization', 'name' => SITE_NAME],
-        'mainEntityOfPage' => url('blog/' . $slug),
+        'dateModified'  => $post['date'],
+        'image'         => [url('assets/images/og-default.png')],
+        'author'        => ['@type' => 'Organization', 'name' => $post['author'], 'url' => SITE_URL],
+        'publisher'     => [
+            '@type' => 'Organization',
+            'name'  => SITE_NAME,
+            'logo'  => ['@type' => 'ImageObject', 'url' => url('assets/images/og-default.png'), 'width' => 1200, 'height' => 630],
+        ],
+        'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => url('blog/' . $slug)],
     ],
 ];
 
