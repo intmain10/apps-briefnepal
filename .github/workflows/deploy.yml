@@ -29,9 +29,10 @@ jobs:
           protocol: ftp                           # switch to "ftps" if your host requires TLS
 
           # --- Where files land on the server ---
-          # Sub-account "u682902872.apps" is jailed to public_html, so we land
-          # directly in the web root and upload with "./".
-          server-dir: ./
+          # Sub-account "u682902872.apps" is jailed to public_html. The
+          # apps.briefnepal.com subdomain's document root is public_html/apps,
+          # so we deploy into ./apps/.
+          server-dir: ./apps/
 
           # Incremental sync: only changed files are uploaded (state file kept on server).
           # Files you delete from the repo are also removed from the server.
