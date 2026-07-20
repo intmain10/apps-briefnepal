@@ -18,6 +18,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # SAFETY GUARD: this repo deploys ONLY to apps.briefnepal.com (public_html/apps).
+      # It must never write to the main briefnepal.com root. If server-dir is ever
+      # changed away from ./apps/, fail the deploy instead of risking the main site.
+      - name: Guard — refuse to deploy outside ./apps/
+        run: |
+          if ! grep -qE '^[[:space:]]*server-dir:[[:space:]]*\./apps/[[:space:]]*$' .github/workflows/deploy.yml; then
+            echo "::error::server-dir must be exactly ./apps/ — this repo may only deploy to apps.briefnepal.com."
+            exit 1
+          fi
+          echo "Guard OK — deploying only to ./apps/ (apps.briefnepal.com)."
+
       - name: Sync files to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -29,9 +40,12 @@ jobs:
           protocol: ftp                           # switch to "ftps" if your host requires TLS
 
           # --- Where files land on the server ---
-          # Sub-account "u682902872.apps" is jailed to public_html. The
-          # apps.briefnepal.com subdomain's document root is public_html/apps,
-          # so we deploy into ./apps/.
+          # ⚠️ DO NOT CHANGE. This repo is ONLY for apps.briefnepal.com.
+          # The FTP account lands in public_html (shared with the main
+          # briefnepal.com site), and the apps subdomain's docroot is
+          # public_html/apps — so we deploy into ./apps/ and nowhere else.
+          # Setting this to "./" or "/public_html/" would overwrite the main
+          # BriefNepal news site. The guard step above enforces ./apps/.
           server-dir: ./apps/
 
           # Incremental sync: only changed files are uploaded (state file kept on server).
@@ -45,6 +59,7 @@ jobs:
             .github/**
             **/.DS_Store
             README.md
+            CLAUDE.md
             .gitignore
             database/**
             /uploads/**
