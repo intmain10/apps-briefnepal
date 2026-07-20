@@ -22,7 +22,8 @@ jobs:
           SLUG: ${{ github.event.inputs.slug }}
         run: |
           sudo apt-get update -qq && sudo apt-get install -y lftp
-          REMOTE="uploads/cardly/cards/${SLUG}.json"
+          # App is deployed under public_html/apps, so card data is under apps/uploads/
+          REMOTE="apps/uploads/cardly/cards/${SLUG}.json"
           # download
           timeout 90 lftp -u "$FTP_USER","$FTP_PASS" "$FTP_HOST" <<EOF
           set ftp:ssl-allow no
