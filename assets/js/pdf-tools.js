@@ -705,11 +705,79 @@
   reg('ocr-pdf', r => serverTool(r, 'ocr', { label: 'Run OCR', outName: 'ocr.pdf', note: 'OCR (making scans searchable) needs an OCR engine on the server. For text-based PDFs, use PDF to Text/Markdown above — it works entirely in your browser.' }));
   reg('translate-pdf', r => serverTool(r, 'translate', { label: 'Translate', outName: 'translated.pdf', note: 'PDF translation requires a translation service/API. Extract the text with PDF to Markdown, translate it, then rebuild if needed.' }));
 
-  /* Encryption (pdf-lib can’t encrypt) → server qpdf. */
-  reg('protect-pdf', r => serverTool(r, 'protect', { label: 'Protect PDF', outName: 'protected.pdf', note: 'Password protection uses qpdf on the server; files are deleted immediately after.' }));
-  reg('unlock-pdf', r => {
-    serverTool(r, 'unlock', { label: 'Unlock PDF', outName: 'unlocked.pdf', note: 'Removing a known password uses qpdf on the server; files are deleted immediately after.' });
-    // inject a password field
-    const bar = q('#bar', r); if (bar) bar.insertAdjacentHTML('beforebegin', '<div class="field mt-4"><label class="field__label">Password (if known)</label><input class="input" type="password" data-p="password"></div>');
+  /* =======================================================================
+     PROTECT / UNLOCK — real encryption in the browser via qpdf (WebAssembly)
+     The ~1.3 MB engine is fetched only the first time one of these tools runs.
+     ==================================================================== */
+  let _qpdfFactory = null;
+  function loadQpdf() {
+    if (_qpdfFactory) return Promise.resolve(_qpdfFactory);
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = BASE + '/assets/js/vendor/qpdf.js';
+      s.onload = () => { _qpdfFactory = window.Module; _qpdfFactory ? resolve(_qpdfFactory) : reject(new Error('qpdf engine did not initialise')); };
+      s.onerror = () => reject(new Error('Could not load the qpdf engine'));
+      document.head.appendChild(s);
+    });
+  }
+  async function runQpdf(inputBytes, args, outName) {
+    const factory = await loadQpdf();
+    let err = '';
+    const M = await factory({ noInitialRun: true, print() {}, printErr(m) { err += m + '\n'; }, locateFile: f => BASE + '/assets/js/vendor/' + f });
+    M.FS.writeFile('input.pdf', inputBytes);
+    let status = 0;
+    try { M.callMain(args); } catch (e) { status = (e && e.status != null) ? e.status : -1; }
+    let out = null; try { out = M.FS.readFile(outName); } catch (_) {}
+    // qpdf: 0 = OK, 3 = warnings (output still valid). Anything else with no output = failure.
+    if ((status !== 0 && status !== 3) && (!out || !out.length)) throw new Error(err.trim() || ('qpdf exited with status ' + status));
+    if (!out || !out.length) throw new Error(err.trim() || 'No output produced.');
+    return out;
+  }
+
+  reg('protect-pdf', root => {
+    root.innerHTML = `<div id="drop"></div>
+      <div id="opts" class="mt-4" style="display:none">
+        <div class="row"><div><label class="field__label">Password</label><input id="pw" class="input" type="password" placeholder="Choose a password"></div>
+        <div><label class="field__label">Confirm password</label><input id="pw2" class="input" type="password"></div></div>
+        <div class="btn-row mt-4"><button class="btn btn--primary" id="go">🔒 Protect PDF</button></div>
+      </div>
+      <div class="notice notice--info mt-4">Encrypted right here in your browser with AES-256 — your file and password never leave your device.</div>
+      <div id="msg" class="mt-4"></div>`;
+    let file;
+    dropzone(q('#drop', root), { onFiles: fl => { file = fl[0]; q('#opts', root).style.display = ''; } });
+    q('#go', root).addEventListener('click', async () => {
+      if (!file) return;
+      const pw = q('#pw', root).value, pw2 = q('#pw2', root).value;
+      if (!pw) { q('#msg', root).innerHTML = errBox('Enter a password.'); return; }
+      if (pw !== pw2) { q('#msg', root).innerHTML = errBox('Passwords do not match.'); return; }
+      q('#msg', root).innerHTML = spinner('Loading encryption engine & protecting…');
+      try {
+        const out = await runQpdf(await readBytes(file), ['--encrypt', pw, pw, '256', '--', 'input.pdf', 'output.pdf'], 'output.pdf');
+        downloadPdf(out, 'protected.pdf');
+        q('#msg', root).innerHTML = okBox('Protected PDF downloaded. It now requires the password to open.');
+      } catch (e) { q('#msg', root).innerHTML = errBox('Failed: ' + e.message); }
+    });
+  });
+
+  reg('unlock-pdf', root => {
+    root.innerHTML = `<div id="drop"></div>
+      <div id="opts" class="mt-4" style="display:none">
+        <div class="row"><div><label class="field__label">Current password (leave blank if none)</label><input id="pw" class="input" type="password" placeholder="Password"></div></div>
+        <div class="btn-row mt-4"><button class="btn btn--primary" id="go">🔓 Unlock PDF</button></div>
+      </div>
+      <div class="notice notice--info mt-4">Removes password protection in your browser. Only use on PDFs you own or are authorised to unlock.</div>
+      <div id="msg" class="mt-4"></div>`;
+    let file;
+    dropzone(q('#drop', root), { onFiles: fl => { file = fl[0]; q('#opts', root).style.display = ''; } });
+    q('#go', root).addEventListener('click', async () => {
+      if (!file) return; const pw = q('#pw', root).value;
+      q('#msg', root).innerHTML = spinner('Loading engine & unlocking…');
+      try {
+        const args = pw ? ['--decrypt', '--password=' + pw, 'input.pdf', 'output.pdf'] : ['--decrypt', 'input.pdf', 'output.pdf'];
+        const out = await runQpdf(await readBytes(file), args, 'output.pdf');
+        downloadPdf(out, 'unlocked.pdf');
+        q('#msg', root).innerHTML = okBox('Unlocked PDF downloaded — no password required now.');
+      } catch (e) { q('#msg', root).innerHTML = errBox(/password/i.test(e.message) ? 'Incorrect password for this PDF.' : ('Failed: ' + e.message)); }
+    });
   });
 })();
