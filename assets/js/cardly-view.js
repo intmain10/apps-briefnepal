@@ -199,6 +199,4 @@
     ctx.fillText('Made with Cardly · ' + (window.OMNITOOLS_BASE || 'apps.briefnepal.com').replace(/^https?:\/\//, ''), W / 2, H - 44);
     return canvas;
   }
-
-  if (location.search.indexOf('story-preview') > -1) { drawStory().then(c => { document.body.innerHTML = ''; document.body.style.background = '#000'; c.style.height = '100vh'; c.style.maxWidth = '100%'; c.style.margin = '0 auto'; c.style.display = 'block'; document.body.appendChild(c); }); }
 })();
