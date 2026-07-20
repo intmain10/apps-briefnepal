@@ -14,7 +14,7 @@ declare(strict_types=1);
 /* -------------------------------------------------------------------------
  * Environment
  * ---------------------------------------------------------------------- */
-define('OMNITOOLS_VERSION', '1.0.7');
+define('OMNITOOLS_VERSION', '1.0.8');
 
 // Toggle to false on production to hide detailed PHP errors.
 define('DEBUG_MODE', false);

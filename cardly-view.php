@@ -71,6 +71,7 @@ require __DIR__ . '/includes/header.php';
       <div class="cardly__actions">
         <a class="cardly__btn cardly__btn--primary" href="<?= eattr(url('api/cardly.php') . '?action=vcf&slug=' . $slug) ?>">Save Contact</a>
         <button class="cardly__btn" id="cardlyShare" type="button">Share</button>
+        <button class="cardly__btn" id="cardlyStory" type="button">📸 Story</button>
         <button class="cardly__btn" id="cardlyQr" type="button">QR</button>
       </div>
     </div>
