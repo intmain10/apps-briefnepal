@@ -88,9 +88,9 @@ if (!empty($breadcrumb)) {
 <meta name="twitter:description" content="<?= eattr($pageDesc) ?>">
 <meta name="twitter:image" content="<?= eattr($ogImage) ?>">
 
-<!-- Icons & manifest -->
-<link rel="icon" type="image/svg+xml" href="<?= eattr(url('assets/images/favicon.svg')) ?>">
-<link rel="apple-touch-icon" href="<?= eattr(url('assets/images/favicon.svg')) ?>">
+<!-- Icons -->
+<link rel="icon" type="image/png" href="<?= eattr(url('assets/images/logo-mark.png?v=' . OMNITOOLS_VERSION)) ?>">
+<link rel="apple-touch-icon" href="<?= eattr(url('assets/images/logo-mark.png?v=' . OMNITOOLS_VERSION)) ?>">
 
 <!-- Preload theme to avoid flash of incorrect theme -->
 <script>

@@ -119,6 +119,7 @@ h1, h2, h3, h4 { line-height: 1.2; font-weight: 700; letter-spacing: -.02em; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.02em; }
 .brand__name { font-size: 19px; }
 .brand__mark { display: grid; place-items: center; }
+.brand__logo { width: 32px; height: 32px; border-radius: 9px; object-fit: cover; box-shadow: var(--shadow-sm); }
 .navbar__links { display: flex; align-items: center; gap: 4px; margin-left: 8px; flex: 1; }
 .navbar__link {
   padding: 8px 14px; border-radius: 10px; font-size: 15px; color: var(--text-2);

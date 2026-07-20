@@ -11,15 +11,7 @@ $cats = omnitools_categories();
 <header class="navbar" id="navbar">
   <div class="container navbar__inner">
     <a href="<?= eattr(url()) ?>" class="brand" aria-label="<?= eattr(SITE_NAME) ?> home">
-      <span class="brand__mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32" width="30" height="30" fill="none" aria-hidden="true">
-          <rect width="32" height="32" rx="9" fill="url(#og)"/>
-          <path d="M10 11h5.5a4.5 4.5 0 0 1 0 9H10zM19 11h3M19 15.5h3M19 20h3" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
-          <defs><linearGradient id="og" x1="0" y1="0" x2="32" y2="32">
-            <stop stop-color="#0071e3"/><stop offset="1" stop-color="#7c3aed"/>
-          </linearGradient></defs>
-        </svg>
-      </span>
+      <img class="brand__logo" src="<?= eattr(url('assets/images/logo-mark.png')) ?>" width="32" height="32" alt="<?= eattr(SITE_NAME) ?> logo">
       <span class="brand__name"><?= e(SITE_NAME) ?></span>
     </a>
 

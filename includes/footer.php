@@ -16,6 +16,7 @@ $footerCats = array_slice($cats, 0, 8, true);
     <div class="footer__grid">
       <div class="footer__brand">
         <a href="<?= eattr(url()) ?>" class="brand brand--footer">
+          <img class="brand__logo" src="<?= eattr(url('assets/images/logo-mark.png')) ?>" width="34" height="34" alt="<?= eattr(SITE_NAME) ?> logo">
           <span class="brand__name"><?= e(SITE_NAME) ?></span>
         </a>
         <p class="footer__tagline"><?= e(SITE_TAGLINE) ?></p>
@@ -44,6 +45,7 @@ $footerCats = array_slice($cats, 0, 8, true);
         <h3 class="footer__heading">Company</h3>
         <ul class="footer__list">
           <li><a href="<?= eattr(url('about')) ?>">About</a></li>
+          <li><a href="<?= eattr(url('shushant-singh')) ?>">Founder</a></li>
           <li><a href="<?= eattr(url('blog')) ?>">Blog</a></li>
           <li><a href="<?= eattr(url('contact')) ?>">Contact</a></li>
           <li><a href="<?= eattr(url('changelog')) ?>">Changelog</a></li>

@@ -73,7 +73,7 @@ $page = [
         'publisher'     => [
             '@type' => 'Organization',
             'name'  => SITE_NAME,
-            'logo'  => ['@type' => 'ImageObject', 'url' => url('assets/images/og-default.png'), 'width' => 1200, 'height' => 630],
+            'logo'  => ['@type' => 'ImageObject', 'url' => url('assets/images/logo.png'), 'width' => 1254, 'height' => 1254],
         ],
         'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => url('blog/' . $slug)],
     ],

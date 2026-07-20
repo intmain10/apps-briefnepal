@@ -52,6 +52,11 @@ require __DIR__ . '/includes/header.php';
     </ul>
     <h2>Why we built it</h2>
     <p>The web is full of tool sites cluttered with ads and dark patterns. We wanted something clean, honest and genuinely useful — a Swiss-army knife you can trust and enjoy using.</p>
+
+    <h2>About the founder</h2>
+    <p><strong>OmniTools was founded by <a href="<?= eattr(url('shushant-singh')) ?>">Shushant Singh</a></strong>, a product architect, entrepreneur, podcaster and recording artist. He is also the founder of <a href="https://briefnepal.com" rel="noopener">BriefNepal</a> and works as a Product Architect at <a href="https://begenuin.com" rel="noopener">Genuin</a>. Alongside building products, he hosts the <a href="https://open.spotify.com/show/033Ka2C5wynL6xq41YAsbG" rel="noopener">Nepal Travel Podcast</a> and <a href="https://open.spotify.com/show/033K9Ye7NX5mRELkuCt7Nk" rel="noopener">Mind Atlas</a>, and releases music as a singer on <a href="https://open.spotify.com/artist/5b03eorWX5RxJqXCsTUgFz" rel="noopener">Spotify</a> and <a href="https://music.apple.com/us/artist/shushant-singh/6788654900" rel="noopener">Apple Music</a>.</p>
+    <p><a href="<?= eattr(url('shushant-singh')) ?>">Read more about Shushant Singh →</a></p>
+
     <p>Have an idea for a tool? <a href="<?= eattr(url('contact')) ?>">Let us know</a>.</p>
   </div>
 

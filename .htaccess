@@ -41,6 +41,9 @@ ErrorDocument 404 /404.php
     RewriteRule ^blog/?$ blog/index.php [L,QSA]
     RewriteRule ^blog/([a-z0-9-]+)/?$ blog/post.php?slug=$1 [L,QSA]
 
+    # Founder / person entity page
+    RewriteRule ^(shushant-singh|founder)/?$ founder.php [L,QSA]
+
     # Static pages
     RewriteRule ^(about|privacy|terms|contact|changelog|sitemap|feedback)/?$ page.php?p=$1 [L,QSA]
 

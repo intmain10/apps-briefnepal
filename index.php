@@ -42,9 +42,14 @@ $page = [
             'description' => SITE_DESCRIPTION,
             'logo'        => [
                 '@type'  => 'ImageObject',
-                'url'    => url('assets/images/og-default.png'),
-                'width'  => 1200,
-                'height' => 630,
+                'url'    => url('assets/images/logo.png'),
+                'width'  => 1254,
+                'height' => 1254,
+            ],
+            'founder'     => [
+                '@type' => 'Person',
+                'name'  => 'Shushant Singh',
+                'url'   => url('shushant-singh'),
             ],
         ],
     ],
