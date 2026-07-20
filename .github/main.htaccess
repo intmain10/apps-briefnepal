@@ -1,0 +1,167 @@
+# =========================================================================
+# BriefNepal — Apache/LiteSpeed config for Hostinger (frontend hosting).
+# Place this file in the document root of your domain/subdomain
+# (e.g. public_html/  or  the subdomain folder for test.briefnepal.com).
+# =========================================================================
+
+# ---- Redirect www → apex (non-www), single hop straight to HTTPS ----
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+
+# ---- Force HTTPS ----
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# ---- Default document ----
+DirectoryIndex index.html
+
+# ---- Topic pages: rendered dynamically by topic.php (live data + caching) ----
+# /topic/ = hub of all topics; /topic/<slug> = one topic archive. No static
+# files or FTP needed.
+RewriteRule ^topic/?$ /topic.php [L]
+RewriteRule ^topic/([A-Za-z0-9-]+)/?$ /topic.php?slug=$1 [L]
+
+# ---- Category pages: server-rendered by category.php (unique SEO per cat). ----
+# Legacy /category.html?cat=<key> URLs 301 to the clean path.
+RewriteCond %{QUERY_STRING} (?:^|&)cat=([a-z]+)
+RewriteRule ^category\.html$ /category/%1? [R=301,L]
+RewriteRule ^category/([a-z]+)/?$ /category.php?cat=$1 [L,QSA]
+
+# ---- Jobs section: rendered dynamically by jobs.php / job.php (live API). ----
+#
+# SEO-friendly keyword URLs (canonical) — these must come BEFORE the /jobs rules
+# and the order among them matters (jobs-in-nepal before the generic jobs-in-x):
+#   /jobs-in-nepal           → jobs home
+#   /<cat>-jobs-in-nepal     → category archive  (e.g. /it-jobs-in-nepal)
+#   /jobs-in-<city>          → location archive  (e.g. /jobs-in-kathmandu)
+RewriteRule ^jobs-in-nepal/?$ /jobs.php [L]
+RewriteRule ^([a-z]+)-jobs-in-nepal/?$ /jobs.php?type=category&key=$1 [L]
+RewriteRule ^jobs-in-([a-z]+)/?$ /jobs.php?type=location&key=$1 [L]
+
+# Jobs sitemap (before the /jobs/<slug> catch-all so it isn't treated as a slug).
+RewriteRule ^jobs-sitemap\.xml$ /jobs-sitemap.php [L]
+
+# Order matters: the fixed sub-paths must be matched BEFORE the /jobs/<slug>
+# detail catch-all, or "category"/"location" would be treated as a job slug.
+# The legacy /jobs/category and /jobs/location URLs still resolve (jobs.php
+# canonicalises them to the keyword URLs above).
+RewriteRule ^jobs/?$ /jobs.php [L]
+RewriteRule ^jobs/category/([A-Za-z0-9-]+)/?$ /jobs.php?type=category&key=$1 [L]
+RewriteRule ^jobs/location/([A-Za-z0-9-]+)/?$ /jobs.php?type=location&key=$1 [L]
+RewriteRule ^jobs/([A-Za-z0-9-]+)/?$ /job.php?slug=$1 [L]
+
+# Machine-readable site guide for AI assistants (llms.txt standard).
+RewriteRule ^llms\.txt$ /llms.php [L]
+
+# ---- Travel section: rendered dynamically by travel.php (editorial guides). ----
+# Hub + per-guide detail pages. Each type maps to a ?type=&key= query that
+# travel.php dispatches. Specific paths first; the sitemap before the catch-alls.
+RewriteRule ^travel/?$ /travel.php [L]
+RewriteRule ^travel-sitemap\.xml$ /travel-sitemap.php [L]
+# Interactive tools: trek quiz, cost index, completion certificate.
+# Podcast: episode index + per-episode pages (player, show notes, transcript).
+RewriteRule ^travel/podcast-refresh/?$ /travel-podcast-refresh.php [L]
+RewriteRule ^travel/podcast/?$ /travel.php?type=podcast [L]
+RewriteRule ^travel/podcast/([a-z0-9-]+)/?$ /travel.php?type=podcast&key=$1 [L]
+RewriteRule ^travel/quiz/?$ /travel-quiz.php [L]
+RewriteRule ^travel/trekking-costs/?$ /travel-costs.php [L]
+RewriteRule ^travel/certificate/?$ /travel-certificate.php [L]
+# Slug aliases → canonical (avoids 404s from alternate spellings of a place).
+RewriteRule ^travel/destination/(manra-shiswa|manara-siswa|manara|manara-shiswa)/?$ /travel/destination/manra-siswa [R=301,L]
+RewriteRule ^travel/destination/([a-z0-9-]+)/?$ /travel.php?type=destination&key=$1 [L]
+# Pilgrimage cluster articles (/travel/pilgrimage/<site>/<topic>) — must precede the single-segment pilgrimage rule.
+RewriteRule ^travel/pilgrimage/([a-z0-9-]+)/([a-z0-9-]+)/?$ /travel.php?type=pilgrimage&key=$1&sub=$2 [L]
+RewriteRule ^travel/pilgrimage/([a-z0-9-]+)/?$ /travel.php?type=pilgrimage&key=$1 [L]
+RewriteRule ^travel/itinerary/([a-z0-9-]+)/?$ /travel.php?type=itinerary&key=$1 [L]
+# Trek cluster articles (/travel/trek/<trek>/<topic>) — must precede the single-segment trek rule.
+RewriteRule ^travel/trek/([a-z0-9-]+)/([a-z0-9-]+)/?$ /travel.php?type=trek&key=$1&sub=$2 [L]
+RewriteRule ^travel/trek/([a-z0-9-]+)/?$ /travel.php?type=trek&key=$1 [L]
+RewriteRule ^travel/season/([a-z0-9-]+)/?$ /travel.php?type=season&key=$1 [L]
+RewriteRule ^travel/month/([a-z0-9-]+)/?$ /travel.php?type=month&key=$1 [L]
+RewriteRule ^travel/route/([a-z0-9-]+)/?$ /travel.php?type=route&key=$1 [L]
+RewriteRule ^travel/essential/([a-z0-9-]+)/?$ /travel.php?type=essential&key=$1 [L]
+
+# ---- Tools section: static calculator/converter pages in /tools/ ----
+# /tools = hub (tools.html); /tools/<slug> = individual tool (tools/<slug>.html).
+RewriteRule ^tools/?$ /tools.html [L]
+# Nepali calendar is PHP (dynamic BS year in title/meta); old .html URL 301s.
+RewriteRule ^tools/nepali-calendar\.html$ /tools/nepali-calendar [R=301,L]
+RewriteRule ^tools/nepali-calendar/?$ /tools/nepali-calendar.php [L]
+RewriteRule ^tools/([a-z0-9-]+)/?$ /tools/$1.html [L]
+
+# ---- Rates section: daily gold/silver/fuel/forex, rendered by rates.php ----
+RewriteRule ^rates/?$ /rates.php [L]
+RewriteRule ^rates/([a-z0-9-]+)/?$ /rates.php?p=$1 [L]
+
+# ---- Loksewa preparation guide (static) ----
+RewriteRule ^loksewa-guide/?$ /loksewa-guide.html [L]
+
+# ---- IPO & NEPSE Center (evergreen finance explainers, nepse.php) ----
+RewriteRule ^nepse/?$ /nepse.php [L]
+RewriteRule ^nepse/ipo/([a-z0-9-]+)/?$ /nepse.php?ipo=$1 [L]
+RewriteRule ^nepse/stocks/?$ /nepse.php?stocks=1 [L]
+RewriteRule ^nepse/stock/([a-z0-9]+)/?$ /nepse.php?stock=$1 [L]
+RewriteRule ^nepse/([a-z0-9-]+)/?$ /nepse.php?p=$1 [L]
+
+# ---- Clean article URLs + legacy redirect ----
+# Legacy links (article.html?slug=X) → 301 to the clean /article/X. The
+# THE_REQUEST guard means this fires only for real browser requests, so the
+# internal rewrite below can't trigger a redirect loop.
+RewriteCond %{THE_REQUEST} \s/+article\.html\?slug=([A-Za-z0-9-]+) [NC]
+RewriteRule ^article\.html$ /article/%1? [R=301,L]
+
+# Every article is rendered by article.php — real per-article Open Graph tags
+# + content, fetched live from the API with short-lived caching. This gives
+# correct social previews for ALL articles (including brand-new ones) with no
+# static generation or FTP. The browser URL stays /article/<slug>.
+RewriteRule ^article/([A-Za-z0-9-]+)/?$ /article.php?slug=$1 [L]
+
+# ---- Sitemap: generated dynamically by sitemap.php from the API (cached). ----
+RewriteRule ^sitemap\.xml$ /sitemap.php [L]
+
+# ---- Gzip / compression ----
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml \
+    application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+# ---- Browser caching ----
+<IfModule mod_expires.c>
+  ExpiresActive On
+  # CSS/JS: short freshness window + stale-while-revalidate (Header block below).
+  # A browsing session then reuses the cached file with NO blocking revalidation
+  # round-trip (CSS is render-blocking, so that RTT was delaying first paint),
+  # while design/script changes still reach returning visitors within ~a minute.
+  ExpiresByType text/css            "access plus 1 minute"
+  ExpiresByType application/javascript "access plus 1 minute"
+  # Images/fonts rarely change → cache them hard for speed.
+  ExpiresByType image/svg+xml       "access plus 30 days"
+  ExpiresByType image/jpeg          "access plus 30 days"
+  ExpiresByType image/png           "access plus 30 days"
+  ExpiresByType image/webp          "access plus 30 days"
+  ExpiresByType image/x-icon        "access plus 30 days"
+  ExpiresByType font/woff2          "access plus 30 days"
+  # HTML should revalidate often (news content changes)
+  ExpiresByType text/html           "access plus 0 seconds"
+</IfModule>
+
+# CSS/JS caching: fresh for 60s (no revalidation RTT during a session), then
+# served stale instantly while revalidating in the background for up to a day,
+# so returning visitors never wait on a blocking round-trip and still pick up
+# changes on their next navigation. Assets are also ?v=-stamped where it matters.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(css|js)$">
+    Header set Cache-Control "public, max-age=60, stale-while-revalidate=86400"
+  </FilesMatch>
+</IfModule>
+
+# ---- Small security niceties ----
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ---- Custom 404 (optional): send unknown paths to the homepage ----
+ErrorDocument 404 /index.html
