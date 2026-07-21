@@ -51,6 +51,27 @@ $page = [
                 'name'  => 'Shushant Singh',
                 'url'   => url('shushant-singh'),
             ],
+            'sameAs'      => ['https://briefnepal.com'],
+        ],
+        // ItemList of categories — lets search + AI engines enumerate exactly
+        // what the platform offers, improving coverage for broad queries.
+        [
+            '@context'        => 'https://schema.org',
+            '@type'           => 'ItemList',
+            'name'            => SITE_NAME . ' tool categories',
+            'itemListElement' => (function () use ($cats) {
+                $out = [];
+                $i = 1;
+                foreach ($cats as $slug => $c) {
+                    $out[] = [
+                        '@type'    => 'ListItem',
+                        'position' => $i++,
+                        'url'      => url('category/' . $slug),
+                        'name'     => $c['name'] . ' Tools',
+                    ];
+                }
+                return $out;
+            })(),
         ],
     ],
 ];

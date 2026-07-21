@@ -22,6 +22,99 @@ record_recent_tool($slug);
 $cat = category_of($slug);
 $related = related_tools($slug, 6);
 
+/**
+ * Category-aware content pack — gives every tool distinct, keyword-rich body
+ * text (benefit line, feature list, use-cases, extra FAQs) so the 100+ tool
+ * pages are unique and substantive rather than near-duplicates. Falls back to
+ * a sensible default for any category.
+ */
+$contentPacks = [
+    'pdf' => [
+        'benefit' => 'work with PDF documents online without installing Adobe Acrobat or any desktop software',
+        'features' => ['No watermarks on your output', 'Handles multi-page and large PDFs', 'Keeps your original formatting and quality', 'Works on Windows, Mac, Linux, Android and iPhone'],
+        'useCases' => ['Preparing documents for email or printing', 'Combining scanned pages or invoices', 'Reducing file size to meet upload limits'],
+        'faqs' => [['Are there any file-size or page limits?', 'You can process large, multi-page PDFs. For very big files, give the upload a moment to finish.'], ['Will the quality of my PDF change?', 'No — the tool preserves your document’s text, images and layout so the output looks the same as the original.']],
+    ],
+    'image' => [
+        'benefit' => 'edit and convert images directly in your browser — nothing is uploaded to a server',
+        'features' => ['100% on-device — your photos never leave your computer', 'Supports JPG, PNG, WebP and more', 'No quality loss unless you choose to compress', 'Batch-friendly and lightning fast'],
+        'useCases' => ['Optimising images for a website or blog', 'Resizing photos for social media', 'Converting formats before uploading'],
+        'faqs' => [['Which image formats are supported?', 'Common formats including JPG, PNG and WebP are supported. The exact options appear in the tool above.'], ['Do you upload my images anywhere?', 'No. This tool processes images entirely in your browser, so they stay private on your device.']],
+    ],
+    'video' => [
+        'benefit' => 'inspect and work with video files privately in your browser',
+        'features' => ['Runs in your browser — no uploads', 'Supports common video formats', 'Fast and free with no account', 'Works on desktop and mobile'],
+        'useCases' => ['Checking a clip before publishing', 'Grabbing details from a recording', 'Quick edits without heavy software'],
+        'faqs' => [['Is my video uploaded to a server?', 'No — the tool works on-device in your browser, so your video stays private.']],
+    ],
+    'audio' => [
+        'benefit' => 'edit and convert audio without uploads or installing software',
+        'features' => ['On-device processing — private by design', 'Supports popular audio formats', 'No sign-up, no watermark', 'Works across all devices'],
+        'useCases' => ['Trimming a voice note or track', 'Converting audio before sharing', 'Preparing clips for a podcast'],
+        'faqs' => [['Are my audio files kept private?', 'Yes. Processing happens in your browser, so files never leave your device.']],
+    ],
+    'developer' => [
+        'benefit' => 'format, encode, validate and generate code and data instantly',
+        'features' => ['Runs locally in your browser', 'Handles large inputs quickly', 'Copy results with one click', 'No rate limits or sign-up'],
+        'useCases' => ['Debugging APIs and payloads', 'Cleaning up or formatting data', 'Generating test values quickly'],
+        'faqs' => [['Is my code or data sent anywhere?', 'No — everything runs in your browser, so your input stays private.'], ['Does it handle large inputs?', 'Yes, the tool is built to process large strings and files efficiently on-device.']],
+    ],
+    'seo' => [
+        'benefit' => 'generate the meta tags, schema and files you need to rank better',
+        'features' => ['Copy-paste-ready output', 'Follows current search-engine guidelines', 'Free with no limits', 'Great for GEO and AI answer engines'],
+        'useCases' => ['Preparing a new page for launch', 'Improving click-through with better snippets', 'Adding structured data for rich results'],
+        'faqs' => [['Will this help me rank on Google?', 'It gives you clean, standards-compliant output that supports good SEO — a strong technical foundation for ranking.']],
+    ],
+    'finance' => [
+        'benefit' => 'run accurate money calculations in seconds',
+        'features' => ['Instant, accurate results', 'Clear breakdowns you can trust', 'No sign-up required', 'Works on any device'],
+        'useCases' => ['Planning a loan or budget', 'Comparing financial options', 'Double-checking a quote or bill'],
+        'faqs' => [['Are the calculations accurate?', 'Yes — the tool uses standard financial formulas and shows the result instantly.']],
+    ],
+    'calculators' => [
+        'benefit' => 'get fast, precise answers for everyday and professional calculations',
+        'features' => ['Instant results as you type', 'Simple, distraction-free interface', 'Free and unlimited', 'Works offline once loaded'],
+        'useCases' => ['Quick everyday math', 'Work and study calculations', 'Verifying numbers on the go'],
+        'faqs' => [['Do I need to install anything?', 'No — it works instantly in any browser on desktop or mobile.']],
+    ],
+    'text' => [
+        'benefit' => 'count, clean, transform and generate text instantly',
+        'features' => ['Real-time processing', 'Handles long documents', 'One-click copy', 'Private, on-device processing'],
+        'useCases' => ['Editing and proofreading', 'Preparing content for publishing', 'Cleaning up messy text'],
+        'faqs' => [['Is my text kept private?', 'Yes — text is processed in your browser and never uploaded.']],
+    ],
+    'converters' => [
+        'benefit' => 'convert between units and formats accurately and instantly',
+        'features' => ['Accurate, standards-based conversions', 'Instant results', 'Free and unlimited', 'Works on every device'],
+        'useCases' => ['Converting units for work or study', 'Quick everyday conversions', 'Cross-checking measurements'],
+        'faqs' => [['How accurate are the conversions?', 'The tool uses precise conversion factors so you can rely on the result.']],
+    ],
+    'documents' => [
+        'benefit' => 'convert between document formats like CSV, JSON and Markdown',
+        'features' => ['Fast, on-device conversion', 'Preserves your data structure', 'No uploads, fully private', 'Copy or download the result'],
+        'useCases' => ['Moving data between apps', 'Preparing files for import', 'Reformatting exports'],
+        'faqs' => [['Is my file uploaded to a server?', 'No — conversion happens in your browser, keeping your data private.']],
+    ],
+    'ai' => [
+        'benefit' => 'run smart text intelligence right in your browser',
+        'features' => ['On-device — your text stays private', 'No API keys or sign-up', 'Instant results', 'Works on any device'],
+        'useCases' => ['Summarising long text', 'Extracting key information', 'Quick content analysis'],
+        'faqs' => [['Does this send my text to an AI server?', 'No — it runs on-device in your browser, so your content stays private.']],
+    ],
+    'utilities' => [
+        'benefit' => 'handle everyday tasks like QR codes, passwords and colors',
+        'features' => ['Simple and fast', 'Private, on-device processing', 'Free with no limits', 'Works everywhere'],
+        'useCases' => ['Generating what you need on the spot', 'Everyday quick tasks', 'Sharing or saving results'],
+        'faqs' => [['Is it really free?', 'Yes — every utility here is free with no account and no limits.']],
+    ],
+];
+$pack = $contentPacks[$tool['category']] ?? [
+    'benefit'  => 'get your task done quickly online',
+    'features' => ['Free with no sign-up', 'Fast and private', 'Works on any device', 'No watermarks or limits'],
+    'useCases' => ['Everyday tasks', 'Work and study', 'On-the-go use'],
+    'faqs'     => [],
+];
+
 // Build tool-specific, useful FAQ content (used on-page + as FAQ schema).
 $faqs = [
     [
@@ -43,6 +136,10 @@ $faqs = [
         'Yes. The ' . $tool['name'] . ' works on any modern browser across desktop, tablet and mobile.',
     ],
 ];
+// Append category-specific FAQs for depth + unique, quotable answers (GEO).
+foreach ($pack['faqs'] as $pf) {
+    $faqs[] = $pf;
+}
 
 $metaTitle = $tool['name'] . ' — Free Online Tool | ' . SITE_NAME;
 $metaDesc  = $tool['desc'] . ' Free, fast and private. No signup required.';
@@ -72,12 +169,24 @@ $page = [
             '@context'      => 'https://schema.org',
             '@type'         => 'SoftwareApplication',
             'name'          => $tool['name'],
+            'alternateName' => $tool['name'] . ' Online',
             'applicationCategory' => 'UtilitiesApplication',
-            'operatingSystem'     => 'Any',
+            'applicationSubCategory' => $cat['name'] . ' Tool',
+            'operatingSystem'     => 'Any (web-based)',
+            'browserRequirements' => 'Requires a modern web browser. No download or installation.',
             'description'   => $tool['desc'],
             'url'           => url($slug),
-            'offers'        => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD'],
-            'aggregateRating' => ['@type' => 'AggregateRating', 'ratingValue' => '4.8', 'ratingCount' => '1240'],
+            'inLanguage'    => 'en',
+            'isAccessibleForFree' => true,
+            'featureList'   => $tool['desc'],
+            'softwareVersion' => (string) OMNITOOLS_VERSION,
+            'offers'        => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD', 'availability' => 'https://schema.org/InStock'],
+            'publisher'     => [
+                '@type' => 'Organization',
+                'name'  => SITE_NAME,
+                'url'   => SITE_URL,
+                'logo'  => ['@type' => 'ImageObject', 'url' => url('assets/images/logo.png')],
+            ],
         ],
         [
             '@context'   => 'https://schema.org',
@@ -143,8 +252,21 @@ require __DIR__ . '/includes/header.php';
       <!-- SEO content -->
       <article class="prose mt-8">
         <h2>About the <?= e($tool['name']) ?></h2>
-        <p>The <strong><?= e($tool['name']) ?></strong> is a free online tool that lets you <?= e(lcfirst($tool['desc'])) ?> There's nothing to install and no account to create — just open the tool, do what you need, and you're done.</p>
+        <p>The <strong><?= e($tool['name']) ?></strong> is a free online tool that lets you <?= e(lcfirst($tool['desc'])) ?> With it you can <?= e($pack['benefit']) ?> — there's nothing to install and no account to create. Just open the tool, do what you need, and you're done.</p>
         <p>It's part of the <?= e($cat['name']) ?> collection on <?= e(SITE_NAME) ?>, a growing platform of <?= tools_count() ?>+ free, privacy-first tools built for speed and a great experience on every device.</p>
+        <?php if (!empty($tool['keywords'])): ?>
+        <p class="muted">Also known as: <?= e(str_replace(' ', ', ', $tool['keywords'])) ?>.</p>
+        <?php endif; ?>
+
+        <h2>Why use the <?= e($tool['name']) ?>?</h2>
+        <ul>
+          <?php foreach ($pack['features'] as $feat): ?><li><?= e($feat) ?></li><?php endforeach; ?>
+        </ul>
+
+        <h2>When to use it</h2>
+        <ul>
+          <?php foreach ($pack['useCases'] as $uc): ?><li><?= e($uc) ?></li><?php endforeach; ?>
+        </ul>
 
         <h2 id="how-to">How to use the <?= e($tool['name']) ?></h2>
         <ol>

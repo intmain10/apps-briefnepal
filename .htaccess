@@ -30,6 +30,7 @@ ErrorDocument 404 /404.php
     RewriteRule ^sitemap-index\.xml$ sitemap.php?type=index [L]
     RewriteRule ^sitemap-([a-z]+)\.xml$ sitemap.php?type=$1 [L]
     RewriteRule ^robots\.txt$ robots.php [L]
+    RewriteRule ^llms\.txt$ llms.php [L]
 
     # All-tools directory
     RewriteRule ^tools/?$ tools.php [L,QSA]

@@ -32,3 +32,6 @@ foreach ($aiBots as $bot) {
 
 echo "Sitemap: " . url('sitemap.xml') . "\n";
 echo "Sitemap: " . url('sitemap-index.xml') . "\n";
+
+// Pointer to the AI-engine map (llms.txt convention).
+echo "\n# AI answer engines: " . url('llms.txt') . "\n";
