@@ -618,19 +618,59 @@ function cardly_vcf_photo(array $card): ?string
         return null;
     }
     $base = cardly_media_url($slug);
-    if (str_starts_with($photo, $base)) {
-        $rel  = ltrim(substr($photo, strlen($base)), '/');
-        $path = UPLOADS_PATH . '/cardly/media/' . $slug . '/' . $rel;
-        $ext  = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-        $type = ['jpg' => 'JPEG', 'jpeg' => 'JPEG', 'png' => 'PNG'][$ext] ?? null;
-        if ($type && is_file($path) && filesize($path) < 500 * 1024) {
-            $data = @file_get_contents($path);
-            if ($data !== false) {
-                return 'PHOTO;ENCODING=b;TYPE=' . $type . ':' . base64_encode($data);
-            }
+    if (!str_starts_with($photo, $base)) {
+        return 'PHOTO;VALUE=URI:' . $photo;
+    }
+    $rel  = ltrim(substr($photo, strlen($base)), '/');
+    $path = UPLOADS_PATH . '/cardly/media/' . $slug . '/' . $rel;
+    if (!is_file($path)) {
+        return 'PHOTO;VALUE=URI:' . $photo;
+    }
+    $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+    // Fast path: JPEG/PNG under 500KB embed directly.
+    if (in_array($ext, ['jpg', 'jpeg', 'png'], true) && filesize($path) < 500 * 1024) {
+        $data = @file_get_contents($path);
+        if ($data !== false) {
+            return 'PHOTO;ENCODING=b;TYPE=' . ($ext === 'png' ? 'PNG' : 'JPEG') . ':' . base64_encode($data);
         }
     }
-    return 'PHOTO;VALUE=URI:' . $photo; // fallback: contact app fetches it
+    // Everything else (WebP, GIF, large) → re-encode to a small JPEG via GD so
+    // every Contacts app renders it.
+    if ($jpeg = cardly_vcf_photo_jpeg($path, $ext)) {
+        return 'PHOTO;ENCODING=b;TYPE=JPEG:' . base64_encode($jpeg);
+    }
+    return 'PHOTO;VALUE=URI:' . $photo; // last-resort fallback
+}
+
+/** Load an image and return a small flattened JPEG blob (or null). */
+function cardly_vcf_photo_jpeg(string $path, string $ext): ?string
+{
+    if (!function_exists('imagecreatetruecolor')) {
+        return null;
+    }
+    $img = match ($ext) {
+        'webp'       => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($path) : false,
+        'gif'        => @imagecreatefromgif($path),
+        'png'        => @imagecreatefrompng($path),
+        'jpg', 'jpeg' => @imagecreatefromjpeg($path),
+        default      => false,
+    };
+    if (!$img) {
+        return null;
+    }
+    $w = imagesx($img);
+    $h = imagesy($img);
+    $max = 500;
+    $s = min(1.0, $max / max($w, $h));
+    $nw = max(1, (int) round($w * $s));
+    $nh = max(1, (int) round($h * $s));
+    $dst = imagecreatetruecolor($nw, $nh);
+    imagefilledrectangle($dst, 0, 0, $nw, $nh, imagecolorallocate($dst, 255, 255, 255));
+    imagecopyresampled($dst, $img, 0, 0, 0, 0, $nw, $nh, $w, $h);
+    ob_start();
+    imagejpeg($dst, null, 82);
+    return ob_get_clean() ?: null;
 }
 
 /** Fold vCard lines to 75 octets per RFC 2426 (CRLF + single space). */
