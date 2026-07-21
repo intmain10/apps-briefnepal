@@ -30,6 +30,17 @@ function xml_url(string $loc, string $lastmod, string $freq = 'weekly', string $
 
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 
+/* ---------------- Cardly domain: its own minimal sitemap ----------------
+ * Only the marketing pages. Individual cards are intentionally left out so
+ * their random links stay unlisted/private. */
+if (cardly_is_host()) {
+    echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+    echo xml_url(cardly_link(), $today, 'weekly', '1.0');
+    echo xml_url(cardly_link('about'), $today, 'monthly', '0.8');
+    echo '</urlset>';
+    exit;
+}
+
 /* ---------------- Sitemap index ---------------- */
 if ($type === 'index') {
     echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";

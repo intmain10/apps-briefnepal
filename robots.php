@@ -9,6 +9,27 @@ require_once __DIR__ . '/includes/functions.php';
 
 header('Content-Type: text/plain; charset=utf-8');
 
+// The Cardly domain gets its own robots policy (marketing pages indexable,
+// builder/auth/api kept out).
+if (cardly_is_host()) {
+    echo "# robots.txt for Cardly (" . CARDLY_DOMAIN . ")\n\n";
+    echo "User-agent: *\n";
+    echo "Allow: /\n";
+    echo "Disallow: /api/\n";
+    echo "Disallow: /new\n";
+    echo "Disallow: /login\n";
+    echo "Disallow: /signup\n";
+    echo "Disallow: /dashboard\n";
+    echo "Disallow: /forgot\n";
+    echo "Disallow: /reset\n";
+    echo "Disallow: /*/edit\n\n";
+    foreach (['GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'anthropic-ai', 'PerplexityBot', 'Google-Extended', 'Applebot-Extended', 'CCBot'] as $bot) {
+        echo "User-agent: {$bot}\nAllow: /\n\n";
+    }
+    echo "Sitemap: " . cardly_link('sitemap.xml') . "\n";
+    exit;
+}
+
 echo "# robots.txt for " . SITE_NAME . "\n\n";
 
 // Default policy for all crawlers.

@@ -24,7 +24,7 @@ if (is_file(__DIR__ . '/config.local.php')) {
 /* -------------------------------------------------------------------------
  * Environment
  * ---------------------------------------------------------------------- */
-define('OMNITOOLS_VERSION', '1.7.7');
+define('OMNITOOLS_VERSION', '1.7.8');
 
 // Toggle to false on production to hide detailed PHP errors.
 if (!defined('DEBUG_MODE')) define('DEBUG_MODE', false);
