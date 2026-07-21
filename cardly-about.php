@@ -7,6 +7,18 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/cardly.php';
 
+// Maker profile links (kept in sync with the founder page).
+$makerProfiles = [
+    ['label' => 'LinkedIn',             'url' => 'https://www.linkedin.com/in/shushant-kumar-singh/', 'note' => 'Professional profile'],
+    ['label' => 'BriefNepal',           'url' => 'https://briefnepal.com',      'note' => 'News platform he founded'],
+    ['label' => 'OmniTools',            'url' => 'https://apps.briefnepal.com', 'note' => '100+ free online tools he founded'],
+    ['label' => 'Genuin',               'url' => 'https://begenuin.com',        'note' => 'Product Architect'],
+    ['label' => 'Spotify — Artist',     'url' => 'https://open.spotify.com/artist/5b03eorWX5RxJqXCsTUgFz', 'note' => 'Singer / recording artist'],
+    ['label' => 'Apple Music — Artist', 'url' => 'https://music.apple.com/us/artist/shushant-singh/6788654900', 'note' => 'Music profile'],
+    ['label' => 'Nepal Travel Podcast', 'url' => 'https://open.spotify.com/show/033Ka2C5wynL6xq41YAsbG', 'note' => 'Podcast he hosts'],
+    ['label' => 'Mind Atlas Podcast',   'url' => 'https://open.spotify.com/show/033K9Ye7NX5mRELkuCt7Nk', 'note' => 'Podcast he hosts'],
+];
+
 $page = [
     'title'       => 'About Cardly — Free Digital Business Card',
     'description' => 'Cardly is a free digital business card — one smart link for your contact, socials, portfolio and QR code. Built by Shushant Singh, part of OmniTools.',
@@ -86,8 +98,37 @@ require __DIR__ . '/includes/header.php';
       <li><strong>Free &amp; private</strong> — no watermarks, no limits, and an unguessable link.</li>
     </ul>
 
-    <h2>Who made Cardly</h2>
-    <p>Cardly was designed and built by <strong><a href="https://apps.briefnepal.com/shushant-singh" rel="noopener">Shushant Singh</a></strong>, a product architect and the founder of <a href="https://apps.briefnepal.com" rel="noopener">OmniTools</a> (100+ free online tools) and <a href="https://briefnepal.com" rel="noopener">BriefNepal</a>. Cardly is part of the OmniTools family — built with the same focus on clean, honest, genuinely useful products.</p>
+    <h2>About the maker — Shushant Singh</h2>
+    <p>Cardly was designed and built by <strong><a href="https://apps.briefnepal.com/shushant-singh" rel="noopener">Shushant Singh</a></strong> (Shushant Kumar Singh), a <strong>Nepali</strong> product architect, entrepreneur, podcaster and recording artist based in <strong>Ahmedabad, India</strong>. He builds digital products that make everyday life simpler — Cardly is part of the OmniTools family, built with the same focus on clean, honest, genuinely useful products. <a href="https://apps.briefnepal.com/shushant-singh" rel="noopener">Read his full profile →</a></p>
+
+    <h3>Ventures &amp; work</h3>
+    <ul>
+      <li><strong>Founder &amp; Owner — BriefNepal</strong> (<a href="https://briefnepal.com" rel="noopener">briefnepal.com</a>): a modern Nepali news, jobs and travel platform.</li>
+      <li><strong>Founder &amp; Owner — OmniTools</strong> (<a href="https://apps.briefnepal.com" rel="noopener">apps.briefnepal.com</a>): 100+ free, privacy-first PDF, image, developer and utility tools — plus Cardly.</li>
+      <li><strong>Product Architect — Genuin</strong> (<a href="https://begenuin.com" rel="noopener">begenuin.com</a>): designing product experiences, user flows and technical architecture.</li>
+    </ul>
+
+    <h3>Podcasts</h3>
+    <ul>
+      <li><strong><a href="https://open.spotify.com/show/033Ka2C5wynL6xq41YAsbG" rel="noopener">Nepal Travel Podcast</a></strong> — travel, places and stories from across Nepal.</li>
+      <li><strong><a href="https://open.spotify.com/show/033K9Ye7NX5mRELkuCt7Nk" rel="noopener">Mind Atlas</a></strong> — ideas, the mind and meaningful conversations.</li>
+    </ul>
+
+    <h3>Music</h3>
+    <p>As a singer and recording artist, Shushant releases original music on <a href="https://open.spotify.com/artist/5b03eorWX5RxJqXCsTUgFz" rel="noopener">Spotify</a> and <a href="https://music.apple.com/us/artist/shushant-singh/6788654900" rel="noopener">Apple Music</a>.</p>
+
+    <h3>Education</h3>
+    <p>Shushant holds a degree from <a href="https://www.charusat.ac.in" rel="noopener">Charotar University of Science and Technology (CHARUSAT)</a>.</p>
+
+    <h3>Areas of focus</h3>
+    <p>Product architecture &amp; design · Software engineering · SaaS · Artificial intelligence · Android &amp; web development · SEO &amp; generative-engine optimization · Digital tools &amp; automation · Podcasting &amp; storytelling · Music · Entrepreneurship.</p>
+
+    <h3>Find Shushant Singh online</h3>
+    <ul>
+      <?php foreach ($makerProfiles as $mp): ?>
+        <li><a href="<?= eattr($mp['url']) ?>" rel="noopener" target="_blank"><strong><?= e($mp['label']) ?></strong></a> — <?= e($mp['note']) ?></li>
+      <?php endforeach; ?>
+    </ul>
 
     <h2>Your privacy</h2>
     <p>Your card is yours. Links are unguessable, images are stored securely, and there are no ads or trackers selling your data. You’re always in control of what your card shows.</p>
