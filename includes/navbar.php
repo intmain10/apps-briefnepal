@@ -19,6 +19,7 @@ if (cardly_is_host()):
       <span class="brand__name">Cardly</span>
     </a>
     <div class="navbar__actions">
+      <a href="<?= eattr(cardly_link('about')) ?>" class="navbar__link">About</a>
       <?php if ($cAccounts && $cUser): ?>
         <a href="<?= eattr(cardly_link('dashboard')) ?>" class="navbar__link">My cards</a>
         <a href="<?= eattr(cardly_link('logout')) ?>" class="navbar__link">Sign out</a>

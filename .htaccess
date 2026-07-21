@@ -31,10 +31,13 @@ ErrorDocument 404 /404.php
     # =====================================================================
     # OmniTools sections don't belong on the Cardly domain → send to main site
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
-    RewriteRule ^(tools|category|blog|about|privacy|terms|contact|changelog|feedback|sitemap|shushant-singh|founder)(/.*)?$ https://apps.briefnepal.com/$1$2 [R=301,L]
+    RewriteRule ^(tools|category|blog|privacy|terms|contact|changelog|feedback|sitemap|shushant-singh|founder)(/.*)?$ https://apps.briefnepal.com/$1$2 [R=301,L]
     # Cardly landing
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
     RewriteRule ^$ cardly.php [L,QSA]
+    # Cardly About
+    RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
+    RewriteRule ^about/?$ cardly-about.php [L,QSA]
     # Builder
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
     RewriteRule ^new/?$ cardly-edit.php [L,QSA]
