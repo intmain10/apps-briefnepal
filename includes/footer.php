@@ -12,7 +12,21 @@ $bare = !empty($page['bare']);
 ?>
 </main>
 
-<?php if (!$bare): ?>
+<?php if (!$bare && cardly_is_host()): ?>
+<footer class="footer footer--cardly">
+  <div class="container">
+    <div class="footer__bottom" style="flex-direction:column;gap:8px;text-align:center;justify-content:center">
+      <a href="<?= eattr(cardly_link()) ?>" class="brand brand--footer" style="justify-content:center">
+        <img class="brand__logo" src="<?= eattr(url('assets/images/cardly-icon.png?v=' . OMNITOOLS_VERSION)) ?>" width="30" height="30" alt="Cardly logo">
+        <span class="brand__name">Cardly</span>
+      </a>
+      <p class="footer__made">Free digital business cards · by <a href="https://apps.briefnepal.com" rel="noopener">OmniTools</a></p>
+      <p>&copy; <?= date('Y') ?> Cardly</p>
+    </div>
+  </div>
+</footer>
+<button class="to-top" id="toTop" aria-label="Back to top"><?= icon_svg('arrow', 'icon to-top__icon') ?></button>
+<?php elseif (!$bare): ?>
 <footer class="footer">
   <div class="container">
     <div class="footer__grid">
