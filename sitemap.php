@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/blog.php';
+require_once __DIR__ . '/includes/cardly.php'; // for cardly_published_cards()
 
 header('Content-Type: application/xml; charset=utf-8');
 header('X-Robots-Tag: noindex');
