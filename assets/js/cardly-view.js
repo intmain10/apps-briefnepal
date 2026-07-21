@@ -248,15 +248,4 @@
     ctx.fillText('Made with Cardly · ' + (window.OMNITOOLS_BASE || 'apps.briefnepal.com').replace(/^https?:\/\//, ''), W / 2, H - 46);
     return canvas;
   }
-
-  /* TEMP: ?story-preview renders the story full-screen for QA screenshots. */
-  if (location.search.indexOf('story-preview') !== -1) {
-    (async () => {
-      const c = await drawStory();
-      const o = document.createElement('div');
-      o.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;align-items:center;justify-content:center';
-      c.style.cssText = 'height:100vh;width:auto;max-width:100vw';
-      o.appendChild(c); document.body.appendChild(o);
-    })();
-  }
 })();
