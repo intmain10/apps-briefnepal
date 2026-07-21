@@ -9,7 +9,7 @@
  */
 declare(strict_types=1);
 
-require_once __DIR__ . '/../includes/cardly.php';
+require_once __DIR__ . '/../includes/cardly_auth.php';
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
@@ -49,6 +49,12 @@ if ($action === 'create') {
     if (!rate_limit('cardly_create', 15, 3600)) {
         json_error('Too many cards created. Please try again later.', 429);
     }
+    // When accounts are available, creating a card requires a signed-in user
+    // (the trust upgrade). Before MySQL is configured this stays open (guest).
+    $owner = cardly_current_user();
+    if (cardly_accounts_enabled() && !$owner) {
+        json_error('Please sign in to create a card.', 401);
+    }
     $u = strtolower(trim((string)($_POST['username'] ?? '')));
     if (!cardly_slug_valid($u)) {
         json_error('Choose a username of 3–30 letters, numbers or hyphens.');
@@ -65,6 +71,9 @@ if ($action === 'create') {
     $card = cardly_blank($tpl);
     $card['name'] = trim(mb_substr((string)($_POST['name'] ?? ''), 0, 80));
     $card['createdAt'] = date('c');
+    if ($owner) {
+        $card['userId'] = (int) $owner['id'];
+    }
     $token = bin2hex(random_bytes(16));
     $card['tokenHash'] = cardly_hash_token($token);
     if (!cardly_save($u, $card)) {
@@ -75,7 +84,7 @@ if ($action === 'create') {
         'viewUrl' => url('cardly/' . $u)]);
 }
 
-/* Load + authorize for save/upload */
+/* Load + authorize for save/upload — by edit token OR account ownership. */
 function cardly_authorize(): array
 {
     $slug = preg_replace('/[^a-z0-9-]/', '', (string)($_POST['slug'] ?? ''));
@@ -84,8 +93,15 @@ function cardly_authorize(): array
     if (!$card) {
         json_error('Card not found.', 404);
     }
-    if (!cardly_verify_token($card, $token)) {
-        json_error('Invalid edit link — you are not authorised to edit this card.', 403);
+    $user = cardly_current_user();
+    $isOwner = $user && cardly_user_owns($card, (int) $user['id']);
+    $hasToken = cardly_verify_token($card, $token);
+    if (!$isOwner && !$hasToken) {
+        json_error('You are not authorised to edit this card.', 403);
+    }
+    // A signed-in user editing their (unowned, token-held) card claims it.
+    if ($user && $hasToken && empty($card['userId'])) {
+        $card['userId'] = (int) $user['id'];
     }
     return [$slug, $card];
 }

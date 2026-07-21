@@ -47,6 +47,8 @@ ErrorDocument 404 /404.php
     # Cardly — digital business cards (order: specific routes before the catch-all)
     RewriteRule ^cardly/?$ cardly.php [L,QSA]
     RewriteRule ^cardly/new/?$ cardly-edit.php [L,QSA]
+    # Accounts (must precede the /cardly/<slug> catch-all)
+    RewriteRule ^cardly/(login|signup|logout|dashboard|verify|forgot|reset|resend)/?$ cardly-account.php?do=$1 [L,QSA]
     RewriteRule ^cardly/([a-z0-9-]+)/edit/?$ cardly-edit.php?slug=$1 [L,QSA]
     RewriteRule ^cardly/([a-z0-9-]+)/?$ cardly-view.php?slug=$1 [L,QSA]
 
@@ -101,7 +103,7 @@ ErrorDocument 404 /404.php
 # =========================================================================
 # Security — block access to sensitive files
 # =========================================================================
-<FilesMatch "^(config\.php|\.htaccess|.*\.sql|.*\.log|composer\.(json|lock))$">
+<FilesMatch "^(config\.php|config\.local\.php|\.htaccess|.*\.sql|.*\.log|composer\.(json|lock))$">
     Require all denied
 </FilesMatch>
 

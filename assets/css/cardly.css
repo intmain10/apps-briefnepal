@@ -186,3 +186,65 @@ body.cardly-page { background: #050509; }
   .cx__wrap { padding-bottom: 28px; }
   .cx__nav { position: fixed; }
 }
+
+/* =========================================================================
+   Cardly accounts — auth pages + dashboard
+   ========================================================================= */
+.cardly-auth { max-width: 440px; margin: 48px auto 80px; padding: 0 18px; }
+.cardly-auth__card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 34px 30px; box-shadow: var(--shadow-lg, 0 20px 50px rgba(0,0,0,.08));
+}
+.cardly-auth__card h1 { font-size: 26px; margin: 0 0 6px; }
+.cardly-auth__card .muted { margin: 0 0 22px; }
+.cardly-auth__card label {
+  display: block; font-size: 13px; font-weight: 600; color: var(--text-2);
+  margin-bottom: 14px;
+}
+.cardly-auth__card input {
+  display: block; width: 100%; margin-top: 6px; padding: 12px 14px;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2);
+  color: var(--text); font-size: 15px; font-family: inherit;
+}
+.cardly-auth__card input:focus { outline: none; border-color: #0071e3; box-shadow: 0 0 0 3px rgba(0,113,227,.15); }
+.cardly-auth__hint { font-size: 12px; color: var(--text-2); margin: -6px 0 16px; }
+.cardly-auth__btn { width: 100%; justify-content: center; margin-top: 4px; }
+.cardly-auth__links {
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-top: 18px; font-size: 14px;
+}
+.cardly-auth__links a { color: #0071e3; text-decoration: none; }
+.cardly-auth__links a:hover { text-decoration: underline; }
+
+.cardly-alert { border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; }
+.cardly-alert--ok   { background: rgba(16,185,129,.12); color: #047857; border: 1px solid rgba(16,185,129,.3); }
+.cardly-alert--err  { background: rgba(239,68,68,.1);  color: #b91c1c; border: 1px solid rgba(239,68,68,.3); }
+.cardly-alert--info { background: rgba(0,113,227,.1);  color: #0b5cad; border: 1px solid rgba(0,113,227,.25); }
+.cardly-alert a { color: inherit; font-weight: 700; }
+
+.cardly-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; vertical-align: middle; margin-left: 6px; }
+.cardly-badge--ok   { background: rgba(16,185,129,.15); color: #047857; }
+.cardly-badge--warn { background: rgba(245,158,11,.15); color: #b45309; }
+
+/* Dashboard */
+.cardly-dash { max-width: 900px; margin: 40px auto 90px; padding: 0 18px; }
+.cardly-dash__head { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 24px; }
+.cardly-dash__head h1 { font-size: 30px; margin: 0 0 4px; }
+.cardly-dash__actions { display: flex; gap: 10px; }
+.cardly-dash__empty { text-align: center; padding: 60px 20px; border: 1.5px dashed var(--border); border-radius: 18px; }
+.cardly-dash__empty p { margin: 0 0 18px; color: var(--text-2); }
+.cardly-dash__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.cardly-dash__card {
+  display: flex; flex-direction: column; justify-content: space-between;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px;
+  transition: border-color .15s, transform .15s;
+}
+.cardly-dash__card:hover { border-color: var(--border-strong, #ccc); transform: translateY(-2px); }
+.cardly-dash__card h3 { margin: 0 0 4px; font-size: 18px; }
+.cardly-dash__card .muted { font-size: 13px; margin: 0; }
+.cardly-dash__card-actions { display: flex; gap: 8px; margin-top: 18px; }
+
+/* Account chip on the Cardly landing hero */
+.cardly-acctbar { display: flex; justify-content: flex-end; gap: 10px; align-items: center; padding: 14px 0 0; }
+.cardly-acctbar a { font-size: 14px; }
+@media (max-width: 520px) { .cardly-auth__card { padding: 26px 20px; } }

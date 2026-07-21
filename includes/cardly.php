@@ -20,10 +20,11 @@ declare(strict_types=1);
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/database.php';
 
-/** DDL for the Cardly table (created on demand when a DB is connected). */
+/** DDL for the Cardly cards table (created on demand when a DB is connected). */
 const CARDLY_TABLE_SQL = <<<SQL
 CREATE TABLE IF NOT EXISTS cardly_cards (
   slug       VARCHAR(30)  NOT NULL,
+  user_id    INT UNSIGNED NULL,
   token_hash CHAR(64)     NOT NULL,
   published  TINYINT(1)   NOT NULL DEFAULT 0,
   name       VARCHAR(120) NOT NULL DEFAULT '',
@@ -33,7 +34,27 @@ CREATE TABLE IF NOT EXISTS cardly_cards (
   updated_at DATETIME     NOT NULL,
   PRIMARY KEY (slug),
   KEY idx_published (published),
-  KEY idx_updated (updated_at)
+  KEY idx_updated (updated_at),
+  KEY idx_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SQL;
+
+/** DDL for the Cardly user accounts table. */
+const CARDLY_USERS_SQL = <<<SQL
+CREATE TABLE IF NOT EXISTS cardly_users (
+  id             INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name           VARCHAR(100) NOT NULL,
+  email          VARCHAR(190) NOT NULL,
+  password_hash  VARCHAR(255) NOT NULL,
+  email_verified TINYINT(1)   NOT NULL DEFAULT 0,
+  verify_hash    CHAR(64)     NULL,
+  verify_expires DATETIME     NULL,
+  reset_hash     CHAR(64)     NULL,
+  reset_expires  DATETIME     NULL,
+  created_at     DATETIME     NOT NULL,
+  last_login     DATETIME     NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uniq_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL;
 
@@ -69,7 +90,9 @@ function cardly_reserved(): array
 {
     return ['new', 'edit', 'api', 'assets', 'admin', 'login', 'logout', 'card',
         'cards', 'vcf', 'qr', 'about', 'contact', 'privacy', 'terms', 'help',
-        'templates', 'pricing', 'app', 'apps', 'www', 'cardly'];
+        'templates', 'pricing', 'app', 'apps', 'www', 'cardly',
+        'signup', 'signin', 'register', 'dashboard', 'verify', 'forgot',
+        'reset', 'account', 'accounts', 'settings', 'me', 'profile'];
 }
 
 function cardly_slug_valid(string $slug): bool
@@ -111,13 +134,32 @@ function cardly_db(): ?Database
     }
     if ($ready === null) {
         try {
-            $db->execute(CARDLY_TABLE_SQL);
+            // DDL runs unprepared (exec) — some MySQL builds reject CREATE/ALTER
+            // through the prepared-statement protocol.
+            $pdo = $db->pdo();
+            $pdo->exec(CARDLY_TABLE_SQL);
+            $pdo->exec(CARDLY_USERS_SQL);
+            // Auto-add user_id to a pre-existing cards table (migration).
+            try {
+                $pdo->query('SELECT user_id FROM cardly_cards LIMIT 1');
+            } catch (Throwable $e) {
+                $pdo->exec('ALTER TABLE cardly_cards ADD COLUMN user_id INT UNSIGNED NULL AFTER slug, ADD KEY idx_user (user_id)');
+            }
             $ready = true;
         } catch (Throwable $e) {
             $ready = false;
         }
     }
     return $ready ? $db : null;
+}
+
+/**
+ * Are user accounts available? Accounts require a database, so before MySQL is
+ * configured Cardly runs in its original account-less guest mode.
+ */
+function cardly_accounts_enabled(): bool
+{
+    return cardly_db() !== null;
 }
 
 /** Normalise an ISO-8601/parseable timestamp to MySQL DATETIME (UTC). */
@@ -138,20 +180,22 @@ function cardly_db_upsert(string $slug, array $data): bool
     $published = (array_key_exists('published', $data) && $data['published'] === false) ? 0 : 1;
     $name = mb_substr((string)($data['name'] ?? ''), 0, 120);
     $tpl  = (string)($data['template'] ?? 'default');
+    $uid  = isset($data['userId']) && $data['userId'] ? (int) $data['userId'] : null;
     $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     if ($json === false) {
         return false;
     }
     try {
         $db->execute(
-            'INSERT INTO cardly_cards (slug, token_hash, published, name, template, data, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            'INSERT INTO cardly_cards (slug, user_id, token_hash, published, name, template, data, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE
-               token_hash = VALUES(token_hash), published = VALUES(published),
-               name = VALUES(name), template = VALUES(template),
-               data = VALUES(data), updated_at = VALUES(updated_at)',
+               user_id = VALUES(user_id), token_hash = VALUES(token_hash),
+               published = VALUES(published), name = VALUES(name),
+               template = VALUES(template), data = VALUES(data), updated_at = VALUES(updated_at)',
             [
                 $slug,
+                $uid,
                 (string)($data['tokenHash'] ?? ''),
                 $published,
                 $name,
@@ -276,6 +320,42 @@ function cardly_migrate_files_to_db(): array
         }
     }
     return ['ok' => true, 'imported' => $imported, 'failed' => $failed, 'slugs' => $slugs];
+}
+
+/* ============================ card ownership ============================= */
+
+/** Does this user own this card? */
+function cardly_user_owns(array $card, int $userId): bool
+{
+    return $userId > 0 && (int) ($card['userId'] ?? 0) === $userId;
+}
+
+/** Assign an unowned card to a user (claim). No-op if already owned. */
+function cardly_claim(string $slug, int $userId): bool
+{
+    if ($userId <= 0) {
+        return false;
+    }
+    $card = cardly_load($slug);
+    if (!$card || !empty($card['userId'])) {
+        return false;
+    }
+    $card['userId'] = $userId;
+    return cardly_save($slug, $card);
+}
+
+/** All cards belonging to a user, newest first (metadata rows). */
+function cardly_cards_for_user(int $userId): array
+{
+    $db = cardly_db();
+    if (!$db || $userId <= 0) {
+        return [];
+    }
+    return $db->select(
+        'SELECT slug, name, template, published, updated_at
+         FROM cardly_cards WHERE user_id = ? ORDER BY updated_at DESC',
+        [$userId]
+    );
 }
 
 /** Verify a raw edit token against a stored card. */

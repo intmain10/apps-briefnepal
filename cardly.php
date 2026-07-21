@@ -5,9 +5,10 @@
  */
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/cardly.php';
+require_once __DIR__ . '/includes/cardly_auth.php';
 
 $templates = cardly_templates();
+$cardlyUser = cardly_current_user();
 
 $page = [
     'title'       => 'Cardly — Create a Free Digital Business Card | ' . SITE_NAME,
@@ -26,16 +27,28 @@ $page = [
 
 require __DIR__ . '/includes/header.php';
 ?>
+<?php if (cardly_accounts_enabled()): ?>
+<div class="container">
+  <div class="cardly-acctbar">
+    <?php if ($cardlyUser): ?>
+      <a class="btn btn--ghost btn--sm" href="<?= eattr(url('cardly/dashboard')) ?>">My cards</a>
+      <a class="btn btn--ghost btn--sm" href="<?= eattr(url('cardly/logout')) ?>">Sign out</a>
+    <?php else: ?>
+      <a class="btn btn--ghost btn--sm" href="<?= eattr(url('cardly/login')) ?>">Sign in</a>
+    <?php endif; ?>
+  </div>
+</div>
+<?php endif; ?>
 <section class="cardly-hero">
   <div class="container">
     <span class="hero__badge">✨ New on <?= e(SITE_NAME) ?></span>
     <h1>Your whole world,<br><span class="grad">one smart link.</span></h1>
     <p class="cardly-hero__sub">Create a beautiful digital business card in minutes. Share one link everywhere — Instagram, LinkedIn, X, WhatsApp, resumes and email signatures.</p>
     <div class="btn-row" style="justify-content:center;margin-top:26px">
-      <a class="btn btn--primary" href="<?= eattr(url('cardly/new')) ?>" style="font-size:17px;padding:14px 28px">Create Free Card</a>
+      <a class="btn btn--primary" href="<?= eattr(url('cardly/new')) ?>" style="font-size:17px;padding:14px 28px"><?= $cardlyUser ? 'Create a card' : 'Create Free Card' ?></a>
       <a class="btn btn--ghost" href="#templates">See templates</a>
     </div>
-    <p class="muted mt-4" style="font-size:13px">No signup · Free · Yours in 2 minutes</p>
+    <p class="muted mt-4" style="font-size:13px"><?= cardly_accounts_enabled() ? 'Free · Your account · Yours in 2 minutes' : 'No signup · Free · Yours in 2 minutes' ?></p>
   </div>
 </section>
 
