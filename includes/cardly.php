@@ -546,24 +546,108 @@ function cardly_icon_svg(string $key): string
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">' . $inner . '</svg>';
 }
 
-/** Build a vCard (VCF 3.0) string from a card. */
+/** Build a rich vCard (VCF 3.0) from a card — embedded photo, proper name
+ *  fields, labeled phones/socials, note, and RFC-compliant line folding. */
 function cardly_vcf(array $card): string
 {
-    $name = $card['name'] ?: 'Contact';
+    $name = trim($card['name'] ?? '') ?: 'Contact';
     $c = $card['contact'] ?? [];
-    $lines = ['BEGIN:VCARD', 'VERSION:3.0', 'FN:' . cardly_vcf_esc($name), 'N:' . cardly_vcf_esc($name) . ';;;;'];
-    if (!empty($card['tagline'])) $lines[] = 'TITLE:' . cardly_vcf_esc($card['tagline']);
-    if (!empty($c['phone']))   $lines[] = 'TEL;TYPE=CELL:' . cardly_vcf_esc($c['phone']);
-    if (!empty($c['email']))   $lines[] = 'EMAIL;TYPE=INTERNET:' . cardly_vcf_esc($c['email']);
-    if (!empty($c['website'])) $lines[] = 'URL:' . cardly_vcf_esc($c['website']);
-    if (!empty($c['address'])) $lines[] = 'ADR;TYPE=WORK:;;' . cardly_vcf_esc($c['address']) . ';;;;';
-    $socials = $card['socials'] ?? [];
-    foreach ($socials as $net => $val) {
-        if ($val) $lines[] = 'URL;TYPE=' . strtoupper($net) . ':' . cardly_vcf_esc($val);
+    $cardUrl = cardly_link($card['slug'] ?? '');
+
+    // Split the display name into given/family for a proper N field.
+    $parts  = preg_split('/\s+/', $name);
+    $given  = $parts[0] ?? $name;
+    $family = count($parts) > 1 ? implode(' ', array_slice($parts, 1)) : '';
+
+    $L = [];
+    $L[] = 'BEGIN:VCARD';
+    $L[] = 'VERSION:3.0';
+    $L[] = 'N:' . cardly_vcf_esc($family) . ';' . cardly_vcf_esc($given) . ';;;';
+    $L[] = 'FN:' . cardly_vcf_esc($name);
+    if (!empty($card['tagline'])) {
+        $L[] = 'TITLE:' . cardly_vcf_esc($card['tagline']);
     }
-    $lines[] = 'URL;TYPE=CARD:' . cardly_link($card['slug']);
-    $lines[] = 'END:VCARD';
-    return implode("\r\n", $lines);
+    if (!empty($c['phone']))   $L[] = 'TEL;TYPE=CELL,VOICE:' . cardly_vcf_esc($c['phone']);
+    if (!empty($c['email']))   $L[] = 'EMAIL;TYPE=INTERNET,PREF:' . cardly_vcf_esc($c['email']);
+    if (!empty($c['website'])) $L[] = 'URL:' . $c['website'];
+    if (!empty($c['address'])) $L[] = 'ADR;TYPE=WORK:;;' . cardly_vcf_esc($c['address']) . ';;;;';
+
+    // Item-grouped entries get a friendly label in iOS/macOS Contacts.
+    $item = 1;
+    if (!empty($c['whatsapp'])) {
+        $wa = preg_replace('/[^0-9+]/', '', $c['whatsapp']);
+        $L[] = "item{$item}.TEL;TYPE=CELL:" . cardly_vcf_esc($wa);
+        $L[] = "item{$item}.X-ABLabel:WhatsApp";
+        $item++;
+    }
+
+    // Social profiles (iOS/macOS recognise X-SOCIALPROFILE).
+    $socialType = ['x' => 'twitter', 'instagram' => 'instagram', 'linkedin' => 'linkedin',
+        'facebook' => 'facebook', 'github' => 'github', 'youtube' => 'youtube', 'spotify' => 'spotify'];
+    foreach (($card['socials'] ?? []) as $net => $val) {
+        if (!$val) continue;
+        $L[] = 'X-SOCIALPROFILE;TYPE=' . ($socialType[$net] ?? $net) . ':' . $val;
+    }
+
+    // Embedded photo (base64) so the contact always shows a picture.
+    if ($photo = cardly_vcf_photo($card)) {
+        $L[] = $photo;
+    }
+
+    // Note: bio + card link.
+    $about = trim($card['about'] ?? '');
+    $note  = $about !== '' ? $about . "\n\n" . $cardUrl : 'Digital card: ' . $cardUrl;
+    $L[] = 'NOTE:' . cardly_vcf_esc($note);
+
+    // Labeled link back to the live card.
+    $L[] = "item{$item}.URL:" . $cardUrl;
+    $L[] = "item{$item}.X-ABLabel:Cardly";
+
+    $L[] = 'REV:' . gmdate('Ymd\THis\Z');
+    $L[] = 'END:VCARD';
+
+    return cardly_vcf_fold(implode("\r\n", $L));
+}
+
+/** Return an embedded (base64) PHOTO line, or a URI fallback, or null. */
+function cardly_vcf_photo(array $card): ?string
+{
+    $photo = $card['photo'] ?? '';
+    $slug  = $card['slug'] ?? '';
+    if ($photo === '' || $slug === '') {
+        return null;
+    }
+    $base = cardly_media_url($slug);
+    if (str_starts_with($photo, $base)) {
+        $rel  = ltrim(substr($photo, strlen($base)), '/');
+        $path = UPLOADS_PATH . '/cardly/media/' . $slug . '/' . $rel;
+        $ext  = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        $type = ['jpg' => 'JPEG', 'jpeg' => 'JPEG', 'png' => 'PNG'][$ext] ?? null;
+        if ($type && is_file($path) && filesize($path) < 500 * 1024) {
+            $data = @file_get_contents($path);
+            if ($data !== false) {
+                return 'PHOTO;ENCODING=b;TYPE=' . $type . ':' . base64_encode($data);
+            }
+        }
+    }
+    return 'PHOTO;VALUE=URI:' . $photo; // fallback: contact app fetches it
+}
+
+/** Fold vCard lines to 75 octets per RFC 2426 (CRLF + single space). */
+function cardly_vcf_fold(string $vcf): string
+{
+    $out = [];
+    foreach (explode("\r\n", $vcf) as $line) {
+        if (strlen($line) <= 75) {
+            $out[] = $line;
+            continue;
+        }
+        $out[] = substr($line, 0, 75);
+        foreach (str_split(substr($line, 75), 74) as $chunk) {
+            $out[] = ' ' . $chunk;
+        }
+    }
+    return implode("\r\n", $out);
 }
 
 function cardly_vcf_esc(string $s): string
