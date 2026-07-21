@@ -420,10 +420,9 @@ function cardly_published_cards(int $limit = 5000): array
         $rows = $db->select('SELECT slug, data, updated_at FROM cardly_cards WHERE published = 1 ORDER BY updated_at DESC LIMIT ' . (int) $limit);
         foreach ($rows as $r) {
             $d = json_decode((string) $r['data'], true);
-            if (is_array($d) && array_key_exists('discoverable', $d) && $d['discoverable'] === false) {
-                continue;
+            if (is_array($d) && cardly_card_discoverable($d)) {
+                $out[] = ['slug' => $r['slug'], 'updated' => $r['updated_at']];
             }
-            $out[] = ['slug' => $r['slug'], 'updated' => $r['updated_at']];
         }
         return $out;
     }
@@ -435,8 +434,8 @@ function cardly_published_cards(int $limit = 5000): array
         if (array_key_exists('published', $d) && $d['published'] === false) {
             continue; // draft
         }
-        if (array_key_exists('discoverable', $d) && $d['discoverable'] === false) {
-            continue; // opted out
+        if (!cardly_card_discoverable($d)) {
+            continue;
         }
         $out[] = ['slug' => basename($f, '.json'), 'updated' => $d['updatedAt'] ?? date('c')];
         if (count($out) >= $limit) {
@@ -444,6 +443,32 @@ function cardly_published_cards(int $limit = 5000): array
         }
     }
     return $out;
+}
+
+/**
+ * Should a card be listed in search? It must not be opted out AND must be
+ * "substantial" — a real name plus at least one piece of real content — so
+ * empty/test cards never get indexed as someone's identity.
+ */
+function cardly_card_discoverable(array $d): bool
+{
+    if (array_key_exists('discoverable', $d) && $d['discoverable'] === false) {
+        return false;
+    }
+    if (trim((string) ($d['name'] ?? '')) === '') {
+        return false;
+    }
+    if (!empty($d['photo']) || trim((string) ($d['about'] ?? '')) !== '' || trim((string) ($d['tagline'] ?? '')) !== '') {
+        return true;
+    }
+    if (!empty(array_filter((array) ($d['socials'] ?? [])))) {
+        return true;
+    }
+    if (!empty($d['links'])) {
+        return true;
+    }
+    $c = $d['contact'] ?? [];
+    return !empty($c['email']) || !empty($c['phone']) || !empty($c['website']);
 }
 
 /** Verify a raw edit token against a stored card. */
