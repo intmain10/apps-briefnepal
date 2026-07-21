@@ -14,8 +14,19 @@
 .cardly-templates { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
 .cardly-tpl { display: flex; flex-direction: column; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; transition: transform .2s, box-shadow .2s; }
 .cardly-tpl:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-.cardly-tpl__swatch { height: 80px; border-radius: 12px; background: linear-gradient(135deg, var(--c1), var(--c2)); display: grid; place-items: center; color: rgba(255,255,255,.95); }
-.cardly-tpl__swatch svg { width: 34px; height: 34px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.28)); }
+.cardly-tpl__swatch {
+  position: relative; height: 92px; border-radius: 12px; overflow: hidden;
+  background: var(--surface-2) center / cover no-repeat;
+}
+/* Theme-color wash over the photo so the chosen accent still reads. */
+.cardly-tpl__swatch::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--c1) 45%, transparent),
+    color-mix(in srgb, var(--c2) 45%, transparent));
+}
+.cardly-tpl:hover .cardly-tpl__swatch { transform: none; }
+.cardly-tpl:hover .cardly-tpl__swatch::after { opacity: .75; transition: opacity .2s; }
 .cardly-tpl__name { font-weight: 600; font-size: 14px; }
 
 /* ------------------------------------------------------------- Claim */
