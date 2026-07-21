@@ -75,9 +75,19 @@ require __DIR__ . '/includes/header.php';
   <div class="section__head"><div><h2 class="section__title">Templates for everyone</h2>
   <p class="section__desc">Pick a theme, then make it yours.</p></div></div>
   <div class="cardly-templates">
-    <?php foreach ($templates as $key => $t): if ($key === 'default') continue; ?>
+    <?php
+    // Relevant icon per template so each swatch instantly reads as its
+    // profession (matches the primary-CTA icons in cardly_cta()).
+    $tplIcons = [
+        'creator' => 'play', 'business' => 'phone', 'freelancer' => 'briefcase',
+        'developer' => 'laptop', 'student' => 'grad', 'music' => 'music',
+        'photographer' => 'camera', 'gym' => 'flame', 'startup' => 'rocket',
+        'doctor' => 'calendar', 'realestate' => 'home', 'wedding' => 'heart',
+        'event' => 'ticket', 'default' => 'link',
+    ];
+    foreach ($templates as $key => $t): if ($key === 'default') continue; ?>
       <a class="cardly-tpl" href="<?= eattr(url('cardly/new') . '?t=' . $key) ?>" style="--c1:<?= eattr($t['accent'][0]) ?>;--c2:<?= eattr($t['accent'][1]) ?>">
-        <span class="cardly-tpl__swatch"></span>
+        <span class="cardly-tpl__swatch"><?= cardly_icon_svg($tplIcons[$key] ?? 'link') ?></span>
         <span class="cardly-tpl__name"><?= e($t['name']) ?></span>
       </a>
     <?php endforeach; ?>
