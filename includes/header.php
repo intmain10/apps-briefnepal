@@ -92,6 +92,13 @@ if (!empty($breadcrumb)) {
 <?php $faviconFile = !empty($page['is_cardly']) ? 'assets/images/cardly-icon.png' : 'assets/images/logo-mark.png'; ?>
 <link rel="icon" type="image/png" href="<?= eattr(url($faviconFile . '?v=' . OMNITOOLS_VERSION)) ?>">
 <link rel="apple-touch-icon" href="<?= eattr(url($faviconFile . '?v=' . OMNITOOLS_VERSION)) ?>">
+<?php if (cardly_is_host()): /* Cardly is an installable PWA on its own domain */ ?>
+<link rel="manifest" href="/manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cardly">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<?php endif; ?>
 
 <!-- Preload theme to avoid flash of incorrect theme -->
 <script>

@@ -133,6 +133,12 @@ ErrorDocument 404 /404.php
         Header set Cache-Control "public, max-age=2592000"
     </FilesMatch>
 
+    # Service worker must NOT be long-cached (so updates ship) + root scope
+    <Files "sw.js">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Service-Worker-Allowed "/"
+    </Files>
+
     # Security headers
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"

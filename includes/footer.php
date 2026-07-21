@@ -90,6 +90,9 @@ $bare = !empty($page['bare']);
 <?php endif; /* !bare */ ?>
 
 <script>window.OMNITOOLS_BASE = <?= json_html(SITE_URL) ?>;</script>
+<?php if (cardly_is_host()): /* Register the Cardly PWA service worker */ ?>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){});});}</script>
+<?php endif; ?>
 <script src="<?= eattr(url('assets/js/app.js?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
 <?php if (!empty($page['is_tool'])): ?>
 <script src="<?= eattr(url('assets/js/lib.js?v=' . OMNITOOLS_VERSION)) ?>" defer></script>
