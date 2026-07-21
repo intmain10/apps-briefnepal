@@ -19,7 +19,7 @@ $tpl = cardly_template($card['template'] ?? 'default');
 [$a1, $a2] = $tpl['accent'];
 $sec = $card['sections'] ?? [];
 $name = $card['name'] ?: ucfirst($slug);
-$cardUrl = url('cardly/' . $slug);
+$cardUrl = cardly_link($slug);
 $hero = $card['photo'] ?: $card['cover'];
 
 // Split name so the last word can carry the accent gradient.

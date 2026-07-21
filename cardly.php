@@ -13,13 +13,13 @@ $cardlyUser = cardly_current_user();
 $page = [
     'title'       => 'Cardly — Create a Free Digital Business Card | ' . SITE_NAME,
     'description' => 'Cardly by ' . SITE_NAME . ' — build a beautiful digital business card in minutes. Share one link everywhere: Instagram, LinkedIn, X, WhatsApp, resumes and email signatures. Free.',
-    'canonical'   => url('cardly'),
+    'canonical'   => cardly_link(),
     'is_cardly'   => true,
-    'breadcrumb'  => [['name' => 'Home', 'url' => url()], ['name' => 'Cardly', 'url' => url('cardly')]],
+    'breadcrumb'  => [['name' => 'Home', 'url' => url()], ['name' => 'Cardly', 'url' => cardly_link()]],
     'jsonld'      => [[
         '@context' => 'https://schema.org', '@type' => 'WebApplication',
         'name' => 'Cardly', 'applicationCategory' => 'BusinessApplication',
-        'operatingSystem' => 'Any', 'url' => url('cardly'),
+        'operatingSystem' => 'Any', 'url' => cardly_link(),
         'description' => 'Free digital business card builder — one shareable link with contact, socials, portfolio and QR code.',
         'offers' => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD'],
     ]],
@@ -31,10 +31,10 @@ require __DIR__ . '/includes/header.php';
 <div class="container">
   <div class="cardly-acctbar">
     <?php if ($cardlyUser): ?>
-      <a class="btn btn--ghost btn--sm" href="<?= eattr(url('cardly/dashboard')) ?>">My cards</a>
-      <a class="btn btn--ghost btn--sm" href="<?= eattr(url('cardly/logout')) ?>">Sign out</a>
+      <a class="btn btn--ghost btn--sm" href="<?= eattr(cardly_link('dashboard')) ?>">My cards</a>
+      <a class="btn btn--ghost btn--sm" href="<?= eattr(cardly_link('logout')) ?>">Sign out</a>
     <?php else: ?>
-      <a class="btn btn--ghost btn--sm" href="<?= eattr(url('cardly/login')) ?>">Sign in</a>
+      <a class="btn btn--ghost btn--sm" href="<?= eattr(cardly_link('login')) ?>">Sign in</a>
     <?php endif; ?>
   </div>
 </div>
@@ -49,7 +49,7 @@ require __DIR__ . '/includes/header.php';
     <h1>Your whole world,<br><span class="grad">one smart link.</span></h1>
     <p class="cardly-hero__sub">Create a beautiful digital business card in minutes. Share one link everywhere — Instagram, LinkedIn, X, WhatsApp, resumes and email signatures.</p>
     <div class="btn-row" style="justify-content:center;margin-top:26px">
-      <a class="btn btn--primary" href="<?= eattr(url('cardly/new')) ?>" style="font-size:17px;padding:14px 28px"><?= $cardlyUser ? 'Create a card' : 'Create Free Card' ?></a>
+      <a class="btn btn--primary" href="<?= eattr(cardly_link('new')) ?>" style="font-size:17px;padding:14px 28px"><?= $cardlyUser ? 'Create a card' : 'Create Free Card' ?></a>
       <a class="btn btn--ghost" href="#templates">See templates</a>
     </div>
     <p class="muted mt-4" style="font-size:13px"><?= cardly_accounts_enabled() ? 'Free · Your account · Yours in 2 minutes' : 'No signup · Free · Yours in 2 minutes' ?></p>
@@ -81,14 +81,14 @@ require __DIR__ . '/includes/header.php';
   <div class="cardly-templates">
     <?php foreach ($templates as $key => $t): if ($key === 'default') continue;
       $img = url('assets/images/cardly-templates/' . $key . '.jpg?v=' . OMNITOOLS_VERSION); ?>
-      <a class="cardly-tpl" href="<?= eattr(url('cardly/new') . '?t=' . $key) ?>" style="--c1:<?= eattr($t['accent'][0]) ?>;--c2:<?= eattr($t['accent'][1]) ?>">
+      <a class="cardly-tpl" href="<?= eattr(cardly_link('new') . '?t=' . $key) ?>" style="--c1:<?= eattr($t['accent'][0]) ?>;--c2:<?= eattr($t['accent'][1]) ?>">
         <span class="cardly-tpl__swatch" style="background-image:url('<?= eattr($img) ?>')" role="img" aria-label="<?= eattr($t['name']) ?> template"></span>
         <span class="cardly-tpl__name"><?= e($t['name']) ?></span>
       </a>
     <?php endforeach; ?>
   </div>
   <div class="text-center mt-8">
-    <a class="btn btn--primary" href="<?= eattr(url('cardly/new')) ?>" style="font-size:17px;padding:14px 28px">Create your card</a>
+    <a class="btn btn--primary" href="<?= eattr(cardly_link('new')) ?>" style="font-size:17px;padding:14px 28px">Create your card</a>
   </div>
 </section>
 

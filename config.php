@@ -24,7 +24,7 @@ if (is_file(__DIR__ . '/config.local.php')) {
 /* -------------------------------------------------------------------------
  * Environment
  * ---------------------------------------------------------------------- */
-define('OMNITOOLS_VERSION', '1.6.1');
+define('OMNITOOLS_VERSION', '1.7.0');
 
 // Toggle to false on production to hide detailed PHP errors.
 if (!defined('DEBUG_MODE')) define('DEBUG_MODE', false);
@@ -49,6 +49,10 @@ define('SITE_URL', (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'ht
     . '://' . ($_SERVER['HTTP_HOST'] ?? 'apps.briefnepal.com'));
 
 define('SITE_DOMAIN', 'apps.briefnepal.com');
+
+// Dedicated domain for Cardly (served from the same codebase via host-based
+// routing). Empty string = disabled (Cardly stays at /cardly on the main host).
+if (!defined('CARDLY_DOMAIN')) define('CARDLY_DOMAIN', getenv('CARDLY_DOMAIN') ?: 'cardly.briefnepal.com');
 define('SITE_EMAIL', 'hello@briefnepal.com');
 define('SITE_LOCALE', 'en_US');
 define('SITE_AUTHOR', 'OmniTools Team');

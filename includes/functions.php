@@ -94,6 +94,31 @@ function url(string $path = ''): string
     return SITE_URL . '/' . ltrim($path, '/');
 }
 
+/**
+ * Build a Cardly URL. When CARDLY_DOMAIN is set, Cardly lives on its own domain
+ * with short paths (cardly.example.com/<slug>); otherwise it falls back to the
+ * legacy /cardly/<slug> path on the main host.
+ *   cardly_link()            → landing
+ *   cardly_link('new')       → builder
+ *   cardly_link($slug)       → a card
+ *   cardly_link($slug.'/edit')
+ */
+function cardly_link(string $path = ''): string
+{
+    $path = ltrim($path, '/');
+    if (defined('CARDLY_DOMAIN') && CARDLY_DOMAIN !== '') {
+        return 'https://' . CARDLY_DOMAIN . '/' . $path;
+    }
+    return url('cardly' . ($path !== '' ? '/' . $path : ''));
+}
+
+/** Is the current request being served on the dedicated Cardly domain? */
+function cardly_is_host(): bool
+{
+    return defined('CARDLY_DOMAIN') && CARDLY_DOMAIN !== ''
+        && strcasecmp($_SERVER['HTTP_HOST'] ?? '', CARDLY_DOMAIN) === 0;
+}
+
 /** Redirect helper. */
 function redirect(string $path): void
 {

@@ -80,8 +80,8 @@ if ($action === 'create') {
         json_error('Could not create the card. Please try again.', 500);
     }
     json_response(['ok' => true, 'slug' => $u, 'token' => $token,
-        'editUrl' => url('cardly/' . $u . '/edit') . '?k=' . $token,
-        'viewUrl' => url('cardly/' . $u)]);
+        'editUrl' => cardly_link($u . '/edit') . '?k=' . $token,
+        'viewUrl' => cardly_link($u)]);
 }
 
 /* Load + authorize for save/upload — by edit token OR account ownership. */
@@ -174,7 +174,7 @@ if ($action === 'save') {
     if (!cardly_save($slug, $card)) {
         json_error('Could not save. Please try again.', 500);
     }
-    json_response(['ok' => true, 'viewUrl' => url('cardly/' . $slug)]);
+    json_response(['ok' => true, 'viewUrl' => cardly_link($slug)]);
 }
 
 /* --------------------------------------------------------------------- upload */

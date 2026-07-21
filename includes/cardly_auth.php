@@ -183,7 +183,7 @@ function cardly_send_verify_email(array $user, ?string $rawToken = null): bool
             [hash('sha256', $rawToken . APP_SECRET), date('Y-m-d H:i:s', time() + CARDLY_VERIFY_TTL), (int) $user['id']]
         );
     }
-    $link = url('cardly/verify') . '?token=' . $rawToken;
+    $link = cardly_link('verify') . '?token=' . $rawToken;
     $body = '<p>Hi ' . e($user['name']) . ',</p>'
         . '<p>Welcome to <strong>Cardly</strong>! Please confirm your email address to verify your account:</p>'
         . '<p><a href="' . eattr($link) . '" style="display:inline-block;background:#2563eb;color:#fff;'
@@ -208,7 +208,7 @@ function cardly_request_password_reset(string $email): void
         'UPDATE cardly_users SET reset_hash = ?, reset_expires = ? WHERE id = ?',
         [hash('sha256', $raw . APP_SECRET), date('Y-m-d H:i:s', time() + CARDLY_RESET_TTL), (int) $user['id']]
     );
-    $link = url('cardly/reset') . '?token=' . $raw;
+    $link = cardly_link('reset') . '?token=' . $raw;
     $body = '<p>Hi ' . e($user['name']) . ',</p>'
         . '<p>We received a request to reset your Cardly password. Click below to choose a new one:</p>'
         . '<p><a href="' . eattr($link) . '" style="display:inline-block;background:#2563eb;color:#fff;'

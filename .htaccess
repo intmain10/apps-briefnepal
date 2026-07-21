@@ -45,10 +45,42 @@ ErrorDocument 404 /404.php
     # Founder / person entity page
     RewriteRule ^(shushant-singh|founder)/?$ founder.php [L,QSA]
 
-    # Cardly — digital business cards (order: specific routes before the catch-all)
+    # =====================================================================
+    # Cardly — served on its own domain (cardly.briefnepal.com) with short
+    # paths, from the same codebase via host-based routing.
+    # =====================================================================
+
+    # ---- On the Cardly domain: short paths (no /cardly/ prefix) ----
+    RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
+    RewriteRule ^$ cardly.php [L,QSA]
+    RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
+    RewriteRule ^new/?$ cardly-edit.php [L,QSA]
+    RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
+    RewriteRule ^(login|signup|logout|dashboard|verify|forgot|reset|resend)/?$ cardly-account.php?do=$1 [L,QSA]
+    RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
+    RewriteRule ^([a-z0-9-]{1,40})/edit/?$ cardly-edit.php?slug=$1 [L,QSA]
+    # Redirect any stray /cardly/* on the Cardly domain to the short form
+    RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
+    RewriteRule ^cardly/(.*)$ https://cardly.briefnepal.com/$1 [R=301,L]
+    # A bare segment on the Cardly domain = a card (skip real files/dirs)
+    RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^([a-z0-9-]{1,40})/?$ cardly-view.php?slug=$1 [L,QSA]
+
+    # ---- On the main host: 301 old /cardly/* links to the Cardly domain ----
+    RewriteCond %{HTTP_HOST} ^apps\.briefnepal\.com$ [NC]
+    RewriteRule ^cardly/([a-z0-9-]{1,40})/edit/?$ https://cardly.briefnepal.com/$1/edit [R=301,L,QSA]
+    RewriteCond %{HTTP_HOST} ^apps\.briefnepal\.com$ [NC]
+    RewriteRule ^cardly/(login|signup|logout|dashboard|verify|forgot|reset|resend|new)/?$ https://cardly.briefnepal.com/$1 [R=301,L,QSA]
+    RewriteCond %{HTTP_HOST} ^apps\.briefnepal\.com$ [NC]
+    RewriteRule ^cardly/([a-z0-9-]{1,40})/?$ https://cardly.briefnepal.com/$1 [R=301,L,QSA]
+    RewriteCond %{HTTP_HOST} ^apps\.briefnepal\.com$ [NC]
+    RewriteRule ^cardly/?$ https://cardly.briefnepal.com/ [R=301,L]
+
+    # ---- Fallback for any other host (local dev): legacy /cardly/* paths ----
     RewriteRule ^cardly/?$ cardly.php [L,QSA]
     RewriteRule ^cardly/new/?$ cardly-edit.php [L,QSA]
-    # Accounts (must precede the /cardly/<slug> catch-all)
     RewriteRule ^cardly/(login|signup|logout|dashboard|verify|forgot|reset|resend)/?$ cardly-account.php?do=$1 [L,QSA]
     RewriteRule ^cardly/([a-z0-9-]+)/edit/?$ cardly-edit.php?slug=$1 [L,QSA]
     RewriteRule ^cardly/([a-z0-9-]+)/?$ cardly-view.php?slug=$1 [L,QSA]

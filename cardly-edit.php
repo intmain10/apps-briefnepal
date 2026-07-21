@@ -17,7 +17,7 @@ $user = cardly_current_user();
 // Creating a new card requires an account once accounts are available.
 if ($mode === 'new' && cardly_accounts_enabled() && !$user) {
     $back = '/cardly/new' . ($preTemplate ? '?t=' . $preTemplate : '');
-    header('Location: ' . url('cardly/login') . '?next=' . rawurlencode($back));
+    header('Location: ' . cardly_link('login') . '?next=' . rawurlencode($back));
     exit;
 }
 
@@ -38,7 +38,7 @@ if ($mode === 'edit') {
     }
     // No token and not the owner → require sign-in (accounts mode only).
     if (!$hasToken && !$isOwner && cardly_accounts_enabled()) {
-        header('Location: ' . url('cardly/login') . '?next=' . rawurlencode('/cardly/' . $slug . '/edit'));
+        header('Location: ' . cardly_link('login') . '?next=' . rawurlencode('/cardly/' . $slug . '/edit'));
         exit;
     }
     $card = cardly_public($raw);
@@ -52,13 +52,14 @@ $boot = [
     'templates' => cardly_templates(),
     'csrf'      => csrf_token(),
     'base'      => SITE_URL,
+    'cardlyBase' => rtrim(cardly_link(), '/'),
     'preTemplate' => $preTemplate,
 ];
 
 $page = [
     'title'      => ($mode === 'edit' ? 'Edit your card' : 'Create your card') . ' — Cardly | ' . SITE_NAME,
     'description'=> 'Build your free digital business card with Cardly.',
-    'canonical'  => url('cardly/new'),
+    'canonical'  => cardly_link('new'),
     'noindex'    => true,
     'is_cardly'  => true,
     'cardly_js'  => 'cardly.js',

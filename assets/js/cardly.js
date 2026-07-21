@@ -8,6 +8,8 @@
   if (!root) return;
   const BOOT = JSON.parse(root.dataset.boot);
   const BASE = BOOT.base || window.OMNITOOLS_BASE || '';
+  // Canonical Cardly base (its own domain when configured), else /cardly path.
+  const CB = BOOT.cardlyBase || (BASE + '/cardly');
   const U = window.OmniUtil || { toast(m) { alert(m); }, copy(t) { navigator.clipboard && navigator.clipboard.writeText(t); } };
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const TPL = BOOT.templates;
@@ -42,7 +44,7 @@
         <p class="muted">Pick a link and a style — you can change everything next.</p>
         <label class="field__label mt-6">Your card link</label>
         <div class="cardly-claim__url">
-          <span>${esc(BASE.replace(/^https?:\/\//, ''))}/cardly/</span>
+          <span>${esc(CB.replace(/^https?:\/\//, ''))}/</span>
           <input id="cUser" class="input" placeholder="yourname" autocomplete="off" spellcheck="false" maxlength="30">
         </div>
         <div id="cUserMsg" class="cardly-claim__msg"></div>
@@ -90,7 +92,7 @@
      ==================================================================== */
   function renderBuilder() {
     const state = normalize(BOOT.card);
-    const viewUrl = BASE + '/cardly/' + BOOT.slug;
+    const viewUrl = CB + '/' + BOOT.slug;
     const editUrl = viewUrl + '/edit?k=' + BOOT.token;
 
     root.innerHTML = `

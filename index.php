@@ -151,7 +151,7 @@ require __DIR__ . '/includes/header.php';
 
 <!-- Cardly promo -->
 <section class="section--tight container">
-  <a href="<?= eattr(url('cardly')) ?>" style="display:block;border-radius:var(--radius-lg);overflow:hidden;background:#111827;color:#fff;padding:34px;box-shadow:var(--shadow)">
+  <a href="<?= eattr(cardly_link()) ?>" style="display:block;border-radius:var(--radius-lg);overflow:hidden;background:#111827;color:#fff;padding:34px;box-shadow:var(--shadow)">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
       <div>
         <div style="font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.85">✨ New — Cardly</div>

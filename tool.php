@@ -275,6 +275,7 @@ require __DIR__ . '/includes/header.php';
           <?php endforeach; ?>
         </ol>
 
+        
         <h3>Frequently Asked Questions</h3>
       </article>
 

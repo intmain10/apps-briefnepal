@@ -512,7 +512,7 @@ function cardly_vcf(array $card): string
     foreach ($socials as $net => $val) {
         if ($val) $lines[] = 'URL;TYPE=' . strtoupper($net) . ':' . cardly_vcf_esc($val);
     }
-    $lines[] = 'URL;TYPE=CARD:' . url('cardly/' . $card['slug']);
+    $lines[] = 'URL;TYPE=CARD:' . cardly_link($card['slug']);
     $lines[] = 'END:VCARD';
     return implode("\r\n", $lines);
 }
