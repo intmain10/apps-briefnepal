@@ -64,6 +64,7 @@ jobs:
             database/**
             /uploads/**
             **/*.log
+            config.local.php
             # Keep production config.php on the server — uncomment the next line
             # once you've set your real DB credentials in config.php on the host:
             # config.php

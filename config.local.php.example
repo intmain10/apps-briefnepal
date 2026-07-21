@@ -1,0 +1,19 @@
+<?php
+/**
+ * LOCAL PRODUCTION OVERRIDES  —  copy this file to `config.local.php`.
+ *
+ * This file (config.local.php) is git-ignored and is NEVER deployed by CI, so
+ * your real credentials never enter the repo. Create it directly ON THE SERVER
+ * (Hostinger → File Manager → public_html/apps/) with your real MySQL details.
+ * config.php auto-loads it, and every value here overrides the defaults.
+ *
+ * ⚠ Do NOT set APP_SECRET here if Cardly cards already exist — changing it
+ *   invalidates every existing Cardly edit link (tokens are hashed with it).
+ */
+declare(strict_types=1);
+
+/* --- MySQL (create the database + user in hPanel → MySQL Databases) --- */
+define('DB_HOST', 'localhost');              // Hostinger: usually 'localhost'
+define('DB_NAME', 'u682902872_cardly');      // your database name
+define('DB_USER', 'u682902872_cardly');      // your database user
+define('DB_PASS', 'YOUR-DB-PASSWORD-HERE');  // your database password

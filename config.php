@@ -12,12 +12,22 @@
 declare(strict_types=1);
 
 /* -------------------------------------------------------------------------
+ * Local overrides (NOT committed, NOT deployed)
+ * A server-only config.local.php can define DB_* credentials (and anything
+ * else) before the defaults below. Each overridable define is guarded with
+ * !defined(), so whatever config.local.php sets wins.
+ * ---------------------------------------------------------------------- */
+if (is_file(__DIR__ . '/config.local.php')) {
+    require __DIR__ . '/config.local.php';
+}
+
+/* -------------------------------------------------------------------------
  * Environment
  * ---------------------------------------------------------------------- */
 define('OMNITOOLS_VERSION', '1.2.0');
 
 // Toggle to false on production to hide detailed PHP errors.
-define('DEBUG_MODE', false);
+if (!defined('DEBUG_MODE')) define('DEBUG_MODE', false);
 
 if (DEBUG_MODE) {
     error_reporting(E_ALL);
@@ -54,17 +64,19 @@ define('ASSETS_URL', SITE_URL . '/assets');
 /* -------------------------------------------------------------------------
  * Database (MySQL) — edit these for your host
  * ---------------------------------------------------------------------- */
-define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_NAME', getenv('DB_NAME') ?: 'omnitools');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-define('DB_PASS', getenv('DB_PASS') ?: '');
-define('DB_CHARSET', 'utf8mb4');
+if (!defined('DB_HOST')) define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+if (!defined('DB_NAME')) define('DB_NAME', getenv('DB_NAME') ?: 'omnitools');
+if (!defined('DB_USER')) define('DB_USER', getenv('DB_USER') ?: 'root');
+if (!defined('DB_PASS')) define('DB_PASS', getenv('DB_PASS') ?: '');
+if (!defined('DB_CHARSET')) define('DB_CHARSET', 'utf8mb4');
 
 /* -------------------------------------------------------------------------
  * Security
  * ---------------------------------------------------------------------- */
 // Change this to a long random string in production.
-define('APP_SECRET', 'change-this-to-a-64-char-random-string-before-going-live-omnitools');
+// ⚠ Do NOT change this once Cardly cards exist — it would invalidate every
+//   existing Cardly edit link (tokens are hashed with APP_SECRET).
+if (!defined('APP_SECRET')) define('APP_SECRET', 'change-this-to-a-64-char-random-string-before-going-live-omnitools');
 
 // Default admin credentials (used to seed the DB). Change after first login.
 define('DEFAULT_ADMIN_EMAIL', 'admin@omnitools.local');

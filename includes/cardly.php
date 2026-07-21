@@ -2,16 +2,40 @@
 /**
  * Cardly — digital business card engine (shared helpers).
  *
- * Storage: one JSON file per card under uploads/cardly/cards/ (protected from
- * direct web access). Uploaded media lives under uploads/cardly/media/<slug>/
- * (publicly served). No database or accounts required — each card carries a
- * hashed edit token; the raw token is shown to the creator once.
+ * Storage: MySQL (table `cardly_cards`) is the source of truth when a database
+ * is configured; each card is one row with an indexed metadata head + a JSON
+ * `data` blob. When no DB is available the engine transparently falls back to
+ * one JSON file per card under uploads/cardly/cards/ (protected from direct web
+ * access) — so the app never white-screens before MySQL is provisioned, and DB
+ * writes are also mirrored to a file as a hot backup. Uploaded media always
+ * lives on disk under uploads/cardly/media/<slug>/ (publicly served).
+ *
+ * No accounts — each card carries a hashed edit token; the raw token is shown
+ * to the creator once.
  *
  * @package OmniTools\Cardly
  */
 declare(strict_types=1);
 
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/database.php';
+
+/** DDL for the Cardly table (created on demand when a DB is connected). */
+const CARDLY_TABLE_SQL = <<<SQL
+CREATE TABLE IF NOT EXISTS cardly_cards (
+  slug       VARCHAR(30)  NOT NULL,
+  token_hash CHAR(64)     NOT NULL,
+  published  TINYINT(1)   NOT NULL DEFAULT 0,
+  name       VARCHAR(120) NOT NULL DEFAULT '',
+  template   VARCHAR(32)  NOT NULL DEFAULT 'default',
+  data       LONGTEXT     NOT NULL,
+  created_at DATETIME     NOT NULL,
+  updated_at DATETIME     NOT NULL,
+  PRIMARY KEY (slug),
+  KEY idx_published (published),
+  KEY idx_updated (updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SQL;
 
 /** Curated card themes (the "templates"). accent = [from, to] gradient. */
 function cardly_templates(): array
@@ -71,38 +95,187 @@ function cardly_ensure_dirs(): void
     }
 }
 
+/* ============================ storage: MySQL ============================= */
+
+/**
+ * Return a connected Database whose cardly_cards table is ready, or null when
+ * no DB is configured (so callers transparently fall back to file storage).
+ * The table is created on demand once per request.
+ */
+function cardly_db(): ?Database
+{
+    static $ready = null;
+    $db = Database::getInstance();
+    if (!$db->isConnected()) {
+        return null;
+    }
+    if ($ready === null) {
+        try {
+            $db->execute(CARDLY_TABLE_SQL);
+            $ready = true;
+        } catch (Throwable $e) {
+            $ready = false;
+        }
+    }
+    return $ready ? $db : null;
+}
+
+/** Normalise an ISO-8601/parseable timestamp to MySQL DATETIME (UTC). */
+function cardly_to_dt($iso): string
+{
+    $ts = (is_string($iso) && $iso !== '') ? strtotime($iso) : false;
+    return date('Y-m-d H:i:s', $ts !== false ? $ts : time());
+}
+
+/** Insert or update a card row from its data array. */
+function cardly_db_upsert(string $slug, array $data): bool
+{
+    $db = cardly_db();
+    if (!$db) {
+        return false;
+    }
+    // Legacy cards (no 'published' key) count as published/taken.
+    $published = (array_key_exists('published', $data) && $data['published'] === false) ? 0 : 1;
+    $name = mb_substr((string)($data['name'] ?? ''), 0, 120);
+    $tpl  = (string)($data['template'] ?? 'default');
+    $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if ($json === false) {
+        return false;
+    }
+    try {
+        $db->execute(
+            'INSERT INTO cardly_cards (slug, token_hash, published, name, template, data, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE
+               token_hash = VALUES(token_hash), published = VALUES(published),
+               name = VALUES(name), template = VALUES(template),
+               data = VALUES(data), updated_at = VALUES(updated_at)',
+            [
+                $slug,
+                (string)($data['tokenHash'] ?? ''),
+                $published,
+                $name,
+                $tpl,
+                $json,
+                cardly_to_dt($data['createdAt'] ?? null),
+                cardly_to_dt($data['updatedAt'] ?? null),
+            ]
+        );
+        return true;
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+/* ============================ storage: files ============================= */
+
 function cardly_data_path(string $slug): string
 {
     return UPLOADS_PATH . '/cardly/cards/' . $slug . '.json';
 }
 
-function cardly_exists(string $slug): bool
+/** Load a card from its JSON file, or null. */
+function cardly_load_file(string $slug): ?array
 {
-    return is_file(cardly_data_path($slug));
-}
-
-/** Load a card's raw data (includes tokenHash) or null. */
-function cardly_load(string $slug): ?array
-{
-    if (!cardly_slug_valid($slug) || !cardly_exists($slug)) {
+    $path = cardly_data_path($slug);
+    if (!is_file($path)) {
         return null;
     }
-    $json = @file_get_contents(cardly_data_path($slug));
+    $json = @file_get_contents($path);
     $data = $json ? json_decode($json, true) : null;
     return is_array($data) ? $data : null;
 }
 
-/** Persist a card. */
-function cardly_save(string $slug, array $data): bool
+/** Persist a card to its JSON file (mirror / fallback). */
+function cardly_save_file(string $slug, array $data): bool
 {
     cardly_ensure_dirs();
-    $data['slug'] = $slug;
-    $data['updatedAt'] = date('c');
     return (bool) @file_put_contents(
         cardly_data_path($slug),
         json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
         LOCK_EX
     );
+}
+
+/* ========================== storage: public API ========================= */
+
+function cardly_exists(string $slug): bool
+{
+    if (!cardly_slug_valid($slug)) {
+        return false;
+    }
+    $db = cardly_db();
+    if ($db && $db->selectOne('SELECT 1 AS x FROM cardly_cards WHERE slug = ?', [$slug])) {
+        return true;
+    }
+    return is_file(cardly_data_path($slug));
+}
+
+/**
+ * Load a card's raw data (includes tokenHash) or null. MySQL first; on a miss,
+ * the JSON file is used and lazily imported into the DB so later reads hit MySQL.
+ */
+function cardly_load(string $slug): ?array
+{
+    if (!cardly_slug_valid($slug)) {
+        return null;
+    }
+    $db = cardly_db();
+    if ($db) {
+        $row = $db->selectOne('SELECT data FROM cardly_cards WHERE slug = ?', [$slug]);
+        if ($row) {
+            $data = json_decode((string)$row['data'], true);
+            if (is_array($data)) {
+                return $data;
+            }
+        }
+    }
+    $file = cardly_load_file($slug);
+    if ($file && $db) {
+        cardly_db_upsert($slug, $file); // lazy migration
+    }
+    return $file;
+}
+
+/** Persist a card — to MySQL (source of truth) and mirrored to a JSON file. */
+function cardly_save(string $slug, array $data): bool
+{
+    $data['slug'] = $slug;
+    $data['updatedAt'] = date('c');
+    $db = cardly_db();
+    $okDb   = $db ? cardly_db_upsert($slug, $data) : false;
+    $okFile = cardly_save_file($slug, $data);
+    return $db ? ($okDb || $okFile) : $okFile;
+}
+
+/** One-time bulk import of every card JSON file into MySQL. Idempotent. */
+function cardly_migrate_files_to_db(): array
+{
+    $db = cardly_db();
+    if (!$db) {
+        return ['ok' => false, 'error' => 'Database not connected', 'imported' => 0, 'failed' => 0, 'slugs' => []];
+    }
+    $imported = 0;
+    $failed = 0;
+    $slugs = [];
+    foreach (glob(UPLOADS_PATH . '/cardly/cards/*.json') ?: [] as $f) {
+        $slug = basename($f, '.json');
+        if (!cardly_slug_valid($slug)) {
+            continue;
+        }
+        $data = json_decode((string)@file_get_contents($f), true);
+        if (!is_array($data)) {
+            $failed++;
+            continue;
+        }
+        if (cardly_db_upsert($slug, $data)) {
+            $imported++;
+            $slugs[] = $slug;
+        } else {
+            $failed++;
+        }
+    }
+    return ['ok' => true, 'imported' => $imported, 'failed' => $failed, 'slugs' => $slugs];
 }
 
 /** Verify a raw edit token against a stored card. */
@@ -133,7 +306,16 @@ function cardly_public(array $card): array
  */
 function cardly_is_taken(string $slug): bool
 {
-    $c = cardly_load($slug);
+    $db = cardly_db();
+    if ($db) {
+        $row = $db->selectOne('SELECT published FROM cardly_cards WHERE slug = ?', [$slug]);
+        if ($row) {
+            return (int) $row['published'] === 1;
+        }
+        // Not in DB yet — fall through and also honour any legacy file, so a
+        // not-yet-imported published card can never be claimed by someone else.
+    }
+    $c = cardly_load_file($slug);
     if (!$c) {
         return false;
     }
