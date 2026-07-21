@@ -14,11 +14,13 @@ declare(strict_types=1);
 require_once __DIR__ . '/includes/functions.php';
 
 $name  = 'Shushant Singh';
-$title = 'Product Architect';
+$legalName = 'Shushant Kumar Singh';
+$title = 'Founder & Product Architect';
 $pageUrl = url('shushant-singh');
 
 // Authoritative, param-free profile links (sameAs).
 $profiles = [
+    ['label' => 'LinkedIn',              'url' => 'https://www.linkedin.com/in/shushant-kumar-singh/', 'note' => 'Professional profile'],
     ['label' => 'BriefNepal',            'url' => 'https://briefnepal.com',      'note' => 'News platform he founded'],
     ['label' => 'OmniTools',             'url' => 'https://apps.briefnepal.com', 'note' => '100+ free online tools he founded'],
     ['label' => 'Genuin',                'url' => 'https://begenuin.com',        'note' => 'Product Architect'],
@@ -29,41 +31,47 @@ $profiles = [
 ];
 $sameAs = array_map(fn($p) => $p['url'], $profiles);
 
-$bio = "$name is a Nepal-based product architect, entrepreneur, podcaster and recording artist who builds "
-     . "digital products that make everyday life simpler. He is the founder and owner of BriefNepal "
-     . "(briefnepal.com), a modern Nepali news, jobs and travel platform, and of OmniTools "
+$bio = "$name (Shushant Kumar Singh) is a Nepali product architect, entrepreneur, podcaster and recording "
+     . "artist who builds digital products that make everyday life simpler. He is the founder and owner of "
+     . "BriefNepal (briefnepal.com), a modern Nepali news, jobs and travel platform, and of OmniTools "
      . "(apps.briefnepal.com), a growing library of 100+ free, privacy-first online tools. Professionally he "
-     . "works as a Product Architect at Genuin, where he designs product experiences and systems. Beyond "
-     . "software, he hosts two podcasts — the Nepal Travel Podcast and Mind Atlas — and releases music as a "
-     . "singer and recording artist on Spotify and Apple Music.";
+     . "works as a Product Architect at Genuin and is based in Ahmedabad, India. He holds a degree from "
+     . "Charotar University of Science and Technology (CHARUSAT). Beyond software, he hosts two podcasts — the "
+     . "Nepal Travel Podcast and Mind Atlas — and releases music as a singer and recording artist on Spotify "
+     . "and Apple Music.";
 
 $person = [
-    '@type'        => 'Person',
-    '@id'          => $pageUrl . '#person',
-    'name'         => $name,
-    'url'          => $pageUrl,
-    'jobTitle'     => $title,
-    'description'  => $bio,
-    'nationality'  => ['@type' => 'Country', 'name' => 'Nepal'],
-    'homeLocation' => ['@type' => 'Place', 'name' => 'Nepal'],
+    '@type'         => 'Person',
+    '@id'           => $pageUrl . '#person',
+    'name'          => $name,
+    'alternateName' => $legalName,
+    'givenName'     => 'Shushant',
+    'familyName'    => 'Singh',
+    'url'           => $pageUrl,
+    'jobTitle'      => $title,
+    'description'   => $bio,
+    'nationality'   => ['@type' => 'Country', 'name' => 'Nepal'],
+    'homeLocation'  => ['@type' => 'Place', 'name' => 'Ahmedabad, India'],
+    'workLocation'  => ['@type' => 'Place', 'name' => 'Ahmedabad, Gujarat, India'],
     'hasOccupation' => [
         ['@type' => 'Occupation', 'name' => 'Product Architect'],
         ['@type' => 'Occupation', 'name' => 'Entrepreneur'],
         ['@type' => 'Occupation', 'name' => 'Podcast Host'],
         ['@type' => 'Occupation', 'name' => 'Recording Artist'],
     ],
-    'worksFor'     => ['@type' => 'Organization', 'name' => 'Genuin', 'url' => 'https://begenuin.com'],
-    'founder'      => [
+    'worksFor'      => ['@type' => 'Organization', 'name' => 'Genuin', 'url' => 'https://begenuin.com'],
+    'founder'       => [
         ['@type' => 'Organization', 'name' => 'BriefNepal', 'url' => 'https://briefnepal.com'],
         ['@type' => 'Organization', 'name' => 'OmniTools', 'url' => 'https://apps.briefnepal.com'],
     ],
-    'knowsAbout'   => ['Product architecture', 'Product design', 'Web development', 'SEO', 'Generative engine optimization', 'Podcasting', 'Music', 'Travel', 'Entrepreneurship', 'Nepal'],
-    'sameAs'       => $sameAs,
+    'alumniOf'      => ['@type' => 'CollegeOrUniversity', 'name' => 'Charotar University of Science and Technology (CHARUSAT)', 'url' => 'https://www.charusat.ac.in'],
+    'knowsAbout'    => ['Product architecture', 'Software engineering', 'SaaS', 'Artificial intelligence', 'Android development', 'Web development', 'Digital products', 'SEO', 'Generative engine optimization', 'Nepal travel', 'Travel technology', 'Podcasting', 'Music', 'Entrepreneurship'],
+    'sameAs'        => $sameAs,
 ];
 
 $page = [
-    'title'       => $name . ' — Product Architect, Founder of BriefNepal & OmniTools',
-    'description' => "$name is a Product Architect at Genuin, founder of BriefNepal and OmniTools, host of the Nepal Travel Podcast and Mind Atlas, and a singer/recording artist.",
+    'title'       => $name . ' (Shushant Kumar Singh) — Founder of BriefNepal & OmniTools',
+    'description' => "$name (Shushant Kumar Singh) is a Nepali Product Architect at Genuin, founder of BriefNepal and OmniTools, CHARUSAT alumnus, host of the Nepal Travel Podcast and Mind Atlas, and a singer/recording artist based in Ahmedabad.",
     'canonical'   => $pageUrl,
     'og_type'     => 'profile',
     'breadcrumb'  => [
@@ -109,8 +117,9 @@ $page = [
                 ['What does Shushant Singh do as a Product Architect?', 'As a Product Architect at Genuin, he designs product experiences, user flows and the technical architecture behind digital products — bridging design, engineering and business needs.'],
                 ['What podcasts does Shushant Singh host?', 'He hosts two podcasts: the Nepal Travel Podcast, about travel and stories from Nepal, and Mind Atlas, exploring ideas, the mind and meaningful conversations. Both are on Spotify.'],
                 ['Is Shushant Singh a musician?', 'Yes — he is a singer and recording artist with music available on Spotify and Apple Music.'],
-                ['Where is Shushant Singh based?', 'Shushant Singh is based in Nepal.'],
-                ['How can I follow or contact Shushant Singh?', 'You can find him through BriefNepal, OmniTools, Genuin, his podcasts on Spotify, and his music on Spotify and Apple Music — all linked on this page.'],
+                ['Where is Shushant Singh based?', 'He is Nepali and is currently based in Ahmedabad, India, where he works as a Product Architect at Genuin.'],
+                ['Where did Shushant Singh study?', 'He holds a degree from Charotar University of Science and Technology (CHARUSAT).'],
+                ['How can I follow or contact Shushant Singh?', 'You can find him on LinkedIn (linkedin.com/in/shushant-kumar-singh), and through BriefNepal, OmniTools, Genuin, his podcasts on Spotify, and his music on Spotify and Apple Music — all linked on this page.'],
             ]),
         ],
     ],
@@ -134,8 +143,8 @@ require __DIR__ . '/includes/header.php';
   </header>
 
   <div class="prose" style="margin:20px auto 0">
-    <p><strong><?= e($name) ?></strong> is a product architect, entrepreneur, podcaster and recording artist based in <strong>Nepal</strong>. He builds digital products that make everyday life simpler — from a national news platform to a suite of free online tools. He is the <strong>founder and owner of <a href="https://briefnepal.com" rel="me noopener">BriefNepal</a></strong> and <strong><a href="https://apps.briefnepal.com" rel="me noopener">OmniTools</a></strong>, and works professionally as a <strong>Product Architect at <a href="https://begenuin.com" rel="me noopener">Genuin</a></strong>.</p>
-    <p>His work spans product design and architecture, web development, and modern SEO/GEO — and, outside of software, storytelling through podcasts and music. The common thread is a focus on clean, honest, genuinely useful products.</p>
+    <p><strong><?= e($name) ?></strong> (<?= e($legalName) ?>) is a <strong>Nepali</strong> product architect, entrepreneur, podcaster and recording artist, currently based in <strong>Ahmedabad, India</strong>. He builds digital products that make everyday life simpler — from a national news platform to a suite of free online tools. He is the <strong>founder and owner of <a href="https://briefnepal.com" rel="me noopener">BriefNepal</a></strong> and <strong><a href="https://apps.briefnepal.com" rel="me noopener">OmniTools</a></strong>, and works professionally as a <strong>Product Architect at <a href="https://begenuin.com" rel="me noopener">Genuin</a></strong>. Connect with him on <a href="https://www.linkedin.com/in/shushant-kumar-singh/" rel="me noopener">LinkedIn</a>.</p>
+    <p>His work spans product architecture and design, software engineering, SaaS, AI, Android and web development, and modern SEO/GEO — and, outside of software, storytelling through podcasts and music. The common thread is a focus on clean, honest, genuinely useful products.</p>
 
     <h2>Ventures &amp; work</h2>
     <ul>
@@ -154,8 +163,11 @@ require __DIR__ . '/includes/header.php';
     <h2>Music</h2>
     <p>As a singer and recording artist, Shushant releases original music on <a href="https://open.spotify.com/artist/5b03eorWX5RxJqXCsTUgFz" rel="me noopener">Spotify</a> and <a href="https://music.apple.com/us/artist/shushant-singh/6788654900" rel="me noopener">Apple Music</a>.</p>
 
+    <h2>Education</h2>
+    <p>Shushant holds a degree from <strong><a href="https://www.charusat.ac.in" rel="noopener">Charotar University of Science and Technology (CHARUSAT)</a></strong>.</p>
+
     <h2>Areas of focus</h2>
-    <p>Product architecture &amp; design · Web development · SEO &amp; generative-engine optimization · Digital tools &amp; automation · Podcasting &amp; storytelling · Music · Entrepreneurship in Nepal.</p>
+    <p>Product architecture &amp; design · Software engineering · SaaS · Artificial intelligence · Android &amp; web development · SEO &amp; generative-engine optimization · Digital tools &amp; automation · Podcasting &amp; storytelling · Music · Entrepreneurship.</p>
 
     <h2>Frequently asked questions</h2>
     <h3>Who is Shushant Singh?</h3>
@@ -169,7 +181,9 @@ require __DIR__ . '/includes/header.php';
     <h3>Is Shushant Singh a musician?</h3>
     <p>Yes — he is a singer and recording artist with music on Spotify and Apple Music.</p>
     <h3>Where is Shushant Singh based?</h3>
-    <p>He is based in Nepal.</p>
+    <p>He is Nepali and is currently based in Ahmedabad, India, where he works at Genuin.</p>
+    <h3>Where did Shushant Singh study?</h3>
+    <p>He holds a degree from Charotar University of Science and Technology (CHARUSAT).</p>
   </div>
 
   <div class="widget mt-8" style="border-radius:var(--radius-lg)">
