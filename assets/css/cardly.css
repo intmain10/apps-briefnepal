@@ -260,3 +260,10 @@ body.cardly-page { background: #050509; }
 .cardly-acctbar { display: flex; justify-content: flex-end; gap: 10px; align-items: center; padding: 14px 0 0; }
 .cardly-acctbar a { font-size: 14px; }
 @media (max-width: 520px) { .cardly-auth__card { padding: 26px 20px; } }
+
+/* Cardly brand logo on the landing hero (theme-swapped wordmark) */
+.cardly-brand { display: flex; justify-content: center; margin-bottom: 16px; }
+.cardly-logo { height: 52px; width: auto; }
+.cardly-logo--dark { display: none; }
+[data-theme="dark"] .cardly-logo--light { display: none; }
+[data-theme="dark"] .cardly-logo--dark { display: block; }

@@ -88,9 +88,10 @@ if (!empty($breadcrumb)) {
 <meta name="twitter:description" content="<?= eattr($pageDesc) ?>">
 <meta name="twitter:image" content="<?= eattr($ogImage) ?>">
 
-<!-- Icons -->
-<link rel="icon" type="image/png" href="<?= eattr(url('assets/images/logo-mark.png?v=' . OMNITOOLS_VERSION)) ?>">
-<link rel="apple-touch-icon" href="<?= eattr(url('assets/images/logo-mark.png?v=' . OMNITOOLS_VERSION)) ?>">
+<!-- Icons (Cardly pages get the Cardly mark) -->
+<?php $faviconFile = !empty($page['is_cardly']) ? 'assets/images/cardly-icon.png' : 'assets/images/logo-mark.png'; ?>
+<link rel="icon" type="image/png" href="<?= eattr(url($faviconFile . '?v=' . OMNITOOLS_VERSION)) ?>">
+<link rel="apple-touch-icon" href="<?= eattr(url($faviconFile . '?v=' . OMNITOOLS_VERSION)) ?>">
 
 <!-- Preload theme to avoid flash of incorrect theme -->
 <script>

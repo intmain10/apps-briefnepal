@@ -41,6 +41,10 @@ require __DIR__ . '/includes/header.php';
 <?php endif; ?>
 <section class="cardly-hero">
   <div class="container">
+    <div class="cardly-brand">
+      <img class="cardly-logo cardly-logo--light" src="<?= eattr(url('assets/images/cardly-wordmark-light.png?v=' . OMNITOOLS_VERSION)) ?>" alt="Cardly" width="220" height="53">
+      <img class="cardly-logo cardly-logo--dark" src="<?= eattr(url('assets/images/cardly-wordmark-dark.png?v=' . OMNITOOLS_VERSION)) ?>" alt="Cardly" width="220" height="53">
+    </div>
     <span class="hero__badge">✨ New on <?= e(SITE_NAME) ?></span>
     <h1>Your whole world,<br><span class="grad">one smart link.</span></h1>
     <p class="cardly-hero__sub">Create a beautiful digital business card in minutes. Share one link everywhere — Instagram, LinkedIn, X, WhatsApp, resumes and email signatures.</p>
