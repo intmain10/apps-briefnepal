@@ -186,7 +186,7 @@ function cardly_send_verify_email(array $user, ?string $rawToken = null): bool
     $link = url('cardly/verify') . '?token=' . $rawToken;
     $body = '<p>Hi ' . e($user['name']) . ',</p>'
         . '<p>Welcome to <strong>Cardly</strong>! Please confirm your email address to verify your account:</p>'
-        . '<p><a href="' . eattr($link) . '" style="display:inline-block;background:#0071e3;color:#fff;'
+        . '<p><a href="' . eattr($link) . '" style="display:inline-block;background:#2563eb;color:#fff;'
         . 'padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:600">Verify my email</a></p>'
         . '<p>Or paste this link into your browser:<br><a href="' . eattr($link) . '">' . e($link) . '</a></p>'
         . '<p style="color:#888;font-size:13px">This link expires in 48 hours. If you didn’t create a Cardly account, ignore this email.</p>';
@@ -211,7 +211,7 @@ function cardly_request_password_reset(string $email): void
     $link = url('cardly/reset') . '?token=' . $raw;
     $body = '<p>Hi ' . e($user['name']) . ',</p>'
         . '<p>We received a request to reset your Cardly password. Click below to choose a new one:</p>'
-        . '<p><a href="' . eattr($link) . '" style="display:inline-block;background:#0071e3;color:#fff;'
+        . '<p><a href="' . eattr($link) . '" style="display:inline-block;background:#2563eb;color:#fff;'
         . 'padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:600">Reset my password</a></p>'
         . '<p>Or paste this link into your browser:<br><a href="' . eattr($link) . '">' . e($link) . '</a></p>'
         . '<p style="color:#888;font-size:13px">This link expires in 1 hour. If you didn’t request this, you can safely ignore it.</p>';
