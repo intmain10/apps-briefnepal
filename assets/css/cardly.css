@@ -267,3 +267,5 @@ body.cardly-page { background: #050509; }
 .cardly-logo--dark { display: none; }
 [data-theme="dark"] .cardly-logo--light { display: none; }
 [data-theme="dark"] .cardly-logo--dark { display: block; }
+
+.cardly-claim__suffix { color: var(--text-3); font-size: 14px; white-space: nowrap; padding-right: 6px; }

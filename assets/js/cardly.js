@@ -41,9 +41,16 @@
     root.innerHTML = `
       <div class="cardly-claim">
         <h1>Create your free card</h1>
-        <p class="muted">Enter your name and pick a style — you'll get a private link you can customize later.</p>
+        <p class="muted">Pick a link and a style — you can change everything next.</p>
         <label class="field__label mt-6">Your name</label>
         <input id="cName" class="input" placeholder="e.g. Shushant Singh" maxlength="80" autofocus>
+        <label class="field__label mt-4">Your link</label>
+        <div class="cardly-claim__url">
+          <span>${esc(CB.replace(/^https?:\/\//, ''))}/</span>
+          <input id="cUser" class="input" placeholder="yourname" autocomplete="off" spellcheck="false" maxlength="24">
+          <span id="cSuffix" class="cardly-claim__suffix">-••••</span>
+        </div>
+        <div id="cUserMsg" class="cardly-claim__msg">A short code is added so your link stays unique.</div>
         <label class="field__label mt-4">Choose a style</label>
         <div class="cardly-chips" id="cTpls">${tplChips}</div>
         <button class="btn btn--primary btn--block mt-6" id="cCreate">Create my card →</button>
@@ -55,13 +62,20 @@
     chips.forEach(c => c.addEventListener('click', () => selectChip(c.dataset.tpl)));
     if (TPL[template]) selectChip(template); else selectChip('creator');
 
+    const user = root.querySelector('#cUser');
+    const name = root.querySelector('#cName');
+    // Default the link to a slug of the name until the user types their own.
+    let linkTouched = false;
+    const slugify = v => v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 24);
+    user.addEventListener('input', () => { user.value = slugify(user.value); linkTouched = user.value !== ''; });
+    name.addEventListener('input', () => { if (!linkTouched) user.value = slugify(name.value); });
+
     root.querySelector('#cCreate').addEventListener('click', async () => {
-      const name = root.querySelector('#cName').value.trim();
+      const nameV = name.value.trim(), username = user.value.trim();
       const msg = root.querySelector('#cCreateMsg');
       msg.innerHTML = '<div class="row"><div class="spinner"></div><span>Creating…</span></div>';
-      const r = await post({ action: 'create', name, template });
+      const r = await post({ action: 'create', username, name: nameV, template });
       if (!r.ok) { msg.innerHTML = err(r.error || 'Could not create card.'); return; }
-      // Go straight into the editor (link generated automatically).
       window.location.href = r.editUrl;
     });
   }

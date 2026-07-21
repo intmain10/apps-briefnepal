@@ -121,6 +121,35 @@ function cardly_random_slug(int $len = 7): string
     return 'c' . bin2hex(random_bytes(5)); // fallback (astronomically unlikely)
 }
 
+/**
+ * Build a card slug that keeps the chosen name visible but appends a short
+ * random suffix so links are unique and unguessable — e.g. "shushant-a4f9".
+ */
+function cardly_slug_from(string $base): string
+{
+    $base = strtolower($base);
+    $base = preg_replace('/[^a-z0-9]+/', '-', $base);
+    $base = trim((string) $base, '-');
+    $base = substr($base, 0, 22);
+    $base = trim($base, '-');
+    if ($base === '' || in_array($base, cardly_reserved(), true)) {
+        $base = 'card';
+    }
+    $alphabet = 'abcdefghijkmnpqrstuvwxyz23456789';
+    $max = strlen($alphabet) - 1;
+    for ($try = 0; $try < 30; $try++) {
+        $suffix = '';
+        for ($i = 0; $i < 4; $i++) {
+            $suffix .= $alphabet[random_int(0, $max)];
+        }
+        $slug = $base . '-' . $suffix;
+        if (cardly_slug_valid($slug) && !cardly_exists($slug)) {
+            return $slug;
+        }
+    }
+    return $base . '-' . bin2hex(random_bytes(3));
+}
+
 /** Ensure storage dirs exist and are protected. */
 function cardly_ensure_dirs(): void
 {

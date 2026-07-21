@@ -59,11 +59,17 @@ if ($action === 'create') {
     if (!isset(cardly_templates()[$tpl])) {
         $tpl = 'default';
     }
-    // Every card gets a random, unguessable link. Owners can set a custom
-    // (vanity) link later from the builder.
-    $u = cardly_random_slug();
+    // Link keeps the chosen name visible + a short random suffix so it's
+    // unique and unguessable, e.g. /shushant-a4f9. Falls back to the display
+    // name if no explicit link name is given.
+    $name = trim(mb_substr((string)($_POST['name'] ?? ''), 0, 80));
+    $base = trim((string)($_POST['username'] ?? ''));
+    if ($base === '') {
+        $base = $name;
+    }
+    $u = cardly_slug_from($base);
     $card = cardly_blank($tpl);
-    $card['name'] = trim(mb_substr((string)($_POST['name'] ?? ''), 0, 80));
+    $card['name'] = $name;
     $card['createdAt'] = date('c');
     if ($owner) {
         $card['userId'] = (int) $owner['id'];
