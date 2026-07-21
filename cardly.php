@@ -80,9 +80,11 @@ require __DIR__ . '/includes/header.php';
   <p class="section__desc">Pick a theme, then make it yours.</p></div></div>
   <div class="cardly-templates">
     <?php foreach ($templates as $key => $t): if ($key === 'default') continue;
-      $img = url('assets/images/cardly-templates/' . $key . '.jpg?v=' . OMNITOOLS_VERSION); ?>
+      $img = url('assets/images/cardly-templates/' . $key . '.webp?v=' . OMNITOOLS_VERSION); ?>
       <a class="cardly-tpl" href="<?= eattr(cardly_link('new') . '?t=' . $key) ?>" style="--c1:<?= eattr($t['accent'][0]) ?>;--c2:<?= eattr($t['accent'][1]) ?>">
-        <span class="cardly-tpl__swatch" style="background-image:url('<?= eattr($img) ?>')" role="img" aria-label="<?= eattr($t['name']) ?> template"></span>
+        <span class="cardly-tpl__swatch">
+          <img class="cardly-tpl__img" src="<?= eattr($img) ?>" alt="<?= eattr($t['name']) ?> template" loading="lazy" decoding="async" width="480" height="300">
+        </span>
         <span class="cardly-tpl__name"><?= e($t['name']) ?></span>
       </a>
     <?php endforeach; ?>
