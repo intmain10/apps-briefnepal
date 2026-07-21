@@ -62,7 +62,10 @@ $page = [
         [
             '@context'   => 'https://schema.org',
             '@type'      => 'ProfilePage',
-            'dateModified' => date('Y-m-d'),
+            // Full ISO 8601 datetime (with time + offset) — Google rejects a
+            // date-only value here ("Invalid datetime value for dateModified").
+            'datePublished' => '2026-07-20T00:00:00+00:00',
+            'dateModified'  => date('c'),
             'mainEntity' => $person,
         ],
         // The two podcasts as first-class entities tied to the person.
