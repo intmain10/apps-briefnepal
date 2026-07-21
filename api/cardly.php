@@ -55,19 +55,13 @@ if ($action === 'create') {
     if (cardly_accounts_enabled() && !$owner) {
         json_error('Please sign in to create a card.', 401);
     }
-    $u = strtolower(trim((string)($_POST['username'] ?? '')));
-    if (!cardly_slug_valid($u)) {
-        json_error('Choose a username of 3–30 letters, numbers or hyphens.');
-    }
-    // Only a saved (published) card holds a username. Unsaved drafts can be
-    // reclaimed, so starting a card no longer permanently reserves the link.
-    if (cardly_is_taken($u)) {
-        json_error('That username is already taken.');
-    }
     $tpl = (string)($_POST['template'] ?? 'default');
     if (!isset(cardly_templates()[$tpl])) {
         $tpl = 'default';
     }
+    // Every card gets a random, unguessable link. Owners can set a custom
+    // (vanity) link later from the builder.
+    $u = cardly_random_slug();
     $card = cardly_blank($tpl);
     $card['name'] = trim(mb_substr((string)($_POST['name'] ?? ''), 0, 80));
     $card['createdAt'] = date('c');

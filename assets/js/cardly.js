@@ -41,15 +41,9 @@
     root.innerHTML = `
       <div class="cardly-claim">
         <h1>Create your free card</h1>
-        <p class="muted">Pick a link and a style — you can change everything next.</p>
-        <label class="field__label mt-6">Your card link</label>
-        <div class="cardly-claim__url">
-          <span>${esc(CB.replace(/^https?:\/\//, ''))}/</span>
-          <input id="cUser" class="input" placeholder="yourname" autocomplete="off" spellcheck="false" maxlength="30">
-        </div>
-        <div id="cUserMsg" class="cardly-claim__msg"></div>
-        <label class="field__label mt-4">Your name</label>
-        <input id="cName" class="input" placeholder="e.g. Shushant Singh" maxlength="80">
+        <p class="muted">Enter your name and pick a style — you'll get a private link you can customize later.</p>
+        <label class="field__label mt-6">Your name</label>
+        <input id="cName" class="input" placeholder="e.g. Shushant Singh" maxlength="80" autofocus>
         <label class="field__label mt-4">Choose a style</label>
         <div class="cardly-chips" id="cTpls">${tplChips}</div>
         <button class="btn btn--primary btn--block mt-6" id="cCreate">Create my card →</button>
@@ -61,28 +55,13 @@
     chips.forEach(c => c.addEventListener('click', () => selectChip(c.dataset.tpl)));
     if (TPL[template]) selectChip(template); else selectChip('creator');
 
-    const user = root.querySelector('#cUser'), umsg = root.querySelector('#cUserMsg');
-    let checkT;
-    user.addEventListener('input', () => {
-      user.value = user.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-      clearTimeout(checkT); umsg.textContent = '';
-      const v = user.value;
-      if (v.length < 3) return;
-      checkT = setTimeout(async () => {
-        const r = await post({ action: 'check', username: v });
-        if (r.available) { umsg.textContent = '✓ available'; umsg.className = 'cardly-claim__msg ok'; }
-        else { umsg.textContent = r.reason === 'invalid' ? '✗ invalid' : '✗ taken'; umsg.className = 'cardly-claim__msg err'; }
-      }, 300);
-    });
-
     root.querySelector('#cCreate').addEventListener('click', async () => {
-      const username = user.value.trim(), name = root.querySelector('#cName').value.trim();
+      const name = root.querySelector('#cName').value.trim();
       const msg = root.querySelector('#cCreateMsg');
-      if (username.length < 3) { msg.innerHTML = err('Pick a link of at least 3 characters.'); return; }
       msg.innerHTML = '<div class="row"><div class="spinner"></div><span>Creating…</span></div>';
-      const r = await post({ action: 'create', username, name, template });
+      const r = await post({ action: 'create', name, template });
       if (!r.ok) { msg.innerHTML = err(r.error || 'Could not create card.'); return; }
-      // Go straight into the editor (token in URL).
+      // Go straight into the editor (link generated automatically).
       window.location.href = r.editUrl;
     });
   }

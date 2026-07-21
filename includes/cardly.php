@@ -101,6 +101,26 @@ function cardly_slug_valid(string $slug): bool
         && !in_array($slug, cardly_reserved(), true);
 }
 
+/**
+ * Generate a short, unguessable, unused card slug (the default public link).
+ * Uses an unambiguous alphabet (no 0/o/1/l) so links are easy to read aloud.
+ */
+function cardly_random_slug(int $len = 7): string
+{
+    $alphabet = 'abcdefghijkmnpqrstuvwxyz23456789';
+    $max = strlen($alphabet) - 1;
+    for ($try = 0; $try < 25; $try++) {
+        $s = '';
+        for ($i = 0; $i < $len; $i++) {
+            $s .= $alphabet[random_int(0, $max)];
+        }
+        if (cardly_slug_valid($s) && !cardly_exists($s)) {
+            return $s;
+        }
+    }
+    return 'c' . bin2hex(random_bytes(5)); // fallback (astronomically unlikely)
+}
+
 /** Ensure storage dirs exist and are protected. */
 function cardly_ensure_dirs(): void
 {
