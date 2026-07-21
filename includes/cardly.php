@@ -617,13 +617,11 @@ function cardly_vcf_photo(array $card): ?string
     if ($photo === '' || $slug === '') {
         return null;
     }
-    $base = cardly_media_url($slug);
-    if (!str_starts_with($photo, $base)) {
-        return 'PHOTO;VALUE=URI:' . $photo;
-    }
-    $rel  = ltrim(substr($photo, strlen($base)), '/');
-    $path = UPLOADS_PATH . '/cardly/media/' . $slug . '/' . $rel;
-    if (!is_file($path)) {
+    // Map to the local file by filename (host-independent — the stored URL may
+    // use a different host than the current request).
+    $file = basename((string) (parse_url($photo, PHP_URL_PATH) ?: $photo));
+    $path = UPLOADS_PATH . '/cardly/media/' . $slug . '/' . $file;
+    if ($file === '' || !is_file($path)) {
         return 'PHOTO;VALUE=URI:' . $photo;
     }
     $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
