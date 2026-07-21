@@ -34,12 +34,14 @@ $cta = cardly_cta($card);
 $sameAs = array_values(array_filter($card['socials'] ?? []));
 if (!empty($card['contact']['website'])) $sameAs[] = $card['contact']['website'];
 
-$person = ['@type' => 'Person', 'name' => $name, 'url' => $cardUrl];
+$person = ['@type' => 'Person', '@id' => $cardUrl . '#person', 'name' => $name, 'url' => $cardUrl];
 if ($card['tagline']) $person['jobTitle'] = $card['tagline'];
 if ($card['about'])   $person['description'] = $card['about'];
 if ($card['photo'])   $person['image'] = $card['photo'];
 if (!empty($card['contact']['email']))   $person['email'] = $card['contact']['email'];
 if (!empty($card['contact']['phone']))   $person['telephone'] = $card['contact']['phone'];
+if (!empty($card['contact']['address'])) $person['address'] = $card['contact']['address'];
+if (!empty($card['skills']))             $person['knowsAbout'] = array_values($card['skills']);
 if ($sameAs) $person['sameAs'] = array_values($sameAs);
 
 $page = [
@@ -55,7 +57,12 @@ $page = [
     'noindex'     => (array_key_exists('published', $card) && $card['published'] === false),
     'cardly_js'   => 'cardly-view.js',
     'body_class'  => 'cardly-page',
-    'jsonld'      => [['@context' => 'https://schema.org', '@type' => 'ProfilePage', 'mainEntity' => $person]],
+    'jsonld'      => [[
+        '@context'     => 'https://schema.org',
+        '@type'        => 'ProfilePage',
+        'dateModified' => date('c', isset($card['updatedAt']) ? (strtotime((string) $card['updatedAt']) ?: time()) : time()),
+        'mainEntity'   => $person,
+    ]],
 ];
 
 // Build the ordered list of "link block" items (primary CTA + contact + custom).

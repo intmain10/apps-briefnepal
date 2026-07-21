@@ -407,6 +407,45 @@ function cardly_cards_for_user(int $userId): array
     );
 }
 
+/**
+ * Published, discoverable cards for the sitemap — so a person's card can be
+ * found in search as their internet identity. Cards flagged `discoverable`
+ * === false are excluded (opt-out / unlisted). Returns [['slug','updated'],…].
+ */
+function cardly_published_cards(int $limit = 5000): array
+{
+    $out = [];
+    $db = cardly_db();
+    if ($db) {
+        $rows = $db->select('SELECT slug, data, updated_at FROM cardly_cards WHERE published = 1 ORDER BY updated_at DESC LIMIT ' . (int) $limit);
+        foreach ($rows as $r) {
+            $d = json_decode((string) $r['data'], true);
+            if (is_array($d) && array_key_exists('discoverable', $d) && $d['discoverable'] === false) {
+                continue;
+            }
+            $out[] = ['slug' => $r['slug'], 'updated' => $r['updated_at']];
+        }
+        return $out;
+    }
+    foreach (glob(UPLOADS_PATH . '/cardly/cards/*.json') ?: [] as $f) {
+        $d = json_decode((string) @file_get_contents($f), true);
+        if (!is_array($d)) {
+            continue;
+        }
+        if (array_key_exists('published', $d) && $d['published'] === false) {
+            continue; // draft
+        }
+        if (array_key_exists('discoverable', $d) && $d['discoverable'] === false) {
+            continue; // opted out
+        }
+        $out[] = ['slug' => basename($f, '.json'), 'updated' => $d['updatedAt'] ?? date('c')];
+        if (count($out) >= $limit) {
+            break;
+        }
+    }
+    return $out;
+}
+
 /** Verify a raw edit token against a stored card. */
 function cardly_verify_token(array $card, string $token): bool
 {

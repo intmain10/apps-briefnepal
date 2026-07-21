@@ -37,6 +37,12 @@ if (cardly_is_host()) {
     echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
     echo xml_url(cardly_link(), $today, 'weekly', '1.0');
     echo xml_url(cardly_link('about'), $today, 'monthly', '0.8');
+    // Published cards — so each person's card is discoverable as their
+    // internet identity. (Unlisted cards opt out via discoverable=false.)
+    foreach (cardly_published_cards() as $pc) {
+        $lm = date('Y-m-d', strtotime((string) $pc['updated']) ?: time());
+        echo xml_url(cardly_link($pc['slug']), $lm, 'weekly', '0.7');
+    }
     echo '</urlset>';
     exit;
 }
