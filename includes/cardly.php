@@ -542,6 +542,7 @@ function cardly_blank(string $template = 'default'): array
     return [
         'template' => $template,
         'published' => false,
+        'discoverable' => true,
         'name' => '', 'tagline' => '', 'about' => '',
         'photo' => '', 'cover' => '',
         'contact' => ['phone' => '', 'email' => '', 'whatsapp' => '', 'website' => '', 'address' => ''],

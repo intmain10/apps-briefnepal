@@ -168,6 +168,10 @@ if ($action === 'save') {
         $card['sections'][$k] = !empty($inSec[$k]);
     }
 
+    // Discoverability: whether the card is listed in search (default on).
+    $card['discoverable'] = array_key_exists('discoverable', $incoming)
+        ? (bool) $incoming['discoverable'] : true;
+
     // A real save publishes the card — from now on it holds its username.
     $card['published'] = true;
 

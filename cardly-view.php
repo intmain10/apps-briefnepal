@@ -53,8 +53,9 @@ $page = [
     'bare'        => true,
     'is_cardly'   => true,
     'load_lib'    => true,
-    // Keep unsaved drafts out of search until the owner publishes (saves).
-    'noindex'     => (array_key_exists('published', $card) && $card['published'] === false),
+    // Keep drafts, and cards the owner has unlisted, out of search.
+    'noindex'     => (array_key_exists('published', $card) && $card['published'] === false)
+        || (array_key_exists('discoverable', $card) && $card['discoverable'] === false),
     'cardly_js'   => 'cardly-view.js',
     'body_class'  => 'cardly-page',
     'jsonld'      => [[

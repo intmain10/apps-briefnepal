@@ -184,6 +184,11 @@
           ${toggle('skills', 'Skills')}${toggle('links', 'Links')}${toggle('gallery', 'Gallery')}
           ${toggle('map', 'Map')}${toggle('qr', 'QR code')}
         </div>
+      </div>
+
+      <div class="cardly-grp"><h3>Privacy</h3>
+        <label class="cardly-toggle"><input type="checkbox" data-pref="discoverable" ${s.discoverable !== false ? 'checked' : ''}> List my card in search (Google &amp; AI)</label>
+        <p class="muted" style="font-size:13px;margin-top:8px">On: your card can appear in search results as your public profile. Off: it's only reachable by the exact link you share (unlisted).</p>
       </div>`;
   }
 
@@ -202,6 +207,8 @@
     }));
     // section toggles
     form.querySelectorAll('[data-sec]').forEach(t => t.addEventListener('change', () => { s.sections[t.dataset.sec] = t.checked; renderPreview(s); }));
+    // preference toggles (e.g. discoverable in search)
+    form.querySelectorAll('[data-pref]').forEach(t => t.addEventListener('change', () => { s[t.dataset.pref] = t.checked; }));
     // uploads
     form.querySelectorAll('[data-up]').forEach(u => u.addEventListener('click', () => pickImage(u.dataset.up, s)));
     // remove photo / cover
@@ -318,6 +325,7 @@
       links: Array.isArray(c.links) ? c.links.map(l => ({ label: l.label || '', url: l.url || '' })) : [],
       gallery: Array.isArray(c.gallery) ? c.gallery.slice() : [],
       sections: Object.assign(b.sections, c.sections || {}),
+      discoverable: c.discoverable !== false, // default: listed in search
     };
   }
   function setPath(o, path, v) { const p = path.split('.'); let x = o; while (p.length > 1) x = x[p.shift()]; x[p[0]] = v; }
