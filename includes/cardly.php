@@ -471,6 +471,27 @@ function cardly_card_discoverable(array $d): bool
     return !empty($c['email']) || !empty($c['phone']) || !empty($c['website']);
 }
 
+/** Permanently delete a card: DB row, JSON file, and media folder. */
+function cardly_delete(string $slug): bool
+{
+    if (!cardly_slug_valid($slug)) {
+        return false;
+    }
+    $db = cardly_db();
+    if ($db) {
+        $db->execute('DELETE FROM cardly_cards WHERE slug = ?', [$slug]);
+    }
+    @unlink(cardly_data_path($slug));
+    $dir = UPLOADS_PATH . '/cardly/media/' . $slug;
+    if (is_dir($dir)) {
+        foreach (glob($dir . '/*') ?: [] as $f) {
+            @unlink($f);
+        }
+        @rmdir($dir);
+    }
+    return true;
+}
+
 /** Verify a raw edit token against a stored card. */
 function cardly_verify_token(array $card, string $token): bool
 {
