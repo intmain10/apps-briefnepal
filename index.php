@@ -82,7 +82,7 @@ require __DIR__ . '/includes/header.php';
 <section class="hero">
   <div class="container">
     <span class="hero__badge">✨ <b><?= $total ?>+</b> free tools · No signup · Private</span>
-    <h1><?= e(SITE_TAGLINE) ?><br><span class="grad">One Platform.</span></h1>
+    <h1>Everything You Need.<br><span class="grad">One Platform.</span></h1>
     <p class="hero__sub">Fast, beautiful, privacy-first online tools for PDF, images, audio, developers, SEO, finance and more.</p>
 
     <form class="hero-search" id="heroSearchForm" role="search">
