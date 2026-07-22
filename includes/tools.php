@@ -120,6 +120,7 @@ function omnitools_tools(): array
     /* -------------------------------------------------------------- Video */
     $t('video-metadata', 'video', 'Video Metadata Viewer', 'View resolution, duration, aspect ratio and more from a video file.', [], 'inspect video info duration');
     $t('video-thumbnail', 'video', 'Video Thumbnail Grabber', 'Capture a frame from any video and save it as an image.', ['new'], 'frame snapshot poster video');
+    $t('video-to-gif', 'video', 'Video to GIF', 'Turn a video clip (MP4, WebM, MOV) into an animated GIF — trim the range, pick the frame rate and size. Runs entirely in your browser.', ['new', 'popular'], 'mp4 webm mov to gif convert video animated gif maker trim clip fps');
 
     /* -------------------------------------------------------------- Audio */
     $t('mp3-cutter', 'audio', 'Audio Cutter', 'Trim and cut any audio file to a selected range (exports WAV).', ['popular'], 'trim mp3 cut clip');

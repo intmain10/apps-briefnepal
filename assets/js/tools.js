@@ -1492,6 +1492,126 @@
     });
   });
 
+  /* ---- Video to GIF: seek-extract frames from a clip → animated GIF ------ */
+  function fmtTime(s) {
+    s = Math.max(0, s);
+    const m = Math.floor(s / 60), r = s % 60;
+    return m + ':' + (r < 10 ? '0' : '') + r.toFixed(1);
+  }
+  function seekVideo(v, t) {
+    return new Promise(res => {
+      let done = false;
+      const finish = () => { if (done) return; done = true; v.removeEventListener('seeked', finish); res(); };
+      v.addEventListener('seeked', finish);
+      // Fallback in case 'seeked' doesn't fire (some codecs/browsers).
+      setTimeout(finish, 600);
+      try { v.currentTime = Math.min(t, (v.duration || t) - 0.001); } catch (e) { finish(); }
+    });
+  }
+  reg('video-to-gif', root => {
+    root.innerHTML = `<div id="drop"></div>
+      <div id="opts" class="hidden mt-4">
+        <video id="vid" playsinline muted controls style="max-width:100%;max-height:300px;border-radius:12px;border:1px solid var(--border);background:#000"></video>
+        <div class="row mt-4">
+          <div><label class="field__label">Start: <b id="stv">0:00.0</b></label><input id="st" type="range" min="0" max="100" step="0.1" value="0" style="width:100%"><button class="btn btn--ghost btn--sm mt-2" id="setst" type="button">Use current time</button></div>
+          <div><label class="field__label">End: <b id="etv">0:00.0</b></label><input id="et" type="range" min="0" max="100" step="0.1" value="100" style="width:100%"><button class="btn btn--ghost btn--sm mt-2" id="setet" type="button">Use current time</button></div>
+        </div>
+        <div class="row mt-4">
+          <div><label class="field__label">Frame rate: <b id="fpsv">10</b> fps</label><input id="fps" type="range" min="4" max="24" step="1" value="10" style="width:100%"></div>
+          <div><label class="field__label">Max width: <b id="mwv">480</b>px</label><input id="mw" type="range" min="120" max="1000" step="20" value="480" style="width:100%"></div>
+        </div>
+        <label class="chip mt-4" style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" id="loop" checked> Loop forever</label>
+        <div id="plan" class="muted mt-2" style="font-size:13px"></div>
+        <div class="btn-row mt-4"><button class="btn btn--primary" id="go">Create GIF</button></div>
+        <div id="prog" class="muted mt-2" aria-live="polite"></div>
+      </div>
+      <div id="result" class="mt-4"></div>`;
+    const MAXFRAMES = 300;
+    let vurl = null;
+    const vid = q('#vid', root);
+    makeDropzone(q('#drop', root), { accept: 'video/*', hint: 'MP4, WebM or MOV. Your video is decoded locally — it never leaves your device.', onFiles: fl => loadVideo(fl[0]) });
+    function loadVideo(f) {
+      if (!f || (f.type && f.type.indexOf('video/') !== 0)) { U.toast('Please choose a video file.'); return; }
+      if (vurl) URL.revokeObjectURL(vurl);
+      vurl = URL.createObjectURL(f);
+      vid.src = vurl;
+      vid.onloadedmetadata = () => {
+        const d = vid.duration || 0;
+        if (!isFinite(d) || d <= 0) { U.toast('Could not read this video — try a different file or format.'); return; }
+        const st = q('#st', root), et = q('#et', root);
+        st.max = et.max = d.toFixed(2); st.value = 0; et.value = d.toFixed(2);
+        q('#opts', root).classList.remove('hidden');
+        updateLabels();
+      };
+      vid.onerror = () => U.toast('This video format cannot be decoded in the browser. Try MP4 (H.264) or WebM.');
+    }
+    function clampRange() {
+      const st = q('#st', root), et = q('#et', root);
+      let a = +st.value, b = +et.value;
+      if (b - a < 0.2) { b = Math.min(+et.max, a + 0.2); et.value = b; } // keep ≥0.2s
+      return { a, b };
+    }
+    function updateLabels() {
+      const { a, b } = clampRange();
+      const fps = +q('#fps', root).value;
+      q('#stv', root).textContent = fmtTime(a);
+      q('#etv', root).textContent = fmtTime(b);
+      q('#fpsv', root).textContent = fps;
+      q('#mwv', root).textContent = q('#mw', root).value;
+      let n = Math.max(2, Math.round((b - a) * fps));
+      const capped = n > MAXFRAMES;
+      if (capped) n = MAXFRAMES;
+      q('#plan', root).textContent = `${(b - a).toFixed(1)}s clip → ${n} frames` + (capped ? ' (capped — frame rate reduced to keep the GIF light)' : '');
+    }
+    ['st', 'et', 'fps', 'mw'].forEach(id => q('#' + id, root).addEventListener('input', updateLabels));
+    q('#setst', root).addEventListener('click', () => { q('#st', root).value = vid.currentTime.toFixed(2); updateLabels(); });
+    q('#setet', root).addEventListener('click', () => { q('#et', root).value = vid.currentTime.toFixed(2); updateLabels(); });
+    q('#go', root).addEventListener('click', async () => {
+      const { a, b } = clampRange();
+      const prog = q('#prog', root), btn = q('#go', root);
+      btn.disabled = true; prog.textContent = 'Loading encoder…';
+      const wasPlaying = !vid.paused; vid.pause();
+      try {
+        await loadGifenc();
+        const { GIFEncoder, quantize, applyPalette } = window.gifenc;
+        const fps = +q('#fps', root).value, maxW = +q('#mw', root).value;
+        const vw = vid.videoWidth || 640, vh = vid.videoHeight || 480;
+        const W = Math.min(maxW, vw), H = Math.max(1, Math.round(vh * (W / vw)));
+        const c = document.createElement('canvas'); c.width = W; c.height = H;
+        const cx = c.getContext('2d');
+        const repeat = q('#loop', root).checked ? 0 : -1;
+        let n = Math.max(2, Math.round((b - a) * fps));
+        if (n > MAXFRAMES) n = MAXFRAMES;
+        const dur = b - a, delay = Math.max(20, Math.round(dur * 1000 / n));
+        const gif = GIFEncoder();
+        for (let i = 0; i < n; i++) {
+          prog.textContent = `Capturing frame ${i + 1} of ${n}…`;
+          await seekVideo(vid, a + (dur * i) / n);
+          cx.drawImage(vid, 0, 0, W, H);
+          const data = cx.getImageData(0, 0, W, H).data;
+          const palette = quantize(data, 256);
+          const index = applyPalette(data, palette);
+          gif.writeFrame(index, W, H, i === 0 ? { palette, delay, repeat } : { palette, delay });
+        }
+        gif.finish();
+        const blob = new Blob([gif.bytes()], { type: 'image/gif' });
+        const url = URL.createObjectURL(blob);
+        prog.textContent = '';
+        q('#result', root).innerHTML =
+          `<img src="${url}" alt="GIF preview" style="max-height:320px;max-width:100%;border-radius:12px;border:1px solid var(--border)" class="mb-4">
+           <div class="muted mb-2">GIF · ${W}×${H} · ${n} frames · ${fps} fps · ${fmtBytes(blob.size)}</div>
+           <div class="btn-row"><button class="btn btn--primary" id="dl">Download GIF</button></div>`;
+        q('#dl', root).addEventListener('click', () => U.download('video.gif', blob));
+      } catch (e) {
+        prog.textContent = '';
+        U.toast('Could not create the GIF — try a shorter clip, lower frame rate or smaller width.');
+      } finally {
+        btn.disabled = false;
+        if (wasPlaying) vid.play().catch(() => {});
+      }
+    });
+  });
+
   /* ---- GIF Animation Studio: layered, per-element animation → GIF -------- */
   function easeOutCubic(p) { return 1 - Math.pow(1 - p, 3); }
   function easeOutBack(p) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); }
