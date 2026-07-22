@@ -31,6 +31,12 @@ $socialDefs = ['instagram', 'spotify', 'youtube', 'linkedin', 'x', 'facebook', '
 $socials = array_filter($card['socials'] ?? []);
 $cta = cardly_cta($card);
 
+// Rich share preview: a rendered 1200×630 image of the card (avatar + name +
+// tagline + link) so WhatsApp/LinkedIn/Slack/Teams/Facebook show the whole
+// card, not a stray banner crop. Falls back to cover/photo if GD is missing.
+$shareImage = cardly_og_ensure($slug, $card)
+    ?: ($card['cover'] ?: ($card['photo'] ?: url('assets/images/og-default.png')));
+
 $sameAs = array_values(array_filter($card['socials'] ?? []));
 if (!empty($card['contact']['website'])) $sameAs[] = $card['contact']['website'];
 
@@ -49,7 +55,7 @@ $page = [
     'description' => $card['about'] ?: ($name . ', digital business card. Save contact, connect and follow.'),
     'canonical'   => $cardUrl,
     'og_type'     => 'profile',
-    'image'       => $card['cover'] ?: ($card['photo'] ?: url('assets/images/og-default.png')),
+    'image'       => $shareImage,
     'bare'        => true,
     'is_cardly'   => true,
     'load_lib'    => true,

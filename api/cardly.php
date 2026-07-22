@@ -178,6 +178,10 @@ if ($action === 'save') {
     if (!cardly_save($slug, $card)) {
         json_error('Could not save. Please try again.', 500);
     }
+    // Refresh the social share image so a freshly-saved card previews correctly
+    // the moment it is shared (best-effort; never blocks the save response).
+    $card['slug'] = $slug;
+    @cardly_og_render($slug, $card, cardly_og_path($slug));
     json_response(['ok' => true, 'viewUrl' => cardly_link($slug)]);
 }
 

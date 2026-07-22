@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/cardly_og.php';
 
 /** DDL for the Cardly cards table (created on demand when a DB is connected). */
 const CARDLY_TABLE_SQL = <<<SQL
