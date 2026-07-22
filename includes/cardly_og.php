@@ -186,6 +186,71 @@ function cardly_og_wrap(string $text, float $size, string $font, int $maxW, int 
 }
 
 /**
+ * Split a free-text tagline into up to 3 short role lines on common separators
+ * ("Founder @X | Product Architect | Creator" → three lines), so a long title
+ * reads cleanly instead of being truncated by the platform.
+ */
+function cardly_og_roles(string $tagline): array
+{
+    $parts = preg_split('~\s*(?:\|\||\||•|·|/|,|;|\n|—|–)\s*~u', trim($tagline)) ?: [];
+    $parts = array_values(array_filter(array_map('trim', $parts), fn($s) => $s !== ''));
+    return array_slice($parts, 0, 3);
+}
+
+/**
+ * Draw a QR code for $text into the image at ($x,$y) within a $size box using
+ * $dark for the modules. Returns false if the encoder is unavailable so the
+ * caller can lay out without it.
+ */
+function cardly_og_draw_qr(\GdImage $im, string $text, int $x, int $y, int $size, int $dark): bool
+{
+    $lib = __DIR__ . '/vendor/qrcode.php';
+    if (!is_file($lib)) {
+        return false;
+    }
+    require_once $lib;
+    try {
+        $qr = QRCode::getMinimumQRCode($text, QR_ERROR_CORRECT_LEVEL_M);
+        $n = $qr->getModuleCount();
+    } catch (\Throwable $e) {
+        return false;
+    }
+    $quiet = 2;
+    $total = $n + $quiet * 2;
+    $cell = intdiv($size, $total);
+    if ($cell < 1) {
+        return false;
+    }
+    $actual = $cell * $total;
+    $ox = $x + intdiv($size - $actual, 2);
+    $oy = $y + intdiv($size - $actual, 2);
+    for ($r = 0; $r < $n; $r++) {
+        for ($c = 0; $c < $n; $c++) {
+            if ($qr->isDark($r, $c)) {
+                $px = $ox + ($c + $quiet) * $cell;
+                $py = $oy + ($r + $quiet) * $cell;
+                imagefilledrectangle($im, $px, $py, $px + $cell - 1, $py + $cell - 1, $dark);
+            }
+        }
+    }
+    return true;
+}
+
+/** Scatter a faint monochrome noise texture for depth (breaks up flat fills). */
+function cardly_og_noise(\GdImage $im, int $W, int $H, int $count): void
+{
+    for ($i = 0; $i < $count; $i++) {
+        $x = mt_rand(0, $W - 1);
+        $y = mt_rand(0, $H - 1);
+        $light = mt_rand(0, 1) === 1;
+        $col = $light
+            ? imagecolorallocatealpha($im, 255, 255, 255, mt_rand(116, 123))
+            : imagecolorallocatealpha($im, 0, 0, 0, mt_rand(116, 123));
+        imagesetpixel($im, $x, $y, $col);
+    }
+}
+
+/**
  * Render the 1200×630 share image for a card and write it to $dest as JPEG.
  * Returns true on success.
  */
@@ -245,39 +310,42 @@ function cardly_og_render(string $slug, array $card, string $dest): bool
         imagefilledrectangle($im, 0, 0, $W, $H, imagecolorallocatealpha($im, 8, 8, 14, 58)); // ~55% dark
     }
 
-    // Subtle corner glows for depth (accent light in opposite corners).
-    cardly_og_glow($im, $W - 90, 40, 470, $a1, 58);
-    cardly_og_glow($im, 60, $H - 30, 430, $a2, 44);
+    // Soft accent glow behind the profile photo, then subtle corner glows.
+    $photoCx = 196;
+    $photoCy = 348;
+    cardly_og_glow($im, $photoCx, $photoCy, 250, $a1, 74);
+    cardly_og_glow($im, $W - 120, 60, 380, $a2, 46);
 
-    // Extra darkening toward the bottom for the footer/link — ramped from fully
-    // transparent so it blends smoothly (no visible seam where it begins).
-    $ds = (int) ($H * 0.5);
-    for ($y = $ds; $y < $H; $y++) {
-        $t = ($y - $ds) / ($H - $ds);
-        $a = (int) round(127 - $t * $t * 92); // 127 (clear) → ~35 (opaque), eased
-        imageline($im, 0, $y, $W, $y, imagecolorallocatealpha($im, 6, 6, 12, max(0, $a)));
-    }
+    // Fine noise texture over the background (content drawn on top stays crisp).
+    cardly_og_noise($im, $W, $H, 7000);
 
-    $white = imagecolorallocate($im, 255, 255, 255);
-    $muted = imagecolorallocate($im, 201, 204, 214);
+    $white  = imagecolorallocate($im, 255, 255, 255);
+    $muted  = imagecolorallocate($im, 206, 209, 219);
+    $faint  = imagecolorallocatealpha($im, 255, 255, 255, 74);
+    $dark   = imagecolorallocate($im, 14, 14, 22);
 
     $fClash = cardly_og_font('clash-700.ttf');
     $fBold  = cardly_og_font('satoshi-700.ttf');
     $fMed   = cardly_og_font('satoshi-500.ttf');
 
-    // ---- Avatar (left) : circular photo, or a monogram on accent ----
-    $cx = 250;
-    $cy = 300;
-    $R  = 150;
-    // Soft shadow.
-    imagefilledellipse($im, $cx + 6, $cy + 12, $R * 2 + 34, $R * 2 + 34, imagecolorallocatealpha($im, 0, 0, 0, 96));
-    // White ring.
-    imagefilledellipse($im, $cx, $cy, $R * 2 + 14, $R * 2 + 14, $white);
+    // ---- Cardly logo (top-left) ----
+    $logo = @imagecreatefrompng(BASE_PATH . '/assets/images/cardly-wordmark-dark.png'); // light/white wordmark for dark bg
+    if ($logo instanceof \GdImage) {
+        $lgH = 34;
+        $lgW = (int) round(imagesx($logo) * $lgH / imagesy($logo));
+        imagecopyresampled($im, $logo, 64, 52, 0, 0, $lgW, $lgH, imagesx($logo), imagesy($logo));
+    } else {
+        imagettftext($im, 22, 0, 64, 80, $white, $fClash, 'Cardly');
+    }
+
+    // ---- Profile photo (left): circular, with glow already behind it ----
+    $R = 132;
+    imagefilledellipse($im, $photoCx + 5, $photoCy + 12, $R * 2 + 30, $R * 2 + 30, imagecolorallocatealpha($im, 0, 0, 0, 98)); // shadow
+    imagefilledellipse($im, $photoCx, $photoCy, $R * 2 + 12, $R * 2 + 12, $white);                                            // ring
 
     $photo = cardly_og_photo_path($slug, $card);
     $src = $photo ? cardly_og_load($photo) : null;
     if ($src instanceof \GdImage) {
-        // Cover-fit crop into an R*2 square, then mask to a circle.
         $sw = imagesx($src);
         $sh = imagesy($src);
         $side = min($sw, $sh);
@@ -286,52 +354,65 @@ function cardly_og_render(string $slug, array $card, string $dest): bool
         $d = $R * 2;
         $sq = imagecreatetruecolor($d, $d);
         imagecopyresampled($sq, $src, 0, 0, $sx, $sy, $d, $d, $side, $side);
-        // Pixel-mask into the canvas (anti-aliased edge).
         for ($yy = 0; $yy < $d; $yy++) {
             for ($xx = 0; $xx < $d; $xx++) {
                 $dx = $xx - $R + 0.5;
                 $dy = $yy - $R + 0.5;
-                $dist = sqrt($dx * $dx + $dy * $dy);
-                if ($dist <= $R) {
-                    imagesetpixel($im, $cx - $R + $xx, $cy - $R + $yy, imagecolorat($sq, $xx, $yy));
+                if (sqrt($dx * $dx + $dy * $dy) <= $R) {
+                    imagesetpixel($im, $photoCx - $R + $xx, $photoCy - $R + $yy, imagecolorat($sq, $xx, $yy));
                 }
             }
         }
     } else {
-        // Monogram fallback.
-        imagefilledellipse($im, $cx, $cy, $R * 2, $R * 2, imagecolorallocate($im, $a1[0], $a1[1], $a1[2]));
-        $name = trim((string) ($card['name'] ?? '')) ?: $slug;
-        $initial = mb_strtoupper(mb_substr($name, 0, 1));
-        $sz = 150;
-        $bb = imagettfbbox($sz, 0, $fClash, $initial);
-        $tw = $bb[2] - $bb[0];
-        $th = $bb[1] - $bb[7];
-        imagettftext($im, $sz, 0, (int) ($cx - $tw / 2 - $bb[0]), (int) ($cy + $th / 2 - ($bb[1])), $white, $fClash, $initial);
+        imagefilledellipse($im, $photoCx, $photoCy, $R * 2, $R * 2, imagecolorallocate($im, $a1[0], $a1[1], $a1[2]));
+        $nm = trim((string) ($card['name'] ?? '')) ?: $slug;
+        $initial = mb_strtoupper(mb_substr($nm, 0, 1));
+        $bb = imagettfbbox(128, 0, $fClash, $initial);
+        imagettftext($im, 128, 0, (int) ($photoCx - ($bb[2] - $bb[0]) / 2 - $bb[0]), (int) ($photoCy - ($bb[7] + $bb[1]) / 2), $white, $fClash, $initial);
     }
 
-    // ---- Text column (right) ----
-    $tx = 470;
-    $maxW = $W - $tx - 70; // right padding
+    // ---- Right column: QR tile + call-to-action ----
+    $cxr = 997;
+    $tile = 236;
+    $tx1 = $cxr - (int) ($tile / 2);
+    $ty1 = 168;
+    $tx2 = $tx1 + $tile;
+    $ty2 = $ty1 + $tile;
+    cardly_og_round_rect($im, $tx1 + 4, $ty1 + 12, $tx2 + 4, $ty2 + 12, 26, imagecolorallocatealpha($im, 0, 0, 0, 110)); // soft shadow
+    cardly_og_round_rect($im, $tx1 - 3, $ty1 - 3, $tx2 + 3, $ty2 + 3, 27, imagecolorallocatealpha($im, $a1[0], $a1[1], $a1[2], 30)); // accent edge
+    cardly_og_round_rect($im, $tx1, $ty1, $tx2, $ty2, 24, imagecolorallocate($im, 255, 255, 255));                                  // white tile
+    $qrOk = cardly_og_draw_qr($im, cardly_link($slug), $tx1 + 20, $ty1 + 20, $tile - 40, $dark);
+    if (!$qrOk) {
+        imagettftext($im, 20, 0, $tx1 + 40, $ty1 + (int) ($tile / 2), $dark, $fBold, 'Scan me');
+    }
+    // CTA under the tile.
+    $cta1 = 'Scan • Connect';
+    $cta2 = 'Save Contact';
+    $w1 = cardly_og_text_w(23, $fBold, $cta1);
+    imagettftext($im, 23, 0, (int) ($cxr - $w1 / 2), $ty2 + 52, $white, $fBold, $cta1);
+    $w2 = cardly_og_text_w(18, $fMed, $cta2);
+    imagettftext($im, 18, 0, (int) ($cxr - $w2 / 2), $ty2 + 84, $faint, $fMed, $cta2);
 
-    // Top label.
-    $label = 'CARDLY  ·  DIGITAL CARD';
-    imagettftext($im, 17, 0, $tx + 2, 150, imagecolorallocatealpha($im, 230, 233, 242, 28), $fBold, $label);
+    // Faint vertical divider between identity and the QR column.
+    imagefilledrectangle($im, 844, 120, 845, 500, imagecolorallocatealpha($im, 255, 255, 255, 116));
 
-    // The text block must stay above the link pill at the bottom.
-    $pillTop    = $H - 34 - 64;
-    $safeBottom = $pillTop - 22;
+    // ---- Identity column (middle) ----
+    $tx = 360;
+    $colRight = 812;
+    $badgeR = 22;
 
-    // Name (Clash, up to 2 lines; short names are enlarged). Reserve room on
-    // the right so the verified badge always fits beside the last line.
-    $badgeR = 24;
-    $nameMaxW = $maxW - ($badgeR * 2 + 20);
+    // Name (Clash, up to 2 lines; short names enlarged). Reserve badge room.
+    $nameMaxW = $colRight - $tx - ($badgeR * 2 + 18);
     $name = trim((string) ($card['name'] ?? '')) ?: ucfirst($slug);
-    $nameSize = 66.0;
+    $nameSize = 58.0;
     $nameLines = cardly_og_wrap($name, $nameSize, $fClash, $nameMaxW, 2);
-    if (count($nameLines) === 1 && cardly_og_text_w($nameSize, $fClash, $nameLines[0]) < $nameMaxW * 0.7) {
-        $nameSize = 78.0; // enlarge short names
+    if (count($nameLines) === 1 && cardly_og_text_w($nameSize, $fClash, $nameLines[0]) < $nameMaxW * 0.72) {
+        $nameSize = 68.0;
     }
-    $baseline = 224 + (int) $nameSize;
+    $lineH = (int) round($nameSize * 1.12);
+    $blockH = count($nameLines) * $lineH;
+    // Vertically balance the identity block against the photo centre.
+    $baseline = (int) ($photoCy - $blockH / 2 - 46 + $nameSize);
     $lastLineW = 0;
     $lastBaseline = $baseline;
     foreach ($nameLines as $i => $ln) {
@@ -339,75 +420,64 @@ function cardly_og_render(string $slug, array $card, string $dest): bool
         $lastLineW = cardly_og_text_w($nameSize, $fClash, $ln);
         $lastBaseline = $baseline;
         if ($i < count($nameLines) - 1) {
-            $baseline += (int) round($nameSize * 1.14);
+            $baseline += $lineH;
         }
     }
 
-    // Verified badge (gold seal + white check), echoing the live card.
-    $bx = $tx + $lastLineW + 20 + $badgeR;
+    // Verified badge (gold seal + white check) beside the last name line.
+    $bx = $tx + $lastLineW + 18 + $badgeR;
     $by = $lastBaseline - (int) round($nameSize * 0.32);
-    imagefilledellipse($im, $bx, $by + 2, $badgeR * 2 + 4, $badgeR * 2 + 4, imagecolorallocatealpha($im, 0, 0, 0, 100)); // shadow
-    imagefilledellipse($im, $bx, $by, $badgeR * 2, $badgeR * 2, imagecolorallocate($im, 245, 179, 1));               // gold
-    imagefilledellipse($im, $bx, $by, $badgeR * 2 - 8, $badgeR * 2 - 8, imagecolorallocate($im, 249, 158, 11));      // inner ring
+    imagefilledellipse($im, $bx, $by + 2, $badgeR * 2 + 4, $badgeR * 2 + 4, imagecolorallocatealpha($im, 0, 0, 0, 100));
+    imagefilledellipse($im, $bx, $by, $badgeR * 2, $badgeR * 2, imagecolorallocate($im, 245, 179, 1));
+    imagefilledellipse($im, $bx, $by, $badgeR * 2 - 8, $badgeR * 2 - 8, imagecolorallocate($im, 249, 158, 11));
     imagesetthickness($im, 6);
     $chk = imagecolorallocate($im, 255, 255, 255);
-    imageline($im, $bx - 10, $by + 1, $bx - 3, $by + 9, $chk);
-    imageline($im, $bx - 3, $by + 9, $bx + 11, $by - 9, $chk);
-    imagefilledellipse($im, $bx - 10, $by + 1, 6, 6, $chk); // round the joints
-    imagefilledellipse($im, $bx - 3, $by + 9, 6, 6, $chk);
-    imagefilledellipse($im, $bx + 11, $by - 9, 6, 6, $chk);
+    imageline($im, $bx - 9, $by + 1, $bx - 2, $by + 8, $chk);
+    imageline($im, $bx - 2, $by + 8, $bx + 10, $by - 8, $chk);
+    imagefilledellipse($im, $bx - 9, $by + 1, 6, 6, $chk);
+    imagefilledellipse($im, $bx - 2, $by + 8, 6, 6, $chk);
+    imagefilledellipse($im, $bx + 10, $by - 8, 6, 6, $chk);
     imagesetthickness($im, 1);
 
-    // Accent underline bar beneath the name.
-    $uy = $baseline + 22;
-    imagefilledrectangle($im, $tx, $uy, $tx + 78, $uy + 8, imagecolorallocate($im, $a1[0], $a1[1], $a1[2]));
+    // Accent underline.
+    $uy = $lastBaseline + 20;
+    imagefilledrectangle($im, $tx, $uy, $tx + 72, $uy + 7, imagecolorallocate($im, $a1[0], $a1[1], $a1[2]));
 
-    // Tagline (Satoshi medium) — 1 line when the name already wraps, else 2,
-    // and never spilling into the link pill.
-    $tagline = trim((string) ($card['tagline'] ?? ''));
-    if ($tagline !== '') {
-        $tagMax = count($nameLines) >= 2 ? 1 : 2;
-        $tb = $uy + 8 + 44;
-        foreach (cardly_og_wrap($tagline, 30, $fMed, $maxW, $tagMax) as $ln) {
-            if ($tb > $safeBottom) {
+    // Role lines (split from the tagline), then skill chips as credibility.
+    $cur = $uy + 7;
+    $limit = 520;
+    foreach (cardly_og_roles((string) ($card['tagline'] ?? '')) as $role) {
+        $cur += 40;
+        if ($cur > $limit) {
+            break;
+        }
+        [$role] = cardly_og_wrap($role, 27, $fMed, $colRight - $tx, 1) ?: [''];
+        imagettftext($im, 27, 0, $tx, $cur, $muted, $fMed, $role);
+    }
+
+    $skills = array_values(array_filter(array_map(
+        fn($s) => trim((string) $s),
+        array_slice((array) ($card['skills'] ?? []), 0, 5)
+    ), fn($s) => $s !== ''));
+    if ($skills) {
+        $cur += 30;
+        $chx = $tx;
+        $chH = 40;
+        foreach ($skills as $sk) {
+            $cw = cardly_og_text_w(18, $fMed, $sk) + 34;
+            if ($chx + $cw > $colRight) {
                 break;
             }
-            imagettftext($im, 30, 0, $tx, $tb, $muted, $fMed, $ln);
-            $tb += 44;
+            cardly_og_round_rect($im, $chx, $cur, $chx + $cw, $cur + $chH, (int) ($chH / 2), imagecolorallocatealpha($im, 255, 255, 255, 108));
+            $bb = imagettfbbox(18, 0, $fMed, $sk);
+            imagettftext($im, 18, 0, $chx + 17, (int) ($cur + $chH / 2 - ($bb[7] + $bb[1]) / 2), $white, $fMed, $sk);
+            $chx += $cw + 12;
         }
     }
 
-    // ---- Footer: the card's access link, as a "glass" pill button ----
+    // De-emphasised URL footer (the real link shows below the preview anyway).
     $link = (string) preg_replace('~^https?://~', '', rtrim(cardly_link($slug), '/'));
-    $lsz  = 25.0;
-    $padL = 32; $dotR = 7; $gap = 18; $padR = 34; $pillH = 64;
-    $px1 = $tx;
-    // The pill must never exceed the canvas — cap its width and fit the link by
-    // shrinking, then ellipsising, so a long slug can't clip off the edge.
-    $pillMaxRight = $W - 70;
-    $textMaxW = $pillMaxRight - $px1 - $padL - $dotR * 2 - $gap - $padR;
-    while ($lsz > 20 && cardly_og_text_w($lsz, $fBold, $link) > $textMaxW) {
-        $lsz -= 1;
-    }
-    if (cardly_og_text_w($lsz, $fBold, $link) > $textMaxW) {
-        while ($link !== '' && cardly_og_text_w($lsz, $fBold, $link . '…') > $textMaxW) {
-            $link = mb_substr($link, 0, -1);
-        }
-        $link = rtrim($link, '/-') . '…';
-    }
-    $lw  = cardly_og_text_w($lsz, $fBold, $link);
-    $py2 = $H - 34;
-    $py1 = $py2 - $pillH;
-    $px2 = $px1 + $padL + $dotR * 2 + $gap + $lw + $padR;
-    $cyp = (int) (($py1 + $py2) / 2);
-    // Accent border ring + translucent glass fill inset within it.
-    cardly_og_round_rect($im, $px1, $py1, $px2, $py2, (int) ($pillH / 2), imagecolorallocatealpha($im, $a1[0], $a1[1], $a1[2], 22));
-    cardly_og_round_rect($im, $px1 + 3, $py1 + 3, $px2 - 3, $py2 - 3, (int) ($pillH / 2) - 3, imagecolorallocatealpha($im, 255, 255, 255, 112));
-    // Accent bullet + link text, vertically centred.
-    imagefilledellipse($im, $px1 + $padL + $dotR, $cyp, $dotR * 2, $dotR * 2, imagecolorallocate($im, $a1[0], $a1[1], $a1[2]));
-    $lb = imagettfbbox($lsz, 0, $fBold, $link);
-    $ty = (int) ($cyp - ($lb[7] + $lb[1]) / 2);
-    imagettftext($im, $lsz, 0, $px1 + $padL + $dotR * 2 + $gap, $ty, $white, $fBold, $link);
+    imagettftext($im, 19, 0, 64, $H - 34, $faint, $fMed, $link);
 
     // ---- Write JPEG ----
     $dir = dirname($dest);
