@@ -1333,6 +1333,102 @@
     makeDropzone(q('#drop', root), { accept: 'image/*', onFiles: f => { const r = new FileReader(); r.onload = () => { const uri = r.result; q('#out', root).innerHTML = `<img src="${uri}" style="max-height:160px;border-radius:12px;border:1px solid var(--border)" class="mb-4"><label class="field__label mt-4">Data URI (${fmtBytes(uri.length)})</label><div class="output-box">${esc(uri)}</div><div class="btn-row mt-4"><button class="btn btn--primary" id="cp">Copy Data URI</button><button class="btn btn--ghost" id="cc">Copy as CSS</button></div>`; q('#cp', root).addEventListener('click', () => U.copy(uri)); q('#cc', root).addEventListener('click', () => U.copy('background-image: url("' + uri + '");')); }; r.readAsDataURL(f[0]); } });
   });
 
+  /* ---- Image → GIF (single or animated), encoded on-device via gifenc ---- */
+  function gifDrawContain(ctx, img, W, H) {
+    const s = Math.min(W / img.naturalWidth, H / img.naturalHeight);
+    const w = img.naturalWidth * s, h = img.naturalHeight * s;
+    ctx.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+  }
+  function loadGifenc() {
+    return new Promise((res, rej) => {
+      if (window.gifenc) return res();
+      const s = document.createElement('script');
+      s.src = (window.OMNITOOLS_BASE || '') + '/assets/js/vendor/gifenc.js';
+      s.onload = () => window.gifenc ? res() : rej(new Error('gifenc missing'));
+      s.onerror = () => rej(new Error('load failed'));
+      document.head.appendChild(s);
+    });
+  }
+  reg('image-to-gif', root => {
+    root.innerHTML = `<div id="drop"></div>
+      <div id="opts" class="hidden mt-4">
+        <label class="field__label">Images (drag to reorder is not needed — order = upload order)</label>
+        <div id="frames" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 4px"></div>
+        <div class="row mt-4">
+          <div><label class="field__label">Max width: <b id="mwv">480</b>px</label><input id="mw" type="range" min="120" max="1000" step="20" value="480" style="width:100%"></div>
+          <div id="delaywrap"><label class="field__label">Frame delay: <b id="dv">500</b>ms</label><input id="delay" type="range" min="60" max="3000" step="20" value="500" style="width:100%"></div>
+        </div>
+        <label class="chip mt-2" style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" id="loop" checked> Loop forever</label>
+        <div class="btn-row mt-4"><button class="btn btn--primary" id="go">Create GIF</button><button class="btn btn--ghost" id="add">+ Add more images</button></div>
+        <div id="prog" class="muted mt-2" aria-live="polite"></div>
+      </div>
+      <div id="result" class="mt-4"></div>`;
+    const imgs = [];
+    makeDropzone(q('#drop', root), { accept: 'image/*', multiple: true, hint: 'Add one image, or several to animate. Processed locally.', onFiles: addFiles });
+    async function addFiles(fl) {
+      for (const f of fl) {
+        if (!f.type || f.type.indexOf('image/') !== 0) continue;
+        try { imgs.push(await loadImageFile(f)); } catch (e) { /* skip */ }
+      }
+      if (!imgs.length) return;
+      q('#opts', root).classList.remove('hidden');
+      renderFrames();
+    }
+    function renderFrames() {
+      q('#delaywrap', root).style.display = imgs.length > 1 ? '' : 'none';
+      q('#frames', root).innerHTML = imgs.map((im, i) =>
+        `<div style="position:relative"><img src="${im.src}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><button data-rm="${i}" title="Remove" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--danger);color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1">✕</button></div>`
+      ).join('') + `<span class="muted" style="align-self:center;font-size:13px">${imgs.length} image${imgs.length > 1 ? 's' : ''}</span>`;
+      qa('[data-rm]', root).forEach(b => b.addEventListener('click', () => {
+        imgs.splice(+b.dataset.rm, 1);
+        if (!imgs.length) q('#opts', root).classList.add('hidden'); else renderFrames();
+      }));
+    }
+    q('#mw', root).addEventListener('input', () => q('#mwv', root).textContent = q('#mw', root).value);
+    q('#delay', root).addEventListener('input', () => q('#dv', root).textContent = q('#delay', root).value);
+    q('#add', root).addEventListener('click', () => { const i = q('#drop input', root); if (i) i.click(); });
+    q('#go', root).addEventListener('click', async () => {
+      if (!imgs.length) return;
+      const prog = q('#prog', root), btn = q('#go', root);
+      btn.disabled = true; prog.textContent = 'Loading encoder…';
+      try {
+        await loadGifenc();
+        const { GIFEncoder, quantize, applyPalette } = window.gifenc;
+        const maxW = +q('#mw', root).value, first = imgs[0];
+        const W = Math.min(maxW, first.naturalWidth);
+        const H = Math.max(1, Math.round(first.naturalHeight * (W / first.naturalWidth)));
+        const c = document.createElement('canvas'); c.width = W; c.height = H;
+        const ctx = c.getContext('2d');
+        const delay = +q('#delay', root).value, repeat = q('#loop', root).checked ? 0 : -1;
+        const gif = GIFEncoder();
+        for (let i = 0; i < imgs.length; i++) {
+          prog.textContent = `Encoding frame ${i + 1} of ${imgs.length}…`;
+          await new Promise(r => setTimeout(r)); // yield to keep UI responsive
+          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+          gifDrawContain(ctx, imgs[i], W, H);
+          const data = ctx.getImageData(0, 0, W, H).data;
+          const palette = quantize(data, 256);
+          const index = applyPalette(data, palette);
+          gif.writeFrame(index, W, H, i === 0 ? { palette, delay, repeat } : { palette, delay });
+        }
+        gif.finish();
+        const blob = new Blob([gif.bytes()], { type: 'image/gif' });
+        const url = URL.createObjectURL(blob);
+        prog.textContent = '';
+        q('#result', root).innerHTML =
+          `<img src="${url}" alt="GIF preview" style="max-height:320px;max-width:100%;border-radius:12px;border:1px solid var(--border)" class="mb-4">
+           <div class="muted mb-2">GIF · ${W}×${H} · ${imgs.length} frame${imgs.length > 1 ? 's' : ''} · ${fmtBytes(blob.size)}</div>
+           <div class="btn-row"><button class="btn btn--primary" id="dl">Download GIF</button></div>`;
+        q('#dl', root).addEventListener('click', () => U.download('animation.gif', blob));
+      } catch (e) {
+        prog.textContent = '';
+        U.toast('Could not create the GIF — try fewer or smaller images.');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+
   // PDF-category engines (merge, split, jpg-to-pdf, watermark, …) live in
   // assets/js/pdf-tools.js, which uses pdf-lib + pdf.js and is loaded only on
   // PDF tool pages.
