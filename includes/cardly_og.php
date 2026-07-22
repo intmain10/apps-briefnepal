@@ -84,16 +84,37 @@ function cardly_og_load(string $path): ?\GdImage
     return $img instanceof \GdImage ? $img : null;
 }
 
+/** Resolve a card media URL (or bare filename) to a local file path, or null. */
+function cardly_og_media_local(string $slug, string $urlOrFile): ?string
+{
+    if (trim($urlOrFile) === '') {
+        return null;
+    }
+    $file = basename((string) (parse_url($urlOrFile, PHP_URL_PATH) ?: $urlOrFile));
+    $path = UPLOADS_PATH . '/cardly/media/' . $slug . '/' . $file;
+    return ($file !== '' && is_file($path)) ? $path : null;
+}
+
 /** Resolve a card's photo to a local file path (host-independent), or null. */
 function cardly_og_photo_path(string $slug, array $card): ?string
 {
-    $photo = (string) ($card['photo'] ?? '');
-    if ($photo === '') {
-        return null;
+    return cardly_og_media_local($slug, (string) ($card['photo'] ?? ''));
+}
+
+/**
+ * Paint a soft radial accent glow centred at ($cx,$cy) by layering translucent
+ * ellipses from the outside in — cheap and smooth. $peak is the added opacity
+ * at the centre (0–127; higher = stronger).
+ */
+function cardly_og_glow(\GdImage $im, int $cx, int $cy, int $r, array $rgb, int $peak): void
+{
+    $steps = 46;
+    for ($i = $steps; $i >= 1; $i--) {
+        $rad = (int) ($r * $i / $steps);
+        $t = 1 - $i / $steps;                 // 0 at the edge → 1 at the centre
+        $alpha = (int) round(127 - $peak * $t * $t);
+        imagefilledellipse($im, $cx, $cy, $rad * 2, $rad * 2, imagecolorallocatealpha($im, $rgb[0], $rgb[1], $rgb[2], max(0, min(127, $alpha))));
     }
-    $file = basename((string) (parse_url($photo, PHP_URL_PATH) ?: $photo));
-    $path = UPLOADS_PATH . '/cardly/media/' . $slug . '/' . $file;
-    return ($file !== '' && is_file($path)) ? $path : null;
 }
 
 /** Path to a bundled TrueType font used for GD text. */
@@ -144,14 +165,22 @@ function cardly_og_wrap(string $text, float $size, string $font, int $maxW, int 
     if (count($lines) < $maxLines && $cur !== '') {
         $lines[] = $cur;
     }
-    // Ellipsise the last line if the text didn't fully fit.
+    // Ellipsise the last line if the text didn't fully fit (dropped words).
     $used = implode(' ', $lines);
     if (mb_strlen($used) < mb_strlen(trim($text)) && $lines) {
-        $last = array_pop($lines);
-        while ($last !== '' && cardly_og_text_w($size, $font, $last . '…') > $maxW) {
-            $last = mb_substr($last, 0, -1);
+        $lines[array_key_last($lines)] .= '…';
+    }
+    // Enforce the width cap on every line — a single word longer than $maxW
+    // (e.g. a long hyphenated surname) must be truncated, not left to overflow.
+    foreach ($lines as $k => $ln) {
+        if (cardly_og_text_w($size, $font, $ln) <= $maxW) {
+            continue;
         }
-        $lines[] = rtrim($last) . '…';
+        $ln = rtrim($ln, '…');
+        while ($ln !== '' && cardly_og_text_w($size, $font, $ln . '…') > $maxW) {
+            $ln = mb_substr($ln, 0, -1);
+        }
+        $lines[$k] = rtrim($ln) . '…';
     }
     return $lines;
 }
@@ -175,18 +204,51 @@ function cardly_og_render(string $slug, array $card, string $dest): bool
     $a1 = cardly_og_rgb($c1);
     $a2 = cardly_og_rgb($c2);
 
-    // ---- Background: accent gradient (top→bottom) over a near-black base ----
-    for ($y = 0; $y < $H; $y++) {
-        $t = $y / $H;
-        $r = (int) round($a1[0] + ($a2[0] - $a1[0]) * $t);
-        $g = (int) round($a1[1] + ($a2[1] - $a1[1]) * $t);
-        $b = (int) round($a1[2] + ($a2[2] - $a1[2]) * $t);
-        $col = imagecolorallocate($im, $r, $g, $b);
-        imageline($im, 0, $y, $W, $y, $col);
+    // ---- Background ----
+    $cover = cardly_og_load((string) (cardly_og_media_local($slug, (string) ($card['cover'] ?? '')) ?? ''));
+    if ($cover instanceof \GdImage) {
+        // Faint, blurred cover as a full-bleed backdrop (downscale→upscale =
+        // cheap, smooth blur), then an accent wash + dark scrim over it.
+        $sw = imagesx($cover);
+        $sh = imagesy($cover);
+        $ar = $W / $H;
+        if ($sw / $sh > $ar) { $ch = $sh; $cw = (int) round($sh * $ar); }
+        else                 { $cw = $sw; $ch = (int) round($sw / $ar); }
+        $cxs = (int) (($sw - $cw) / 2);
+        $cys = (int) (($sh - $ch) / 2);
+        $tw = 120;
+        $th = (int) round($tw / $ar);
+        $tiny = imagecreatetruecolor($tw, $th);
+        imagecopyresampled($tiny, $cover, 0, 0, $cxs, $cys, $tw, $th, $cw, $ch);
+        if (function_exists('imagefilter')) {
+            for ($i = 0; $i < 3; $i++) { imagefilter($tiny, IMG_FILTER_GAUSSIAN_BLUR); }
+        }
+        imagecopyresampled($im, $tiny, 0, 0, 0, 0, $W, $H, $tw, $th);
+        // Accent wash keeps the brand colour on top of the photo.
+        for ($y = 0; $y < $H; $y++) {
+            $t = $y / $H;
+            $r = (int) round($a1[0] + ($a2[0] - $a1[0]) * $t);
+            $g = (int) round($a1[1] + ($a2[1] - $a1[1]) * $t);
+            $b = (int) round($a1[2] + ($a2[2] - $a1[2]) * $t);
+            imageline($im, 0, $y, $W, $y, imagecolorallocatealpha($im, $r, $g, $b, 96));
+        }
+        imagefilledrectangle($im, 0, 0, $W, $H, imagecolorallocatealpha($im, 6, 6, 12, 40)); // ~68% dark
+    } else {
+        // Accent gradient (top→bottom) over a near-black base.
+        for ($y = 0; $y < $H; $y++) {
+            $t = $y / $H;
+            $r = (int) round($a1[0] + ($a2[0] - $a1[0]) * $t);
+            $g = (int) round($a1[1] + ($a2[1] - $a1[1]) * $t);
+            $b = (int) round($a1[2] + ($a2[2] - $a1[2]) * $t);
+            imageline($im, 0, $y, $W, $y, imagecolorallocate($im, $r, $g, $b));
+        }
+        imagefilledrectangle($im, 0, 0, $W, $H, imagecolorallocatealpha($im, 8, 8, 14, 58)); // ~55% dark
     }
-    // Dark scrim so text and the avatar read clearly on any accent.
-    $scrim = imagecolorallocatealpha($im, 8, 8, 14, 58);   // ~55% dark
-    imagefilledrectangle($im, 0, 0, $W, $H, $scrim);
+
+    // Subtle corner glows for depth (accent light in opposite corners).
+    cardly_og_glow($im, $W - 90, 40, 470, $a1, 58);
+    cardly_og_glow($im, 60, $H - 30, 430, $a2, 44);
+
     // Extra darkening toward the bottom for the footer/link — ramped from fully
     // transparent so it blends smoothly (no visible seam where it begins).
     $ds = (int) ($H * 0.5);
@@ -259,20 +321,42 @@ function cardly_og_render(string $slug, array $card, string $dest): bool
     $pillTop    = $H - 34 - 64;
     $safeBottom = $pillTop - 22;
 
-    // Name (Clash, up to 2 lines; short names are enlarged).
+    // Name (Clash, up to 2 lines; short names are enlarged). Reserve room on
+    // the right so the verified badge always fits beside the last line.
+    $badgeR = 24;
+    $nameMaxW = $maxW - ($badgeR * 2 + 20);
     $name = trim((string) ($card['name'] ?? '')) ?: ucfirst($slug);
     $nameSize = 66.0;
-    $nameLines = cardly_og_wrap($name, $nameSize, $fClash, $maxW, 2);
-    if (count($nameLines) === 1 && cardly_og_text_w($nameSize, $fClash, $nameLines[0]) < $maxW * 0.7) {
+    $nameLines = cardly_og_wrap($name, $nameSize, $fClash, $nameMaxW, 2);
+    if (count($nameLines) === 1 && cardly_og_text_w($nameSize, $fClash, $nameLines[0]) < $nameMaxW * 0.7) {
         $nameSize = 78.0; // enlarge short names
     }
     $baseline = 224 + (int) $nameSize;
+    $lastLineW = 0;
+    $lastBaseline = $baseline;
     foreach ($nameLines as $i => $ln) {
         imagettftext($im, $nameSize, 0, $tx, $baseline, $white, $fClash, $ln);
+        $lastLineW = cardly_og_text_w($nameSize, $fClash, $ln);
+        $lastBaseline = $baseline;
         if ($i < count($nameLines) - 1) {
             $baseline += (int) round($nameSize * 1.14);
         }
     }
+
+    // Verified badge (gold seal + white check), echoing the live card.
+    $bx = $tx + $lastLineW + 20 + $badgeR;
+    $by = $lastBaseline - (int) round($nameSize * 0.32);
+    imagefilledellipse($im, $bx, $by + 2, $badgeR * 2 + 4, $badgeR * 2 + 4, imagecolorallocatealpha($im, 0, 0, 0, 100)); // shadow
+    imagefilledellipse($im, $bx, $by, $badgeR * 2, $badgeR * 2, imagecolorallocate($im, 245, 179, 1));               // gold
+    imagefilledellipse($im, $bx, $by, $badgeR * 2 - 8, $badgeR * 2 - 8, imagecolorallocate($im, 249, 158, 11));      // inner ring
+    imagesetthickness($im, 6);
+    $chk = imagecolorallocate($im, 255, 255, 255);
+    imageline($im, $bx - 10, $by + 1, $bx - 3, $by + 9, $chk);
+    imageline($im, $bx - 3, $by + 9, $bx + 11, $by - 9, $chk);
+    imagefilledellipse($im, $bx - 10, $by + 1, 6, 6, $chk); // round the joints
+    imagefilledellipse($im, $bx - 3, $by + 9, 6, 6, $chk);
+    imagefilledellipse($im, $bx + 11, $by - 9, 6, 6, $chk);
+    imagesetthickness($im, 1);
 
     // Accent underline bar beneath the name.
     $uy = $baseline + 22;
