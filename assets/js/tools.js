@@ -1499,12 +1499,19 @@
   reg('gif-animation-studio', root => {
     const S = { W: 600, H: 600, bg: '#0d1117', duration: 2600, fps: 15, loop: true, layers: [], sel: null };
     let uid = 1, playing = false, rafId = 0, startT = 0, drag = null;
-    const IN = [['none', 'None'], ['fade', 'Fade in'], ['slideL', 'Slide ← left'], ['slideR', 'Slide → right'], ['slideT', 'Slide ↑ top'], ['slideB', 'Slide ↓ bottom'], ['pop', 'Pop'], ['spin', 'Spin in']];
+    const IN = [['none', 'None'], ['fade', 'Fade in'], ['slideL', 'Slide ← left'], ['slideR', 'Slide → right'], ['slideT', 'Slide ↑ top'], ['slideB', 'Slide ↓ bottom'], ['pop', 'Pop'], ['spin', 'Spin in'], ['blur', 'Blur in'], ['typewriter', 'Typewriter (text)']];
     const LP = [['none', 'None'], ['float', 'Float'], ['pulse', 'Pulse'], ['spin', 'Spin'], ['bounce', 'Bounce']];
 
     root.innerHTML =
       '<div class="row" style="gap:18px;align-items:flex-start;flex-wrap:wrap">' +
         '<div style="flex:1 1 320px;min-width:290px">' +
+          '<div class="btn-row mb-2" style="flex-wrap:wrap;gap:6px">' +
+            '<span class="muted" style="align-self:center;font-size:13px">Template:</span>' +
+            '<button class="btn btn--ghost btn--sm" data-tpl="social">Social intro</button>' +
+            '<button class="btn btn--ghost btn--sm" data-tpl="logo">Logo reveal</button>' +
+            '<button class="btn btn--ghost btn--sm" data-tpl="title">Title card</button>' +
+            '<button class="btn btn--ghost btn--sm" data-tpl="blank">Blank</button>' +
+          '</div>' +
           '<div class="btn-row mb-2" style="flex-wrap:wrap;gap:6px">' +
             '<button class="btn btn--ghost btn--sm" data-size="600,600">Square</button>' +
             '<button class="btn btn--ghost btn--sm" data-size="540,960">Story 9:16</button>' +
@@ -1547,26 +1554,46 @@
       else if (a.in === 'slideB') { dy = (1 - e) * S.H * 0.6; alpha = Math.min(1, p * 1.5); }
       else if (a.in === 'pop') { sc = l.scale * easeOutBack(p); alpha = Math.min(1, p * 2); }
       else if (a.in === 'spin') { rot = (1 - e) * Math.PI * 1.5; sc = l.scale * e; alpha = Math.min(1, p * 2); }
+      else if (a.in === 'blur') { alpha = Math.min(1, p * 1.3); }
+      else if (a.in === 'typewriter') { alpha = 1; } // reveal handled at draw time
       if (p >= 1 && a.loop && a.loop !== 'none') {
-        const tt = t / S.duration, ph = tt * Math.PI * 2 * 2;
+        const tt = t / S.duration;
+        const cyc = Math.max(1, Math.round((a.speed || 1) * (a.loop === 'spin' ? 1 : 2)));
+        const ph = tt * Math.PI * 2 * cyc;
         if (a.loop === 'float') dy += Math.sin(ph) * S.H * 0.02;
         else if (a.loop === 'pulse') sc *= 1 + 0.06 * Math.sin(ph);
-        else if (a.loop === 'spin') rot += tt * Math.PI * 2;
+        else if (a.loop === 'spin') rot += tt * Math.PI * 2 * cyc;
         else if (a.loop === 'bounce') dy -= Math.abs(Math.sin(ph)) * S.H * 0.03;
       }
-      return { alpha, dx, dy, sc, rot };
+      return { alpha, dx, dy, sc, rot, p };
     }
     function drawScene(c, t, showSel) {
       c.clearRect(0, 0, S.W, S.H); c.fillStyle = S.bg; c.fillRect(0, 0, S.W, S.H);
       S.layers.forEach(l => {
         const st = state(l, t); if (!st) return;
         c.save(); c.globalAlpha = Math.max(0, Math.min(1, st.alpha));
-        c.translate(l.x + st.dx, l.y + st.dy); c.rotate(st.rot); c.scale(st.sc, st.sc);
+        if (l.anim.in === 'blur' && st.p < 1) c.filter = 'blur(' + ((1 - st.p) * 18).toFixed(1) + 'px)';
+        c.translate(l.x + st.dx, l.y + st.dy); c.rotate(st.rot + (l.rotation || 0)); c.scale(st.sc, st.sc);
         if (l.type === 'image' && l.img) c.drawImage(l.img, -l.w / 2, -l.h / 2, l.w, l.h);
-        else if (l.type === 'text') { c.font = '700 ' + l.size + 'px Arial, sans-serif'; c.fillStyle = l.color; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(l.text || '', 0, 0); }
+        else if (l.type === 'text') {
+          let txt = l.text || '';
+          if (l.anim.in === 'typewriter' && st.p < 1) { const n = Math.max(0, Math.ceil(st.p * txt.length)); txt = txt.slice(0, n) + (n < txt.length ? '|' : ''); }
+          c.font = '700 ' + l.size + 'px Arial, sans-serif'; c.fillStyle = l.color; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, 0, 0);
+        }
         c.restore();
       });
-      if (showSel && S.sel) { const l = S.layers.find(x => x.id === S.sel); if (l) { const b = layerBox(l); c.save(); c.globalAlpha = 1; c.strokeStyle = '#3b82f6'; c.lineWidth = 2; c.setLineDash([6, 4]); c.strokeRect(l.x - b.w / 2, l.y - b.h / 2, b.w, b.h); c.restore(); } }
+      if (showSel && S.sel) {
+        const l = S.layers.find(x => x.id === S.sel);
+        if (l) {
+          const b = layerBox(l); c.save(); c.globalAlpha = 1;
+          c.strokeStyle = '#3b82f6'; c.lineWidth = 2; c.setLineDash([6, 4]);
+          c.strokeRect(l.x - b.w / 2, l.y - b.h / 2, b.w, b.h);
+          c.setLineDash([]); c.fillStyle = '#3b82f6';
+          const hs = Math.max(12, S.W * 0.022);
+          c.fillRect(l.x + b.w / 2 - hs / 2, l.y + b.h / 2 - hs / 2, hs, hs); // resize handle (bottom-right)
+          c.restore();
+        }
+      }
     }
     function drawStatic() { if (!playing) drawScene(ctx, S.duration, true); }
 
@@ -1612,6 +1639,8 @@
         '<label class="field__label mt-4">Entrance</label><select class="select" data-p="in">' + opt(IN, l.anim.in) + '</select>' +
         '<label class="field__label mt-4">Continuous motion</label><select class="select" data-p="loop">' + opt(LP, l.anim.loop) + '</select>' +
         '<label class="field__label mt-4">Start delay: <b data-dv>' + l.anim.delay + '</b>ms</label><input type="range" data-p="delay" min="0" max="4000" step="100" value="' + l.anim.delay + '" style="width:100%">' +
+        '<label class="field__label mt-4">Motion speed: <b data-spv>' + (l.anim.speed || 1) + '</b>×</label><input type="range" data-p="speed" min="0.5" max="3" step="0.5" value="' + (l.anim.speed || 1) + '" style="width:100%">' +
+        '<label class="field__label mt-4">Rotation: <b data-rv>' + Math.round((l.rotation || 0) * 180 / Math.PI) + '</b>°</label><input type="range" data-p="rot" min="-180" max="180" step="1" value="' + Math.round((l.rotation || 0) * 180 / Math.PI) + '" style="width:100%">' +
         '</div>';
       qa('[data-p]', p).forEach(inp => inp.addEventListener('input', () => {
         const k = inp.dataset.p, v = inp.value;
@@ -1622,13 +1651,15 @@
         else if (k === 'in') l.anim.in = v;
         else if (k === 'loop') l.anim.loop = v;
         else if (k === 'delay') { l.anim.delay = +v; const dv = q('[data-dv]', p); if (dv) dv.textContent = v; }
+        else if (k === 'speed') { l.anim.speed = +v; const spv = q('[data-spv]', p); if (spv) spv.textContent = v; }
+        else if (k === 'rot') { l.rotation = (+v) * Math.PI / 180; const rv = q('[data-rv]', p); if (rv) rv.textContent = v; }
         drawStatic();
       }));
     }
     function refresh() { renderLayers(); renderPanel(); drawStatic(); }
 
     /* ---- add layers ---- */
-    function addText() { S.layers.push({ id: uid++, type: 'text', text: 'Your Text', color: '#ffffff', size: 56, x: S.W / 2, y: S.H / 2, scale: 1, anim: { in: 'fade', delay: 0, dur: 600, loop: 'none' } }); S.sel = S.layers[S.layers.length - 1].id; refresh(); }
+    function addText() { S.layers.push({ id: uid++, type: 'text', text: 'Your Text', color: '#ffffff', size: 56, x: S.W / 2, y: S.H / 2, scale: 1, rotation: 0, anim: { in: 'fade', delay: 0, dur: 600, loop: 'none', speed: 1 } }); S.sel = S.layers[S.layers.length - 1].id; refresh(); }
     q('#addTxt', root).addEventListener('click', addText);
     q('#addImg', root).addEventListener('click', () => q('#imgFile', root).click());
     q('#imgFile', root).addEventListener('change', async e => {
@@ -1638,7 +1669,7 @@
         try {
           const im = await loadImageFile(f);
           const base = Math.min(S.W, S.H) * 0.35, s = base / Math.max(im.naturalWidth, im.naturalHeight);
-          S.layers.push({ id: uid++, type: 'image', img: im, w: im.naturalWidth * s, h: im.naturalHeight * s, x: S.W / 2 + (n * 30) % 120 - 60, y: S.H / 2 + (n * 24) % 100 - 50, scale: 1, anim: { in: ['pop', 'fade', 'slideB', 'spin'][n % 4], delay: n * 250, dur: 600, loop: 'float' } });
+          S.layers.push({ id: uid++, type: 'image', img: im, w: im.naturalWidth * s, h: im.naturalHeight * s, x: S.W / 2 + (n * 30) % 120 - 60, y: S.H / 2 + (n * 24) % 100 - 50, scale: 1, rotation: 0, anim: { in: ['pop', 'fade', 'slideB', 'spin'][n % 4], delay: n * 250, dur: 600, loop: 'float', speed: 1 } });
           S.sel = S.layers[S.layers.length - 1].id; n++;
         } catch (err) { /* skip */ }
       }
@@ -1649,11 +1680,29 @@
     function pt(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * (S.W / r.width), y: (e.clientY - r.top) * (S.H / r.height) }; }
     cv.addEventListener('pointerdown', e => {
       const m = pt(e);
-      for (let i = S.layers.length - 1; i >= 0; i--) { const l = S.layers[i], b = layerBox(l); if (m.x >= l.x - b.w / 2 && m.x <= l.x + b.w / 2 && m.y >= l.y - b.h / 2 && m.y <= l.y + b.h / 2) { S.sel = l.id; drag = { l, ox: m.x - l.x, oy: m.y - l.y }; cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing'; renderLayers(); renderPanel(); drawStatic(); return; } }
+      // Resize handle of the currently-selected layer takes priority.
+      if (S.sel) {
+        const l = S.layers.find(x => x.id === S.sel);
+        if (l) {
+          const b = layerBox(l), hx = l.x + b.w / 2, hy = l.y + b.h / 2, tol = Math.max(16, S.W * 0.035);
+          if (Math.hypot(m.x - hx, m.y - hy) <= tol) {
+            drag = { l, mode: 'resize', startDist: Math.max(1, Math.hypot(m.x - l.x, m.y - l.y)), startScale: l.scale };
+            cv.setPointerCapture(e.pointerId); cv.style.cursor = 'nwse-resize'; return;
+          }
+        }
+      }
+      for (let i = S.layers.length - 1; i >= 0; i--) { const l = S.layers[i], b = layerBox(l); if (m.x >= l.x - b.w / 2 && m.x <= l.x + b.w / 2 && m.y >= l.y - b.h / 2 && m.y <= l.y + b.h / 2) { S.sel = l.id; drag = { l, mode: 'move', ox: m.x - l.x, oy: m.y - l.y }; cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing'; renderLayers(); renderPanel(); drawStatic(); return; } }
       S.sel = null; renderLayers(); renderPanel(); drawStatic();
     });
-    cv.addEventListener('pointermove', e => { if (!drag) return; const m = pt(e); drag.l.x = Math.round(m.x - drag.ox); drag.l.y = Math.round(m.y - drag.oy); drawStatic(); });
-    cv.addEventListener('pointerup', () => { drag = null; cv.style.cursor = 'grab'; });
+    cv.addEventListener('pointermove', e => {
+      if (!drag) return; const m = pt(e);
+      if (drag.mode === 'resize') {
+        const d = Math.max(1, Math.hypot(m.x - drag.l.x, m.y - drag.l.y));
+        drag.l.scale = Math.max(0.1, Math.min(6, drag.startScale * (d / drag.startDist)));
+      } else { drag.l.x = Math.round(m.x - drag.ox); drag.l.y = Math.round(m.y - drag.oy); }
+      drawStatic();
+    });
+    cv.addEventListener('pointerup', () => { if (drag && drag.mode === 'resize') renderPanel(); drag = null; cv.style.cursor = 'grab'; });
 
     /* ---- controls ---- */
     qa('[data-size]', root).forEach(b => b.addEventListener('click', () => { const [w, h] = b.dataset.size.split(',').map(Number); setSize(w, h); S.layers.forEach(l => { l.x = Math.min(l.x, w); l.y = Math.min(l.y, h); }); drawStatic(); }));
@@ -1695,9 +1744,39 @@
       finally { btn.disabled = false; }
     });
 
+    /* ---- preset templates ---- */
+    function loadPreset(name) {
+      stop();
+      const T = (text, color, size, x, y, anim) => ({ id: uid++, type: 'text', text, color, size, x, y, scale: 1, rotation: 0, anim });
+      if (name === 'blank') { S.bg = '#0d1117'; S.duration = 2600; S.layers = []; S.sel = null; setSize(600, 600); }
+      else if (name === 'social') {
+        S.bg = '#111827'; S.duration = 3000; setSize(540, 960);
+        S.layers = [
+          T('Follow Me', '#ffffff', 72, 270, 360, { in: 'pop', delay: 200, dur: 700, loop: 'float', speed: 1 }),
+          T('@yourhandle', '#38bdf8', 42, 270, 470, { in: 'slideB', delay: 800, dur: 600, loop: 'none', speed: 1 }),
+        ];
+      } else if (name === 'logo') {
+        S.bg = '#0d1117'; S.duration = 2600; setSize(600, 600);
+        S.layers = [
+          T('LOGO', '#ffffff', 100, 300, 275, { in: 'spin', delay: 200, dur: 800, loop: 'pulse', speed: 1 }),
+          T('Your tagline here', '#9ca3af', 34, 300, 380, { in: 'fade', delay: 1000, dur: 600, loop: 'none', speed: 1 }),
+        ];
+      } else if (name === 'title') {
+        S.bg = '#0b0b12'; S.duration = 3400; setSize(800, 450);
+        S.layers = [
+          T('Your Title', '#ffffff', 74, 400, 195, { in: 'typewriter', delay: 200, dur: 1500, loop: 'none', speed: 1 }),
+          T('a short subtitle', '#38bdf8', 34, 400, 285, { in: 'fade', delay: 1800, dur: 700, loop: 'none', speed: 1 }),
+        ];
+      }
+      S.sel = S.layers.length ? S.layers[0].id : null;
+      q('#dur', root).value = S.duration; q('#bg', root).value = S.bg;
+      refresh();
+    }
+    qa('[data-tpl]', root).forEach(b => b.addEventListener('click', () => loadPreset(b.dataset.tpl)));
+
     /* ---- seed a starter scene ---- */
     setSize(600, 600);
-    S.layers.push({ id: uid++, type: 'text', text: 'Your Title', color: '#ffffff', size: 66, x: 300, y: 300, scale: 1, anim: { in: 'pop', delay: 200, dur: 700, loop: 'float' } });
+    S.layers.push({ id: uid++, type: 'text', text: 'Your Title', color: '#ffffff', size: 66, x: 300, y: 300, scale: 1, rotation: 0, anim: { in: 'pop', delay: 200, dur: 700, loop: 'float', speed: 1 } });
     S.sel = S.layers[0].id;
     refresh();
   });
