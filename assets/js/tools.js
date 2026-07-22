@@ -1333,11 +1333,33 @@
     makeDropzone(q('#drop', root), { accept: 'image/*', onFiles: f => { const r = new FileReader(); r.onload = () => { const uri = r.result; q('#out', root).innerHTML = `<img src="${uri}" style="max-height:160px;border-radius:12px;border:1px solid var(--border)" class="mb-4"><label class="field__label mt-4">Data URI (${fmtBytes(uri.length)})</label><div class="output-box">${esc(uri)}</div><div class="btn-row mt-4"><button class="btn btn--primary" id="cp">Copy Data URI</button><button class="btn btn--ghost" id="cc">Copy as CSS</button></div>`; q('#cp', root).addEventListener('click', () => U.copy(uri)); q('#cc', root).addEventListener('click', () => U.copy('background-image: url("' + uri + '");')); }; r.readAsDataURL(f[0]); } });
   });
 
-  /* ---- Image → GIF (single or animated), encoded on-device via gifenc ---- */
+  /* ---- Image → GIF (single w/ motion effects, or multi-image animation) ---- */
   function gifDrawContain(ctx, img, W, H) {
     const s = Math.min(W / img.naturalWidth, H / img.naturalHeight);
     const w = img.naturalWidth * s, h = img.naturalHeight * s;
     ctx.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+  }
+  function gifDrawCover(ctx, img, W, H, zoom, panX) {
+    const s = Math.max(W / img.naturalWidth, H / img.naturalHeight) * (zoom || 1);
+    const w = img.naturalWidth * s, h = img.naturalHeight * s;
+    ctx.drawImage(img, (W - w) / 2 + (panX || 0), (H - h) / 2, w, h);
+  }
+  // Draw one effect frame at progress t (0..1).
+  function gifDrawEffect(ctx, img, W, H, effect, t) {
+    let zoom = 1, panX = 0, alpha = 1;
+    if (effect === 'zoomin') zoom = 1 + 0.28 * t;
+    else if (effect === 'zoomout') zoom = 1.28 - 0.28 * t;
+    else if (effect === 'pulse') zoom = 1 + 0.09 * (0.5 - 0.5 * Math.cos(t * Math.PI * 2));
+    else if (effect === 'fade') { alpha = Math.sin(t * Math.PI); zoom = 1.04; }
+    else if (effect === 'pan') zoom = 1.18;
+    ctx.globalAlpha = alpha;
+    if (effect === 'pan') {
+      const s = Math.max(W / img.naturalWidth, H / img.naturalHeight) * zoom;
+      const maxPan = Math.max(0, (img.naturalWidth * s - W) / 2);
+      panX = maxPan - 2 * maxPan * t;
+    }
+    gifDrawCover(ctx, img, W, H, zoom, panX);
+    ctx.globalAlpha = 1;
   }
   function loadGifenc() {
     return new Promise((res, rej) => {
@@ -1352,19 +1374,31 @@
   reg('image-to-gif', root => {
     root.innerHTML = `<div id="drop"></div>
       <div id="opts" class="hidden mt-4">
-        <label class="field__label">Images (drag to reorder is not needed — order = upload order)</label>
-        <div id="frames" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 4px"></div>
+        <div id="frames" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 4px"></div>
+        <div id="fx" class="hidden mt-4">
+          <label class="field__label">Animation (from your single image)</label>
+          <select id="effect" class="select">
+            <option value="zoomin">Zoom in (Ken Burns)</option>
+            <option value="zoomout">Zoom out</option>
+            <option value="pan">Pan across</option>
+            <option value="pulse">Pulse</option>
+            <option value="fade">Fade in &amp; out</option>
+            <option value="none">None (static image)</option>
+          </select>
+          <label class="field__label mt-4">Smoothness: <b id="fv">24</b> frames</label>
+          <input id="frn" type="range" min="8" max="48" step="2" value="24" style="width:100%">
+        </div>
         <div class="row mt-4">
           <div><label class="field__label">Max width: <b id="mwv">480</b>px</label><input id="mw" type="range" min="120" max="1000" step="20" value="480" style="width:100%"></div>
-          <div id="delaywrap"><label class="field__label">Frame delay: <b id="dv">500</b>ms</label><input id="delay" type="range" min="60" max="3000" step="20" value="500" style="width:100%"></div>
+          <div id="delaywrap"><label class="field__label">Frame delay: <b id="dv">500</b>ms</label><input id="delay" type="range" min="40" max="3000" step="20" value="500" style="width:100%"></div>
         </div>
-        <label class="chip mt-2" style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" id="loop" checked> Loop forever</label>
+        <label class="chip mt-4" style="display:inline-flex;align-items:center;gap:6px"><input type="checkbox" id="loop" checked> Loop forever</label>
         <div class="btn-row mt-4"><button class="btn btn--primary" id="go">Create GIF</button><button class="btn btn--ghost" id="add">+ Add more images</button></div>
         <div id="prog" class="muted mt-2" aria-live="polite"></div>
       </div>
       <div id="result" class="mt-4"></div>`;
     const imgs = [];
-    makeDropzone(q('#drop', root), { accept: 'image/*', multiple: true, hint: 'Add one image, or several to animate. Processed locally.', onFiles: addFiles });
+    makeDropzone(q('#drop', root), { accept: 'image/*', multiple: true, hint: 'One image → animate it with an effect · Several images → a slideshow. Processed locally.', onFiles: addFiles });
     async function addFiles(fl) {
       for (const f of fl) {
         if (!f.type || f.type.indexOf('image/') !== 0) continue;
@@ -1375,10 +1409,12 @@
       renderFrames();
     }
     function renderFrames() {
-      q('#delaywrap', root).style.display = imgs.length > 1 ? '' : 'none';
+      const single = imgs.length === 1;
+      q('#fx', root).classList.toggle('hidden', !single);       // effects only for 1 image
+      q('#delaywrap', root).style.display = single ? 'none' : ''; // per-frame delay only for slideshow
       q('#frames', root).innerHTML = imgs.map((im, i) =>
         `<div style="position:relative"><img src="${im.src}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><button data-rm="${i}" title="Remove" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--danger);color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1">✕</button></div>`
-      ).join('') + `<span class="muted" style="align-self:center;font-size:13px">${imgs.length} image${imgs.length > 1 ? 's' : ''}</span>`;
+      ).join('') + `<span class="muted" style="align-self:center;font-size:13px">${imgs.length} image${single ? '' : 's'}</span>`;
       qa('[data-rm]', root).forEach(b => b.addEventListener('click', () => {
         imgs.splice(+b.dataset.rm, 1);
         if (!imgs.length) q('#opts', root).classList.add('hidden'); else renderFrames();
@@ -1386,6 +1422,7 @@
     }
     q('#mw', root).addEventListener('input', () => q('#mwv', root).textContent = q('#mw', root).value);
     q('#delay', root).addEventListener('input', () => q('#dv', root).textContent = q('#delay', root).value);
+    q('#frn', root).addEventListener('input', () => q('#fv', root).textContent = q('#frn', root).value);
     q('#add', root).addEventListener('click', () => { const i = q('#drop input', root); if (i) i.click(); });
     q('#go', root).addEventListener('click', async () => {
       if (!imgs.length) return;
@@ -1399,30 +1436,46 @@
         const H = Math.max(1, Math.round(first.naturalHeight * (W / first.naturalWidth)));
         const c = document.createElement('canvas'); c.width = W; c.height = H;
         const ctx = c.getContext('2d');
-        const delay = +q('#delay', root).value, repeat = q('#loop', root).checked ? 0 : -1;
+        const repeat = q('#loop', root).checked ? 0 : -1;
+
+        // Build the frame plan.
+        const single = imgs.length === 1;
+        const effect = single ? q('#effect', root).value : 'none';
+        let plan, frameDelay;
+        if (single && effect !== 'none') {
+          const N = +q('#frn', root).value;
+          plan = []; for (let i = 0; i < N; i++) plan.push({ t: N === 1 ? 0 : i / (N - 1) });
+          frameDelay = 66; // ~15fps smooth motion
+        } else {
+          plan = imgs.map(im => ({ img: im }));
+          frameDelay = single ? 1000 : +q('#delay', root).value;
+        }
+
         const gif = GIFEncoder();
-        for (let i = 0; i < imgs.length; i++) {
-          prog.textContent = `Encoding frame ${i + 1} of ${imgs.length}…`;
+        for (let i = 0; i < plan.length; i++) {
+          prog.textContent = `Encoding frame ${i + 1} of ${plan.length}…`;
           await new Promise(r => setTimeout(r)); // yield to keep UI responsive
           ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
-          gifDrawContain(ctx, imgs[i], W, H);
+          if (plan[i].img) gifDrawContain(ctx, plan[i].img, W, H);
+          else gifDrawEffect(ctx, first, W, H, effect, plan[i].t);
           const data = ctx.getImageData(0, 0, W, H).data;
           const palette = quantize(data, 256);
           const index = applyPalette(data, palette);
-          gif.writeFrame(index, W, H, i === 0 ? { palette, delay, repeat } : { palette, delay });
+          gif.writeFrame(index, W, H, i === 0 ? { palette, delay: frameDelay, repeat } : { palette, delay: frameDelay });
         }
         gif.finish();
         const blob = new Blob([gif.bytes()], { type: 'image/gif' });
         const url = URL.createObjectURL(blob);
         prog.textContent = '';
+        const label = (single && effect !== 'none') ? `animated · ${plan.length} frames` : (single ? 'static' : `${plan.length} frames`);
         q('#result', root).innerHTML =
           `<img src="${url}" alt="GIF preview" style="max-height:320px;max-width:100%;border-radius:12px;border:1px solid var(--border)" class="mb-4">
-           <div class="muted mb-2">GIF · ${W}×${H} · ${imgs.length} frame${imgs.length > 1 ? 's' : ''} · ${fmtBytes(blob.size)}</div>
+           <div class="muted mb-2">GIF · ${W}×${H} · ${label} · ${fmtBytes(blob.size)}</div>
            <div class="btn-row"><button class="btn btn--primary" id="dl">Download GIF</button></div>`;
         q('#dl', root).addEventListener('click', () => U.download('animation.gif', blob));
       } catch (e) {
         prog.textContent = '';
-        U.toast('Could not create the GIF — try fewer or smaller images.');
+        U.toast('Could not create the GIF — try a smaller image or fewer frames.');
       } finally {
         btn.disabled = false;
       }
