@@ -63,6 +63,9 @@ if (!empty($breadcrumb)) {
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <?php endif; ?>
 <link rel="canonical" href="<?= eattr($canonical) ?>">
+<?php if (!empty($page['head_extra'])): ?>
+<?= $page['head_extra'] ?>
+<?php endif; ?>
 <?php if (GOOGLE_SITE_VERIFICATION): ?>
 <meta name="google-site-verification" content="<?= eattr(GOOGLE_SITE_VERIFICATION) ?>">
 <?php endif; ?>

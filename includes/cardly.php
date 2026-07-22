@@ -93,7 +93,8 @@ function cardly_reserved(): array
         'cards', 'vcf', 'qr', 'about', 'contact', 'privacy', 'terms', 'help',
         'templates', 'pricing', 'app', 'apps', 'www', 'cardly',
         'signup', 'signin', 'register', 'dashboard', 'verify', 'forgot',
-        'reset', 'account', 'accounts', 'settings', 'me', 'profile'];
+        'reset', 'account', 'accounts', 'settings', 'me', 'profile',
+        'discover', 'people', 'directory', 'explore'];
 }
 
 function cardly_slug_valid(string $slug): bool
@@ -423,7 +424,8 @@ function cardly_published_cards(int $limit = 5000): array
             $d = json_decode((string) $r['data'], true);
             if (is_array($d) && cardly_card_discoverable($d)) {
                 $out[] = ['slug' => $r['slug'], 'updated' => $r['updated_at'],
-                    'name' => (string) ($d['name'] ?? ''), 'photo' => (string) ($d['photo'] ?? '')];
+                    'name' => (string) ($d['name'] ?? ''), 'photo' => (string) ($d['photo'] ?? ''),
+                    'tagline' => (string) ($d['tagline'] ?? ''), 'template' => (string) ($d['template'] ?? 'default')];
             }
         }
         return $out;
@@ -440,7 +442,8 @@ function cardly_published_cards(int $limit = 5000): array
             continue;
         }
         $out[] = ['slug' => basename($f, '.json'), 'updated' => $d['updatedAt'] ?? date('c'),
-            'name' => (string) ($d['name'] ?? ''), 'photo' => (string) ($d['photo'] ?? '')];
+            'name' => (string) ($d['name'] ?? ''), 'photo' => (string) ($d['photo'] ?? ''),
+            'tagline' => (string) ($d['tagline'] ?? ''), 'template' => (string) ($d['template'] ?? 'default')];
         if (count($out) >= $limit) {
             break;
         }

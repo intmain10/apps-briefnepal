@@ -47,6 +47,9 @@ ErrorDocument 404 /404.php
     # Card edit
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
     RewriteRule ^([a-z0-9-]{1,40})/edit/?$ cardly-edit.php?slug=$1 [L,QSA]
+    # Public people directory
+    RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
+    RewriteRule ^(discover|people|directory|explore)/?$ cardly-discover.php [L,QSA]
     # Stray /cardly/* on the Cardly domain → short form
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
     RewriteRule ^cardly/(.*)$ https://cardly.briefnepal.com/$1 [R=301,L]

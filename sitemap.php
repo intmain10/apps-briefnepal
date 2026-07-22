@@ -37,6 +37,7 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 if (cardly_is_host()) {
     echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
     echo xml_url(cardly_link(), $today, 'weekly', '1.0');
+    echo xml_url(cardly_link('discover'), $today, 'daily', '0.9');
     echo xml_url(cardly_link('about'), $today, 'monthly', '0.8');
     // Published cards — so each person's card is discoverable as their internet
     // identity, with an image entry so the profile also wins image search.

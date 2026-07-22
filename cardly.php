@@ -51,6 +51,7 @@ require __DIR__ . '/includes/header.php';
     <div class="btn-row" style="justify-content:center;margin-top:26px">
       <a class="btn btn--primary" href="<?= eattr(cardly_link('new')) ?>" style="font-size:17px;padding:14px 28px"><?= $cardlyUser ? 'Create a card' : 'Create Free Card' ?></a>
       <a class="btn btn--ghost" href="#templates">See templates</a>
+      <a class="btn btn--ghost" href="<?= eattr(cardly_link('discover')) ?>">Discover people</a>
     </div>
     <p class="muted mt-4" style="font-size:13px"><?= cardly_accounts_enabled() ? 'Free · Your account · Yours in 2 minutes' : 'No signup · Free · Yours in 2 minutes' ?></p>
   </div>
