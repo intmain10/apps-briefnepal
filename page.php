@@ -27,7 +27,7 @@ $titles = [
 
 $page = [
     'title'       => $titles[$p] . ' | ' . SITE_NAME,
-    'description' => $titles[$p] . ' — ' . SITE_NAME . '. ' . SITE_TAGLINE,
+    'description' => $titles[$p] . ' · ' . SITE_NAME . '. ' . SITE_TAGLINE,
     'canonical'   => url($p === 'contact' ? 'contact' : $p),
     'breadcrumb'  => [['name' => 'Home', 'url' => url()], ['name' => $titles[$p], 'url' => url($p)]],
 ];
@@ -42,16 +42,16 @@ require __DIR__ . '/includes/header.php';
 <div class="container" style="padding-bottom:40px">
 <?php if ($p === 'about'): ?>
   <div class="prose" style="margin:0 auto">
-    <p><strong><?= e(SITE_NAME) ?></strong> is a modern, privacy-first platform of <?= tools_count() ?>+ free online tools — with a mission to reach 1000+. From compressing images and merging PDFs to formatting JSON and generating QR codes, everything you need lives in one fast, beautiful place.</p>
+    <p><strong><?= e(SITE_NAME) ?></strong> is a modern, privacy-first platform of <?= tools_count() ?>+ free online tools, with a mission to reach 1000+. From compressing images and merging PDFs to formatting JSON and generating QR codes, everything you need lives in one fast, beautiful place.</p>
     <h2>Our principles</h2>
     <ul>
-      <li><strong>Free forever</strong> — no watermarks, no paywalls, no sign-ups.</li>
-      <li><strong>Privacy first</strong> — most tools run entirely in your browser, so your files never leave your device.</li>
-      <li><strong>Fast & beautiful</strong> — built for speed and a delightful experience on every screen.</li>
-      <li><strong>Accessible</strong> — keyboard-friendly, screen-reader ready and high-contrast aware.</li>
+      <li><strong>Free forever</strong>: no watermarks, no paywalls, no sign-ups.</li>
+      <li><strong>Privacy first</strong>: most tools run entirely in your browser, so your files never leave your device.</li>
+      <li><strong>Fast & beautiful</strong>: built for speed and a delightful experience on every screen.</li>
+      <li><strong>Accessible</strong>: keyboard-friendly, screen-reader ready and high-contrast aware.</li>
     </ul>
     <h2>Why we built it</h2>
-    <p>The web is full of tool sites cluttered with ads and dark patterns. We wanted something clean, honest and genuinely useful — a Swiss-army knife you can trust and enjoy using.</p>
+    <p>The web is full of tool sites cluttered with ads and dark patterns. We wanted something clean, honest and genuinely useful, a Swiss-army knife you can trust and enjoy using.</p>
 
     <h2>About the founder</h2>
     <p><strong>OmniTools was founded by <a href="<?= eattr(url('shushant-singh')) ?>">Shushant Singh</a></strong> (Shushant Kumar Singh), a Nepali product architect, entrepreneur, podcaster and recording artist based in Ahmedabad, India. He is also the founder of <a href="https://briefnepal.com" rel="noopener">BriefNepal</a> and the creator of <a href="<?= eattr(cardly_link()) ?>" rel="noopener">Cardly</a> (free digital business cards), and works as a Product Architect at <a href="https://begenuin.com" rel="noopener">Genuin</a>. Alongside building products, he hosts the <a href="https://open.spotify.com/show/033Ka2C5wynL6xq41YAsbG" rel="noopener">Nepal Travel Podcast</a> and <a href="https://open.spotify.com/show/033K9Ye7NX5mRELkuCt7Nk" rel="noopener">Mind Atlas</a>, and releases music as a singer on <a href="https://open.spotify.com/artist/5b03eorWX5RxJqXCsTUgFz" rel="noopener">Spotify</a> and <a href="https://music.apple.com/us/artist/shushant-singh/6788654900" rel="noopener">Apple Music</a>.</p>
@@ -64,7 +64,7 @@ require __DIR__ . '/includes/header.php';
   <div class="prose" style="margin:0 auto">
     <p class="muted">Last updated: <?= e(date('F j, Y')) ?></p>
     <h2>The short version</h2>
-    <p>We designed <?= e(SITE_NAME) ?> to collect as little data as possible. Most tools process your data locally in your browser — it is never uploaded to us.</p>
+    <p>We designed <?= e(SITE_NAME) ?> to collect as little data as possible. Most tools process your data locally in your browser, it is never uploaded to us.</p>
     <h2>Files you process</h2>
     <p>Image, text, developer, calculator and converter tools run 100% client-side. The few tools that require a server (some PDF operations) upload your file over HTTPS, process it, and delete it immediately afterward. We never store or inspect your files.</p>
     <h2>Analytics</h2>
@@ -125,7 +125,7 @@ require __DIR__ . '/includes/header.php';
     <?php
     $log = [
         ['v1.0.0', date('F j, Y'), ['Launched OmniTools with ' . tools_count() . '+ tools across ' . count(omnitools_categories()) . ' categories.', 'Instant command-palette search with keyboard navigation.', 'Dark & light themes with system preference detection.', 'Full SEO: sitemaps, JSON-LD, Open Graph and FAQ schema.', 'Integrated blog and admin panel.']],
-        ['v0.9.0', 'Beta', ['On-device image, audio and PDF tooling.', 'Favourites and recent tools.', 'Accessibility pass — ARIA, keyboard and contrast support.']],
+        ['v0.9.0', 'Beta', ['On-device image, audio and PDF tooling.', 'Favourites and recent tools.', 'Accessibility pass, ARIA, keyboard and contrast support.']],
     ];
     foreach ($log as $entry): ?>
       <h2><?= e($entry[0]) ?> <span class="muted" style="font-size:16px;font-weight:400">· <?= e($entry[1]) ?></span></h2>

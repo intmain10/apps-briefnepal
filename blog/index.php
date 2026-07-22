@@ -11,7 +11,7 @@ require_once __DIR__ . '/../includes/blog.php';
 $posts = get_posts();
 
 $page = [
-    'title'       => 'Blog — Guides, Tips & Tutorials | ' . SITE_NAME,
+    'title'       => 'Blog, Guides, Tips & Tutorials | ' . SITE_NAME,
     'description' => 'Practical guides and tutorials on images, PDF, developer tools, SEO and more from the ' . SITE_NAME . ' team.',
     'canonical'   => url('blog'),
     'breadcrumb'  => [

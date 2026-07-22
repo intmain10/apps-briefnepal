@@ -24,8 +24,8 @@ $profiles = [
     ['label' => 'BriefNepal',            'url' => 'https://briefnepal.com',      'note' => 'News platform he founded'],
     ['label' => 'OmniTools',             'url' => 'https://apps.briefnepal.com', 'note' => '100+ free online tools he founded'],
     ['label' => 'Genuin',                'url' => 'https://begenuin.com',        'note' => 'Product Architect'],
-    ['label' => 'Spotify — Artist',      'url' => 'https://open.spotify.com/artist/5b03eorWX5RxJqXCsTUgFz', 'note' => 'Singer / recording artist'],
-    ['label' => 'Apple Music — Artist',  'url' => 'https://music.apple.com/us/artist/shushant-singh/6788654900', 'note' => 'Music profile'],
+    ['label' => 'Spotify, Artist',      'url' => 'https://open.spotify.com/artist/5b03eorWX5RxJqXCsTUgFz', 'note' => 'Singer / recording artist'],
+    ['label' => 'Apple Music, Artist',  'url' => 'https://music.apple.com/us/artist/shushant-singh/6788654900', 'note' => 'Music profile'],
     ['label' => 'Nepal Travel Podcast',  'url' => 'https://open.spotify.com/show/033Ka2C5wynL6xq41YAsbG', 'note' => 'Podcast he hosts'],
     ['label' => 'Mind Atlas Podcast',    'url' => 'https://open.spotify.com/show/033K9Ye7NX5mRELkuCt7Nk', 'note' => 'Podcast he hosts'],
 ];
@@ -36,8 +36,8 @@ $bio = "$name (Shushant Kumar Singh) is a Nepali product architect, entrepreneur
      . "BriefNepal (briefnepal.com), a modern Nepali news, jobs and travel platform, and of OmniTools "
      . "(apps.briefnepal.com), a growing library of 100+ free, privacy-first online tools. Professionally he "
      . "works as a Product Architect at Genuin and is based in Ahmedabad, India. He holds a degree from "
-     . "Charotar University of Science and Technology (CHARUSAT). Beyond software, he hosts two podcasts — the "
-     . "Nepal Travel Podcast and Mind Atlas — and releases music as a singer and recording artist on Spotify "
+     . "Charotar University of Science and Technology (CHARUSAT). Beyond software, he hosts two podcasts, the "
+     . "Nepal Travel Podcast and Mind Atlas, and releases music as a singer and recording artist on Spotify "
      . "and Apple Music.";
 
 $person = [
@@ -70,7 +70,7 @@ $person = [
 ];
 
 $page = [
-    'title'       => $name . ' (Shushant Kumar Singh) — Founder of BriefNepal & OmniTools',
+    'title'       => $name . ' (Shushant Kumar Singh), Founder of BriefNepal & OmniTools',
     'description' => "$name (Shushant Kumar Singh) is a Nepali Product Architect at Genuin, founder of BriefNepal and OmniTools, CHARUSAT alumnus, host of the Nepal Travel Podcast and Mind Atlas, and a singer/recording artist based in Ahmedabad.",
     'canonical'   => $pageUrl,
     'og_type'     => 'profile',
@@ -114,12 +114,12 @@ $page = [
             ], [
                 ['Who is Shushant Singh?', $bio],
                 ['What companies and products is Shushant Singh behind?', 'He founded and owns BriefNepal (briefnepal.com), a Nepali news, jobs and travel platform, and OmniTools (apps.briefnepal.com), a platform of 100+ free online tools. He also built Cardly, a free digital business card product. Professionally he is a Product Architect at Genuin.'],
-                ['What does Shushant Singh do as a Product Architect?', 'As a Product Architect at Genuin, he designs product experiences, user flows and the technical architecture behind digital products — bridging design, engineering and business needs.'],
+                ['What does Shushant Singh do as a Product Architect?', 'As a Product Architect at Genuin, he designs product experiences, user flows and the technical architecture behind digital products, bridging design, engineering and business needs.'],
                 ['What podcasts does Shushant Singh host?', 'He hosts two podcasts: the Nepal Travel Podcast, about travel and stories from Nepal, and Mind Atlas, exploring ideas, the mind and meaningful conversations. Both are on Spotify.'],
-                ['Is Shushant Singh a musician?', 'Yes — he is a singer and recording artist with music available on Spotify and Apple Music.'],
+                ['Is Shushant Singh a musician?', 'Yes, he is a singer and recording artist with music available on Spotify and Apple Music.'],
                 ['Where is Shushant Singh based?', 'He is Nepali and is currently based in Ahmedabad, India, where he works as a Product Architect at Genuin.'],
                 ['Where did Shushant Singh study?', 'He holds a degree from Charotar University of Science and Technology (CHARUSAT).'],
-                ['How can I follow or contact Shushant Singh?', 'You can find him on LinkedIn (linkedin.com/in/shushant-kumar-singh), and through BriefNepal, OmniTools, Genuin, his podcasts on Spotify, and his music on Spotify and Apple Music — all linked on this page.'],
+                ['How can I follow or contact Shushant Singh?', 'You can find him on LinkedIn (linkedin.com/in/shushant-kumar-singh), and through BriefNepal, OmniTools, Genuin, his podcasts on Spotify, and his music on Spotify and Apple Music, all linked on this page.'],
             ]),
         ],
     ],
@@ -143,21 +143,21 @@ require __DIR__ . '/includes/header.php';
   </header>
 
   <div class="prose" style="margin:20px auto 0">
-    <p><strong><?= e($name) ?></strong> (<?= e($legalName) ?>) is a <strong>Nepali</strong> product architect, entrepreneur, podcaster and recording artist, currently based in <strong>Ahmedabad, India</strong>. He builds digital products that make everyday life simpler — from a national news platform to a suite of free online tools. He is the <strong>founder and owner of <a href="https://briefnepal.com" rel="me noopener">BriefNepal</a></strong> and <strong><a href="https://apps.briefnepal.com" rel="me noopener">OmniTools</a></strong>, and works professionally as a <strong>Product Architect at <a href="https://begenuin.com" rel="me noopener">Genuin</a></strong>. Connect with him on <a href="https://www.linkedin.com/in/shushant-kumar-singh/" rel="me noopener">LinkedIn</a>.</p>
-    <p>His work spans product architecture and design, software engineering, SaaS, AI, Android and web development, and modern SEO/GEO — and, outside of software, storytelling through podcasts and music. The common thread is a focus on clean, honest, genuinely useful products.</p>
+    <p><strong><?= e($name) ?></strong> (<?= e($legalName) ?>) is a <strong>Nepali</strong> product architect, entrepreneur, podcaster and recording artist, currently based in <strong>Ahmedabad, India</strong>. He builds digital products that make everyday life simpler, from a national news platform to a suite of free online tools. He is the <strong>founder and owner of <a href="https://briefnepal.com" rel="me noopener">BriefNepal</a></strong> and <strong><a href="https://apps.briefnepal.com" rel="me noopener">OmniTools</a></strong>, and works professionally as a <strong>Product Architect at <a href="https://begenuin.com" rel="me noopener">Genuin</a></strong>. Connect with him on <a href="https://www.linkedin.com/in/shushant-kumar-singh/" rel="me noopener">LinkedIn</a>.</p>
+    <p>His work spans product architecture and design, software engineering, SaaS, AI, Android and web development, and modern SEO/GEO, and, outside of software, storytelling through podcasts and music. The common thread is a focus on clean, honest, genuinely useful products.</p>
 
     <h2>Ventures &amp; work</h2>
     <ul>
-      <li><strong>Founder &amp; Owner — BriefNepal</strong> (<a href="https://briefnepal.com" rel="me noopener">briefnepal.com</a>): a modern Nepali news, jobs and travel platform.</li>
-      <li><strong>Founder &amp; Owner — OmniTools</strong> (<a href="https://apps.briefnepal.com" rel="me noopener">apps.briefnepal.com</a>): 100+ free, privacy-first PDF, image, developer and utility tools — plus <strong>Cardly</strong>, a free digital business card.</li>
-      <li><strong>Product Architect — Genuin</strong> (<a href="https://begenuin.com" rel="me noopener">begenuin.com</a>): designing product experiences, user flows and technical architecture.</li>
+      <li><strong>Founder &amp; Owner, BriefNepal</strong> (<a href="https://briefnepal.com" rel="me noopener">briefnepal.com</a>): a modern Nepali news, jobs and travel platform.</li>
+      <li><strong>Founder &amp; Owner, OmniTools</strong> (<a href="https://apps.briefnepal.com" rel="me noopener">apps.briefnepal.com</a>): 100+ free, privacy-first PDF, image, developer and utility tools, plus <strong>Cardly</strong>, a free digital business card.</li>
+      <li><strong>Product Architect, Genuin</strong> (<a href="https://begenuin.com" rel="me noopener">begenuin.com</a>): designing product experiences, user flows and technical architecture.</li>
     </ul>
 
     <h2>Podcasts</h2>
     <p>Shushant hosts two podcasts:</p>
     <ul>
-      <li><strong><a href="https://open.spotify.com/show/033Ka2C5wynL6xq41YAsbG" rel="me noopener">Nepal Travel Podcast</a></strong> — travel, places and stories from across Nepal.</li>
-      <li><strong><a href="https://open.spotify.com/show/033K9Ye7NX5mRELkuCt7Nk" rel="me noopener">Mind Atlas</a></strong> — ideas, the mind and meaningful conversations.</li>
+      <li><strong><a href="https://open.spotify.com/show/033Ka2C5wynL6xq41YAsbG" rel="me noopener">Nepal Travel Podcast</a></strong>: travel, places and stories from across Nepal.</li>
+      <li><strong><a href="https://open.spotify.com/show/033K9Ye7NX5mRELkuCt7Nk" rel="me noopener">Mind Atlas</a></strong>: ideas, the mind and meaningful conversations.</li>
     </ul>
 
     <h2>Music</h2>
@@ -175,11 +175,11 @@ require __DIR__ . '/includes/header.php';
     <h3>What companies and products is Shushant Singh behind?</h3>
     <p>He founded and owns BriefNepal (briefnepal.com) and OmniTools (apps.briefnepal.com), built the Cardly digital business card, and is a Product Architect at Genuin.</p>
     <h3>What does a Product Architect do?</h3>
-    <p>At Genuin, Shushant designs product experiences, user flows and the technical architecture behind digital products — bridging design, engineering and business needs.</p>
+    <p>At Genuin, Shushant designs product experiences, user flows and the technical architecture behind digital products, bridging design, engineering and business needs.</p>
     <h3>What podcasts does Shushant Singh host?</h3>
     <p>He hosts the Nepal Travel Podcast (travel and stories from Nepal) and Mind Atlas (ideas and the mind), both available on Spotify.</p>
     <h3>Is Shushant Singh a musician?</h3>
-    <p>Yes — he is a singer and recording artist with music on Spotify and Apple Music.</p>
+    <p>Yes, he is a singer and recording artist with music on Spotify and Apple Music.</p>
     <h3>Where is Shushant Singh based?</h3>
     <p>He is Nepali and is currently based in Ahmedabad, India, where he works at Genuin.</p>
     <h3>Where did Shushant Singh study?</h3>
@@ -192,7 +192,7 @@ require __DIR__ . '/includes/header.php';
       <?php foreach ($profiles as $p): ?>
         <a href="<?= eattr($p['url']) ?>" rel="me noopener" target="_blank">
           <span class="dot" style="background:var(--accent)"></span>
-          <strong><?= e($p['label']) ?></strong>&nbsp;<span class="muted">— <?= e($p['note']) ?></span>
+          <strong><?= e($p['label']) ?></strong>&nbsp;<span class="muted">- <?= e($p['note']) ?></span>
         </a>
       <?php endforeach; ?>
     </div>

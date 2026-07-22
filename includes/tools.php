@@ -22,7 +22,7 @@ function omnitools_categories(): array
 {
     return [
         'pdf'         => ['name' => 'PDF',         'icon' => 'file',      'color' => '#ef4444', 'desc' => 'Merge, split, convert and optimise PDF documents in your browser.'],
-        'image'       => ['name' => 'Image',       'icon' => 'image',     'color' => '#f59e0b', 'desc' => 'Compress, resize, crop and convert images — privately, on-device.'],
+        'image'       => ['name' => 'Image',       'icon' => 'image',     'color' => '#f59e0b', 'desc' => 'Compress, resize, crop and convert images privately, on device.'],
         'video'       => ['name' => 'Video',       'icon' => 'video',     'color' => '#8b5cf6', 'desc' => 'Inspect, capture and work with video files right in your browser.'],
         'audio'       => ['name' => 'Audio',       'icon' => 'audio',     'color' => '#ec4899', 'desc' => 'Cut, convert, normalise and boost audio without uploads.'],
         'text'        => ['name' => 'Text',        'icon' => 'text',      'color' => '#10b981', 'desc' => 'Count, sort, clean, transform and generate text instantly.'],
@@ -32,7 +32,7 @@ function omnitools_categories(): array
         'utilities'   => ['name' => 'Utilities',   'icon' => 'grid',      'color' => '#6366f1', 'desc' => 'QR codes, passwords, colors and everyday utilities.'],
         'calculators' => ['name' => 'Calculators', 'icon' => 'calc',      'color' => '#14b8a6', 'desc' => 'Fast, accurate calculators for daily life and work.'],
         'documents'   => ['name' => 'Documents',   'icon' => 'doc',       'color' => '#0ea5e9', 'desc' => 'Convert between CSV, JSON, Markdown and other document formats.'],
-        'ai'          => ['name' => 'AI',          'icon' => 'sparkles',  'color' => '#a855f7', 'desc' => 'Smart, on-device text intelligence — summarise, extract, analyse.'],
+        'ai'          => ['name' => 'AI',          'icon' => 'sparkles',  'color' => '#a855f7', 'desc' => 'Smart, on-device text intelligence: summarise, extract, analyse.'],
         'converters'  => ['name' => 'Converters',  'icon' => 'swap',      'color' => '#f43f5e', 'desc' => 'Convert units of length, weight, temperature, data and more.'],
     ];
 }
@@ -98,12 +98,12 @@ function omnitools_tools(): array
     $t('redact-pdf', 'pdf', 'Redact PDF', 'Permanently black out sensitive content.', [], 'redact hide censor remove sensitive');
     $t('crop-pdf', 'pdf', 'Crop PDF', 'Trim margins and crop PDF pages.', [], 'trim margins crop pages');
     $t('pdf-forms', 'pdf', 'Fill PDF Forms', 'Detect and fill interactive PDF form fields.', [], 'forms acroform fill fields');
-    $t('pdf-summarizer', 'pdf', 'PDF Summarizer', 'Summarise a PDF into key points — on device.', ['new'], 'summary tldr ai pdf');
+    $t('pdf-summarizer', 'pdf', 'PDF Summarizer', 'Summarise a PDF into key points, on device.', ['new'], 'summary tldr ai pdf');
     $t('translate-pdf', 'pdf', 'Translate PDF', 'Translate the text content of a PDF.', [], 'translate language pdf convert');
     $t('pdf-to-markdown', 'pdf', 'PDF to Markdown', 'Extract PDF text as clean Markdown.', ['new'], 'md markdown extract text pdf');
 
     /* -------------------------------------------------------------- Image */
-    $t('compress-image', 'image', 'Compress Image', 'Reduce JPG, PNG and WebP file size with adjustable quality — on device.', ['popular'], 'shrink photo reduce jpg png');
+    $t('compress-image', 'image', 'Compress Image', 'Reduce JPG, PNG and WebP file size with adjustable quality, on device.', ['popular'], 'shrink photo reduce jpg png');
     $t('resize-image', 'image', 'Resize Image', 'Resize images to exact pixel dimensions or by percentage.', ['popular'], 'scale photo dimensions px');
     $t('crop-image', 'image', 'Crop Image', 'Crop an image to any region with a live preview.', [], 'cut photo trim');
     $t('rotate-image', 'image', 'Rotate Image', 'Rotate and flip images to any angle.', [], 'turn flip photo');
@@ -113,14 +113,14 @@ function omnitools_tools(): array
     $t('convert-jpg', 'image', 'Convert to JPG', 'Convert any image to compressed JPG format.', [], 'to jpg jpeg convert');
     $t('convert-webp', 'image', 'Convert to WebP', 'Convert images to modern, lightweight WebP.', ['trending'], 'to webp modern convert');
     $t('image-converter', 'image', 'Image Converter', 'Convert between PNG, JPG, WebP and BMP in one place.', ['popular'], 'change format image');
-    $t('image-to-gif', 'image', 'Image to GIF', 'Animate a single image (zoom, pan, pulse, fade) or combine multiple images (JPG, PNG, WebP) into an animated GIF — on device.', ['new'], 'jpg png webp to gif animated gif maker ken burns zoom pan photos slideshow');
+    $t('image-to-gif', 'image', 'Image to GIF', 'Animate a single image (zoom, pan, pulse, fade) or combine multiple images (JPG, PNG, WebP) into an animated GIF, on device.', ['new'], 'jpg png webp to gif animated gif maker ken burns zoom pan photos slideshow');
     $t('image-to-base64', 'image', 'Image to Base64', 'Encode an image into a Base64 data URI for CSS/HTML.', [], 'data uri encode inline');
     $t('gif-animation-studio', 'image', 'GIF Animation Studio', 'Start from a ready-made template, compose images, icons, shapes and text on a canvas, animate each element independently (slide, fade, pop, spin, float, pulse) and export an animated GIF.', ['new'], 'motion graphics animation studio animated gif maker layers shapes templates logo intro title lower third youtube sale');
 
     /* -------------------------------------------------------------- Video */
     $t('video-metadata', 'video', 'Video Metadata Viewer', 'View resolution, duration, aspect ratio and more from a video file.', [], 'inspect video info duration');
     $t('video-thumbnail', 'video', 'Video Thumbnail Grabber', 'Capture a frame from any video and save it as an image.', ['new'], 'frame snapshot poster video');
-    $t('video-to-gif', 'video', 'Video to GIF', 'Turn a video clip (MP4, WebM, MOV) into an animated GIF — trim the range, pick the frame rate and size. Runs entirely in your browser.', ['new', 'popular'], 'mp4 webm mov to gif convert video animated gif maker trim clip fps');
+    $t('video-to-gif', 'video', 'Video to GIF', 'Turn a video clip (MP4, WebM, MOV) into an animated GIF, trim the range, pick the frame rate and size. Runs entirely in your browser.', ['new', 'popular'], 'mp4 webm mov to gif convert video animated gif maker trim clip fps');
 
     /* -------------------------------------------------------------- Audio */
     $t('mp3-cutter', 'audio', 'Audio Cutter', 'Trim and cut any audio file to a selected range (exports WAV).', ['popular'], 'trim mp3 cut clip');
@@ -196,7 +196,7 @@ function omnitools_tools(): array
     $t('hex-to-rgb', 'utilities', 'HEX to RGB', 'Convert HEX color codes to RGB values.', [], 'color hex rgb convert');
     $t('rgb-to-hex', 'utilities', 'RGB to HEX', 'Convert RGB values to HEX color codes.', [], 'color rgb hex convert');
     $t('random-number', 'utilities', 'Random Number Generator', 'Generate random numbers in any range.', [], 'random number range dice');
-    $t('coin-flip', 'utilities', 'Coin Flip', 'Flip a virtual coin — heads or tails.', [], 'heads tails random');
+    $t('coin-flip', 'utilities', 'Coin Flip', 'Flip a virtual coin, heads or tails.', [], 'heads tails random');
     $t('stopwatch', 'utilities', 'Stopwatch & Timer', 'A precise stopwatch and countdown timer.', [], 'timer countdown clock');
 
     /* -------------------------------------------------------- Calculators */
@@ -213,7 +213,7 @@ function omnitools_tools(): array
     $t('text-to-pdf', 'documents', 'Text to PDF', 'Turn plain text into a downloadable PDF.', [], 'txt pdf document convert');
 
     /* ---------------------------------------------------------------- AI */
-    $t('text-summarizer', 'ai', 'Text Summarizer', 'Summarise long text into key sentences — on device.', ['popular', 'new'], 'summary tldr shorten');
+    $t('text-summarizer', 'ai', 'Text Summarizer', 'Summarise long text into key sentences, on device.', ['popular', 'new'], 'summary tldr shorten');
     $t('keyword-extractor', 'ai', 'Keyword Extractor', 'Extract the most important keywords from any text.', ['new'], 'keywords tags extract');
     $t('readability-checker', 'ai', 'Readability Checker', 'Score the readability of your writing (Flesch).', ['new'], 'flesch grade reading level');
 

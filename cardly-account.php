@@ -49,7 +49,7 @@ if ($do === 'logout') {
 /* --------------------------------------------------------- accounts down */
 if (!$accounts && in_array($do, ['login', 'signup', 'dashboard', 'forgot', 'reset', 'verify', 'resend'], true)) {
     // Graceful: DB/accounts not configured yet.
-    $page = ['title' => 'Accounts — Cardly | ' . SITE_NAME, 'noindex' => true, 'is_cardly' => true];
+    $page = ['title' => 'Accounts, Cardly | ' . SITE_NAME, 'noindex' => true, 'is_cardly' => true];
     require __DIR__ . '/includes/header.php';
     echo '<div class="cardly-auth"><div class="cardly-auth__card"><h1>Accounts are being set up</h1>'
         . '<p class="muted">Sign-in isn’t available just yet. You can still create a card as a guest.</p>'
@@ -61,7 +61,7 @@ if (!$accounts && in_array($do, ['login', 'signup', 'dashboard', 'forgot', 'rese
 /* -------------------------------------------------- POST: process actions */
 if ($isPost) {
     if (!csrf_verify($_POST['csrf_token'] ?? null)) {
-        $error = 'Your session expired — please try again.';
+        $error = 'Your session expired, please try again.';
     } elseif ($do === 'login') {
         $r = cardly_login((string) ($_POST['email'] ?? ''), (string) ($_POST['password'] ?? ''));
         if ($r['ok']) {
@@ -96,7 +96,7 @@ if ($do === 'verify') {
     $u = cardly_current_user();
     if ($u) {
         cardly_send_verify_email($u);
-        cardly_flash('Verification email sent — check your inbox.');
+        cardly_flash('Verification email sent, check your inbox.');
     }
     cardly_redirect('cardly/dashboard');
 }
@@ -110,7 +110,7 @@ $flash = cardly_take_flash();
 $user = cardly_current_user();
 
 $page = [
-    'title'     => ucfirst($do) . ' — Cardly | ' . SITE_NAME,
+    'title'     => ucfirst($do) . ', Cardly | ' . SITE_NAME,
     'noindex'   => true,
     'is_cardly' => true,
     'canonical' => cardly_link($do),

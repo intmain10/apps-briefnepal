@@ -117,7 +117,7 @@ header('X-Robots-Tag: noindex, nofollow');
     </div>
 
     <div class="panel">
-      <h2>Traffic — last 14 days</h2>
+      <h2>Traffic, last 14 days</h2>
       <div class="chart">
         <?php foreach ($recent14 as $d => $n): ?>
           <div class="bar" style="height:<?= (int) round($n / $maxDay * 100) ?>%" title="<?= $d ?>: <?= $n ?> views"><span><?= (int) substr($d, 8, 2) ?></span></div>

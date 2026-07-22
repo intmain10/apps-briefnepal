@@ -57,7 +57,7 @@ $boot = [
 ];
 
 $page = [
-    'title'      => ($mode === 'edit' ? 'Edit your card' : 'Create your card') . ' — Cardly | ' . SITE_NAME,
+    'title'      => ($mode === 'edit' ? 'Edit your card' : 'Create your card') . ', Cardly | ' . SITE_NAME,
     'description'=> 'Build your free digital business card with Cardly.',
     'canonical'  => cardly_link('new'),
     'noindex'    => true,

@@ -395,7 +395,7 @@
   reg('json-validator', root => {
     root.innerHTML = `<textarea id="in" class="textarea textarea--tall" placeholder="Paste JSON to validate…"></textarea>
       <div class="btn-row mt-4"><button class="btn btn--primary" id="go">Validate</button></div><div id="msg" class="mt-4"></div>`;
-    const check = () => { const v = q('#in', root).value.trim(); if (!v) { q('#msg', root).innerHTML = ''; return; } try { const d = JSON.parse(v); const keys = typeof d === 'object' && d ? Object.keys(d).length : 0; q('#msg', root).innerHTML = `<div class="notice notice--success">✓ Valid JSON — ${Array.isArray(d) ? d.length + ' items' : keys + ' keys'}.</div>`; } catch (e) { q('#msg', root).innerHTML = `<div class="notice notice--error">✗ ${esc(e.message)}</div>`; } };
+    const check = () => { const v = q('#in', root).value.trim(); if (!v) { q('#msg', root).innerHTML = ''; return; } try { const d = JSON.parse(v); const keys = typeof d === 'object' && d ? Object.keys(d).length : 0; q('#msg', root).innerHTML = `<div class="notice notice--success">✓ Valid JSON, ${Array.isArray(d) ? d.length + ' items' : keys + ' keys'}.</div>`; } catch (e) { q('#msg', root).innerHTML = `<div class="notice notice--error">✗ ${esc(e.message)}</div>`; } };
     q('#go', root).addEventListener('click', check); q('#in', root).addEventListener('input', check);
   });
 
@@ -776,7 +776,7 @@
   }
   const stat = (label, val) => `<div class="stat-card"><b>${val}</b><span>${label}</span></div>`;
   const grid = html => `<div class="stat-grid">${html}</div>`;
-  const money = n => (isFinite(n) ? n.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—');
+  const money = n => (isFinite(n) ? n.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '-');
 
   reg('emi-calculator', root => calc(root,
     `<div class="row"><div><label class="field__label">Loan amount</label><input id="p" class="input" type="number" value="500000"></div>
@@ -1084,7 +1084,7 @@
       <div><label class="field__label">From</label><select id="f" class="select">${opts(defaultFrom)}</select></div>
       <div><label class="field__label">To</label><select id="t" class="select">${opts(defaultTo)}</select></div></div>
       <div id="out" class="mt-4"></div>`;
-    const upd = () => { const v = +q('#v', root).value, f = q('#f', root).value, t = q('#t', root).value; const base = v * units[f]; const res = base / units[t]; q('#out', root).innerHTML = grid(stat(`${v} ${f}`, (isFinite(res) ? +res.toPrecision(8) : '—') + ' ' + t)); };
+    const upd = () => { const v = +q('#v', root).value, f = q('#f', root).value, t = q('#t', root).value; const base = v * units[f]; const res = base / units[t]; q('#out', root).innerHTML = grid(stat(`${v} ${f}`, (isFinite(res) ? +res.toPrecision(8) : '-') + ' ' + t)); };
     qa('input,select', root).forEach(i => i.addEventListener('input', upd)); upd();
   }
   reg('bytes-converter', r => unitTool(r, { Bytes: 1, KB: 1024, MB: 1048576, GB: 1073741824, TB: 1099511627776, PB: 1125899906842624 }, 'MB', 'GB'));
@@ -1485,7 +1485,7 @@
         q('#dl', root).addEventListener('click', () => U.download('animation.gif', blob));
       } catch (e) {
         prog.textContent = '';
-        U.toast('Could not create the GIF — try a smaller image or fewer frames.');
+        U.toast('Could not create the GIF, try a smaller image or fewer frames.');
       } finally {
         btn.disabled = false;
       }
@@ -1529,7 +1529,7 @@
     const MAXFRAMES = 300;
     let vurl = null;
     const vid = q('#vid', root);
-    makeDropzone(q('#drop', root), { accept: 'video/*', hint: 'MP4, WebM or MOV. Your video is decoded locally — it never leaves your device.', onFiles: fl => loadVideo(fl[0]) });
+    makeDropzone(q('#drop', root), { accept: 'video/*', hint: 'MP4, WebM or MOV. Your video is decoded locally, it never leaves your device.', onFiles: fl => loadVideo(fl[0]) });
     function loadVideo(f) {
       if (!f || (f.type && f.type.indexOf('video/') !== 0)) { U.toast('Please choose a video file.'); return; }
       if (vurl) URL.revokeObjectURL(vurl);
@@ -1537,7 +1537,7 @@
       vid.src = vurl;
       vid.onloadedmetadata = () => {
         const d = vid.duration || 0;
-        if (!isFinite(d) || d <= 0) { U.toast('Could not read this video — try a different file or format.'); return; }
+        if (!isFinite(d) || d <= 0) { U.toast('Could not read this video, try a different file or format.'); return; }
         const st = q('#st', root), et = q('#et', root);
         st.max = et.max = d.toFixed(2); st.value = 0; et.value = d.toFixed(2);
         q('#opts', root).classList.remove('hidden');
@@ -1561,7 +1561,7 @@
       let n = Math.max(2, Math.round((b - a) * fps));
       const capped = n > MAXFRAMES;
       if (capped) n = MAXFRAMES;
-      q('#plan', root).textContent = `${(b - a).toFixed(1)}s clip → ${n} frames` + (capped ? ' (capped — frame rate reduced to keep the GIF light)' : '');
+      q('#plan', root).textContent = `${(b - a).toFixed(1)}s clip → ${n} frames` + (capped ? ' (capped, frame rate reduced to keep the GIF light)' : '');
     }
     ['st', 'et', 'fps', 'mw'].forEach(id => q('#' + id, root).addEventListener('input', updateLabels));
     q('#setst', root).addEventListener('click', () => { q('#st', root).value = vid.currentTime.toFixed(2); updateLabels(); });
@@ -1604,7 +1604,7 @@
         q('#dl', root).addEventListener('click', () => U.download('video.gif', blob));
       } catch (e) {
         prog.textContent = '';
-        U.toast('Could not create the GIF — try a shorter clip, lower frame rate or smaller width.');
+        U.toast('Could not create the GIF, try a shorter clip, lower frame rate or smaller width.');
       } finally {
         btn.disabled = false;
         if (wasPlaying) vid.play().catch(() => {});
@@ -1640,7 +1640,7 @@
     let uid = 1, playing = false, rafId = 0, startT = 0, drag = null, dragId = null, snapV = false, snapH = false;
     const IN = [['none', 'None'], ['fade', 'Fade in'], ['slideL', 'Slide ← left'], ['slideR', 'Slide → right'], ['slideT', 'Slide ↑ top'], ['slideB', 'Slide ↓ bottom'], ['pop', 'Pop'], ['spin', 'Spin in'], ['blur', 'Blur in'], ['typewriter', 'Typewriter (text)']];
     const LP = [['none', 'None'], ['float', 'Float'], ['pulse', 'Pulse'], ['spin', 'Spin'], ['bounce', 'Bounce']];
-    const TEMPLATE_LIST = [['social', 'Social — Follow me'], ['logo', 'Logo reveal'], ['title', 'Title card'], ['sale', 'Sale / Promo'], ['quote', 'Quote card'], ['coming', 'Coming soon'], ['event', 'Event invite'], ['lower', 'Lower third'], ['youtube', 'YouTube intro'], ['birthday', 'Birthday']];
+    const TEMPLATE_LIST = [['social', 'Social, Follow me'], ['logo', 'Logo reveal'], ['title', 'Title card'], ['sale', 'Sale / Promo'], ['quote', 'Quote card'], ['coming', 'Coming soon'], ['event', 'Event invite'], ['lower', 'Lower third'], ['youtube', 'YouTube intro'], ['birthday', 'Birthday']];
 
     root.innerHTML =
       '<div class="row" style="gap:18px;align-items:flex-start;flex-wrap:wrap">' +
@@ -1956,7 +1956,7 @@
         q('#result', root).innerHTML =
           '<img src="' + url + '" alt="GIF" style="max-width:100%;max-height:320px;border-radius:12px;border:1px solid var(--border)" class="mb-2"><div class="muted mb-2">GIF · ' + S.W + '×' + S.H + ' · ' + frames + ' frames · ' + fmtBytes(blob.size) + '</div><div class="btn-row"><button class="btn btn--primary" id="dl">Download GIF</button></div>';
         q('#dl', root).addEventListener('click', () => U.download('animation.gif', blob));
-      } catch (err) { prog.textContent = ''; U.toast('Could not export — try a shorter animation or smaller canvas.'); }
+      } catch (err) { prog.textContent = ''; U.toast('Could not export, try a shorter animation or smaller canvas.'); }
       finally { btn.disabled = false; }
     });
 
@@ -1997,7 +1997,7 @@
           T('“', '#2563eb', 150, 150, 210, A('fade', 100)),
           T('Do what you love.', '#ffffff', 46, 300, 320, A('fade', 400)),
           R(120, 4, '#38bdf8', 300, 420, A('slideL', 900), 2),
-          T('— Author', '#94a3b8', 30, 300, 470, A('fade', 1000)),
+          T('- Author', '#94a3b8', 30, 300, 470, A('fade', 1000)),
         ] }),
         coming: () => ({ bg: '#0d1117', dur: 3000, w: 800, h: 450, layers: [
           T('COMING SOON', '#ffffff', 66, 400, 195, A('blur', 200, 'none', 900)),
@@ -2054,7 +2054,7 @@
      ================================================================== */
   reg('video-metadata', root => {
     root.innerHTML = `<div id="drop"></div><div id="out" class="mt-4"></div>`;
-    makeDropzone(q('#drop', root), { accept: 'video/*', onFiles: f => { const v = document.createElement('video'); v.preload = 'metadata'; v.onloadedmetadata = () => { q('#out', root).innerHTML = grid(stat('Duration', new Date(v.duration * 1000).toISOString().substr(11, 8)) + stat('Resolution', v.videoWidth + '×' + v.videoHeight) + stat('Aspect ratio', (v.videoWidth / v.videoHeight).toFixed(2)) + stat('File size', fmtBytes(f[0].size)) + stat('Type', f[0].type || '—')); }; v.src = URL.createObjectURL(f[0]); } });
+    makeDropzone(q('#drop', root), { accept: 'video/*', onFiles: f => { const v = document.createElement('video'); v.preload = 'metadata'; v.onloadedmetadata = () => { q('#out', root).innerHTML = grid(stat('Duration', new Date(v.duration * 1000).toISOString().substr(11, 8)) + stat('Resolution', v.videoWidth + '×' + v.videoHeight) + stat('Aspect ratio', (v.videoWidth / v.videoHeight).toFixed(2)) + stat('File size', fmtBytes(f[0].size)) + stat('Type', f[0].type || '-')); }; v.src = URL.createObjectURL(f[0]); } });
   });
 
   reg('video-thumbnail', root => {

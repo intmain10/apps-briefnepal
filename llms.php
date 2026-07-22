@@ -25,7 +25,7 @@ echo SITE_NAME . ' is a free, privacy-first online tools platform with ' . count
 
 echo "## Key pages\n";
 echo '- [All tools](' . url('tools') . "): browse every tool on the platform\n";
-echo '- [Cardly — free digital business card](' . cardly_link() . "): build one shareable link with your contact, socials, portfolio and QR code\n";
+echo '- [Cardly, free digital business card](' . cardly_link() . "): build one shareable link with your contact, socials, portfolio and QR code\n";
 echo '- [About](' . url('about') . "): what the platform is and who builds it\n";
 echo '- [Blog](' . url('blog') . "): guides and how-tos\n\n";
 
@@ -34,7 +34,7 @@ foreach ($cats as $slug => $cat) {
     if (!$inCat) {
         continue;
     }
-    echo '## ' . $cat['name'] . ' tools — ' . url('category/' . $slug) . "\n";
+    echo '## ' . $cat['name'] . ' tools, ' . url('category/' . $slug) . "\n";
     echo $cat['desc'] . "\n";
     foreach ($inCat as $t) {
         echo '- [' . $t['name'] . '](' . url($t['slug']) . '): ' . $t['desc'] . "\n";

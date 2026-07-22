@@ -33,13 +33,13 @@ foreach ($tools as $t) {
 }
 
 $catFaqs = [
-    ['Are these ' . $cat['name'] . ' tools free?', 'Yes — every ' . $cat['name'] . ' tool on ' . SITE_NAME . ' is 100% free with no watermarks, no limits and no account required.'],
-    ['Do I need to sign up or install anything?', 'No. All ' . count($tools) . ' ' . $cat['name'] . ' tools run in your browser — nothing to download, install or register for.'],
+    ['Are these ' . $cat['name'] . ' tools free?', 'Yes, every ' . $cat['name'] . ' tool on ' . SITE_NAME . ' is 100% free with no watermarks, no limits and no account required.'],
+    ['Do I need to sign up or install anything?', 'No. All ' . count($tools) . ' ' . $cat['name'] . ' tools run in your browser, nothing to download, install or register for.'],
     ['Are my files and data private?', 'Most tools process your data entirely on-device in your browser, so nothing is uploaded. Where a file must be processed on the server, it is sent over HTTPS and deleted right after.'],
 ];
 
 $page = [
-    'title'       => $cat['name'] . ' Tools — ' . count($tools) . ' Free Online ' . $cat['name'] . ' Tools | ' . SITE_NAME,
+    'title'       => $cat['name'] . ' Tools · ' . count($tools) . ' Free Online ' . $cat['name'] . ' Tools | ' . SITE_NAME,
     'description' => $cat['desc'] . ' ' . count($tools) . ' free ' . $cat['name'] . ' tools, no signup required.',
     'canonical'   => url('category/' . $catSlug),
     'breadcrumb'  => [

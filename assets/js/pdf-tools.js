@@ -30,7 +30,7 @@
       <div class="dropzone" tabindex="0" role="button" aria-label="Upload">
         ${svgUp()}
         <div><strong>Click to upload</strong> or drag &amp; drop</div>
-        <div class="dropzone__hint">${opts.hint || 'Processed privately in your browser — files never leave your device.'}</div>
+        <div class="dropzone__hint">${opts.hint || 'Processed privately in your browser, files never leave your device.'}</div>
         <input type="file" ${opts.multiple ? 'multiple' : ''} accept="${opts.accept || 'application/pdf'}" hidden>
       </div>`;
     const dz = q('.dropzone', container), input = q('input', container);
@@ -587,7 +587,7 @@
         for (let i = 1; i <= pdf.numPages; i++) { const c = await renderPage(pdf, i, scale); const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', quality)); const emb = await out.embedJpg(new Uint8Array(await blob.arrayBuffer())); const pg = out.addPage([emb.width, emb.height]); pg.drawImage(emb, { x: 0, y: 0, width: emb.width, height: emb.height }); }
         const saved = await out.save(); downloadPdf(saved, 'compressed.pdf');
         const pct = Math.round((1 - saved.length / orig) * 100);
-        q('#msg', root).innerHTML = okBox(`${fmtBytes(orig)} → ${fmtBytes(saved.length)} (${pct > 0 ? pct + '% smaller' : 'no reduction — already optimised'}).`);
+        q('#msg', root).innerHTML = okBox(`${fmtBytes(orig)} → ${fmtBytes(saved.length)} (${pct > 0 ? pct + '% smaller' : 'no reduction, already optimised'}).`);
       } catch (e) { q('#msg', root).innerHTML = errBox('Failed: ' + e.message); }
     });
   });
@@ -664,7 +664,7 @@
     root.innerHTML = `<label class="field__label">Paste HTML (or plain text)</label>
       <textarea id="html" class="textarea textarea--tall" placeholder="<h1>Hello</h1><p>Your content…</p>"></textarea>
       <div class="btn-row mt-4"><button class="btn btn--primary" id="go">Open Print → Save as PDF</button></div>
-      <div class="notice notice--info mt-4">Opens your content in a new tab and launches the browser’s print dialog — choose “Save as PDF”. This uses the browser’s own high-fidelity PDF engine.</div>`;
+      <div class="notice notice--info mt-4">Opens your content in a new tab and launches the browser’s print dialog, choose “Save as PDF”. This uses the browser’s own high-fidelity PDF engine.</div>`;
     q('#go', root).addEventListener('click', () => {
       const html = q('#html', root).value || '<p>(empty)</p>';
       const w = window.open('', '_blank');
@@ -691,18 +691,18 @@
       try {
         const res = await fetch(`${BASE}/api/pdf.php`, { method: 'POST', body: fd });
         if ((res.headers.get('content-type') || '').includes('application/json')) { const j = await res.json(); q('#msg', root).innerHTML = `<div class="notice notice--${j.ok ? 'success' : 'error'}">${esc(j.error || j.message || 'Done')}</div>`; return; }
-        U.download(opts.outName || 'output', await res.blob()); q('#msg', root).innerHTML = okBox('Done — your file has downloaded.');
+        U.download(opts.outName || 'output', await res.blob()); q('#msg', root).innerHTML = okBox('Done, your file has downloaded.');
       } catch (e) { q('#msg', root).innerHTML = errBox('Upload failed: ' + e.message); }
     });
   }
-  const officeNote = 'Office conversions need LibreOffice on the server. If your host doesn’t provide it, you’ll get a clear message — the in-browser PDF tools above work without any server.';
+  const officeNote = 'Office conversions need LibreOffice on the server. If your host doesn’t provide it, you’ll get a clear message, the in-browser PDF tools above work without any server.';
   reg('word-to-pdf', r => serverTool(r, 'word-to-pdf', { accept: '.doc,.docx', label: 'Convert to PDF', outName: 'document.pdf', note: officeNote }));
   reg('powerpoint-to-pdf', r => serverTool(r, 'ppt-to-pdf', { accept: '.ppt,.pptx', label: 'Convert to PDF', outName: 'slides.pdf', note: officeNote }));
   reg('excel-to-pdf', r => serverTool(r, 'excel-to-pdf', { accept: '.xls,.xlsx', label: 'Convert to PDF', outName: 'sheet.pdf', note: officeNote }));
   reg('pdf-to-powerpoint', r => serverTool(r, 'pdf-to-ppt', { label: 'Convert to PowerPoint', outName: 'slides.pptx', note: officeNote }));
   reg('pdf-to-excel', r => serverTool(r, 'pdf-to-excel', { label: 'Convert to Excel', outName: 'data.xlsx', note: officeNote }));
   reg('pdf-to-pdfa', r => serverTool(r, 'pdf-to-pdfa', { label: 'Convert to PDF/A', outName: 'archive.pdf', note: 'PDF/A conversion needs Ghostscript on the server.' }));
-  reg('ocr-pdf', r => serverTool(r, 'ocr', { label: 'Run OCR', outName: 'ocr.pdf', note: 'OCR (making scans searchable) needs an OCR engine on the server. For text-based PDFs, use PDF to Text/Markdown above — it works entirely in your browser.' }));
+  reg('ocr-pdf', r => serverTool(r, 'ocr', { label: 'Run OCR', outName: 'ocr.pdf', note: 'OCR (making scans searchable) needs an OCR engine on the server. For text-based PDFs, use PDF to Text/Markdown above, it works entirely in your browser.' }));
   reg('translate-pdf', r => serverTool(r, 'translate', { label: 'Translate', outName: 'translated.pdf', note: 'PDF translation requires a translation service/API. Extract the text with PDF to Markdown, translate it, then rebuild if needed.' }));
 
   /* =======================================================================
@@ -741,7 +741,7 @@
         <div><label class="field__label">Confirm password</label><input id="pw2" class="input" type="password"></div></div>
         <div class="btn-row mt-4"><button class="btn btn--primary" id="go">🔒 Protect PDF</button></div>
       </div>
-      <div class="notice notice--info mt-4">Encrypted right here in your browser with AES-256 — your file and password never leave your device.</div>
+      <div class="notice notice--info mt-4">Encrypted right here in your browser with AES-256, your file and password never leave your device.</div>
       <div id="msg" class="mt-4"></div>`;
     let file;
     dropzone(q('#drop', root), { onFiles: fl => { file = fl[0]; q('#opts', root).style.display = ''; } });
@@ -776,7 +776,7 @@
         const args = pw ? ['--decrypt', '--password=' + pw, 'input.pdf', 'output.pdf'] : ['--decrypt', 'input.pdf', 'output.pdf'];
         const out = await runQpdf(await readBytes(file), args, 'output.pdf');
         downloadPdf(out, 'unlocked.pdf');
-        q('#msg', root).innerHTML = okBox('Unlocked PDF downloaded — no password required now.');
+        q('#msg', root).innerHTML = okBox('Unlocked PDF downloaded, no password required now.');
       } catch (e) { q('#msg', root).innerHTML = errBox(/password/i.test(e.message) ? 'Incorrect password for this PDF.' : ('Failed: ' + e.message)); }
     });
   });

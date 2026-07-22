@@ -41,7 +41,7 @@
     root.innerHTML = `
       <div class="cardly-claim">
         <h1>Create your free card</h1>
-        <p class="muted">Pick a link and a style — you can change everything next.</p>
+        <p class="muted">Pick a link and a style, you can change everything next.</p>
         <label class="field__label mt-6">Your name</label>
         <input id="cName" class="input" placeholder="e.g. Shushant Singh" maxlength="80" autofocus>
         <label class="field__label mt-4">Your link</label>
@@ -100,7 +100,7 @@
           <button class="btn btn--primary btn--sm" id="cSave">Save</button>
         </div>
       </div>
-      <div class="notice notice--info" id="cEditNote">🔑 Bookmark your private edit link — it's the only way back to edit this card. <button class="btn btn--ghost btn--sm" id="cCopyEdit2">Copy it</button></div>
+      <div class="notice notice--info" id="cEditNote">🔑 Bookmark your private edit link, it's the only way back to edit this card. <button class="btn btn--ghost btn--sm" id="cCopyEdit2">Copy it</button></div>
       <div class="cardly-editor">
         <div class="cardly-form" id="cForm"></div>
         <div class="cardly-previewcol">

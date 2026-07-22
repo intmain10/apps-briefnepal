@@ -45,8 +45,8 @@ if (!empty($card['skills']))             $person['knowsAbout'] = array_values($c
 if ($sameAs) $person['sameAs'] = array_values($sameAs);
 
 $page = [
-    'title'       => $name . ($card['tagline'] ? ' — ' . $card['tagline'] : '') . ' | Digital Card',
-    'description' => $card['about'] ?: ($name . ' — digital business card. Save contact, connect and follow.'),
+    'title'       => $name . ($card['tagline'] ? ' · ' . $card['tagline'] : '') . ' | Digital Card',
+    'description' => $card['about'] ?: ($name . ', digital business card. Save contact, connect and follow.'),
     'canonical'   => $cardUrl,
     'og_type'     => 'profile',
     'image'       => $card['cover'] ?: ($card['photo'] ?: url('assets/images/og-default.png')),

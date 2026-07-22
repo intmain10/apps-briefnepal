@@ -17,7 +17,7 @@ $posts    = array_slice(get_posts(), 0, 3);
 $total    = tools_count();
 
 $page = [
-    'title'       => SITE_NAME . ' — ' . SITE_TAGLINE,
+    'title'       => SITE_NAME . ' · ' . SITE_TAGLINE,
     'description' => SITE_DESCRIPTION,
     'canonical'   => url(),
     'jsonld'      => [
@@ -154,9 +154,9 @@ require __DIR__ . '/includes/header.php';
   <a href="<?= eattr(cardly_link()) ?>" style="display:block;border-radius:var(--radius-lg);overflow:hidden;background:#111827;color:#fff;padding:34px;box-shadow:var(--shadow)">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
       <div>
-        <div style="font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.85">✨ New — Cardly</div>
+        <div style="font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.85">✨ New, Cardly</div>
         <h2 style="font-size:clamp(24px,3.4vw,32px);margin-top:6px">Your own digital business card</h2>
-        <p style="opacity:.9;margin-top:6px;max-width:520px">One smart link for Instagram, LinkedIn, WhatsApp, resumes &amp; email — with Save-to-contact and QR. Free.</p>
+        <p style="opacity:.9;margin-top:6px;max-width:520px">One smart link for Instagram, LinkedIn, WhatsApp, resumes &amp; email, with Save-to-contact and QR. Free.</p>
       </div>
       <span class="btn" style="background:var(--accent);color:#fff;font-weight:700;flex:none">Create free card →</span>
     </div>
@@ -219,7 +219,7 @@ require __DIR__ . '/includes/header.php';
     <?php
     $faqs = [
         ['Is OmniTools really free?', 'Yes. Every tool on OmniTools is completely free to use with no sign-up, no watermarks and no hidden limits.'],
-        ['Are my files safe?', 'Most of our tools — including all image, text, developer and calculator tools — run entirely inside your browser. Your files never leave your device. The few tools that need a server delete your files immediately after processing.'],
+        ['Are my files safe?', 'Most of our tools, including all image, text, developer and calculator tools, run entirely inside your browser. Your files never leave your device. The few tools that need a server delete your files immediately after processing.'],
         ['Do I need to install anything?', 'No. OmniTools runs in any modern browser on desktop and mobile. There is nothing to download or install.'],
         ['Can I use OmniTools on my phone?', 'Absolutely. The entire platform is designed mobile-first and works beautifully on phones and tablets.'],
         ['How many tools are there?', 'We currently offer ' . $total . '+ tools across ' . count($cats) . ' categories, and we are adding more every week toward our goal of 1000+.'],

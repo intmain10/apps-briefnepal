@@ -12,7 +12,7 @@ $allTools = omnitools_tools();
 $q = trim((string)($_GET['q'] ?? ''));
 
 $page = [
-    'title'       => 'All Tools — ' . tools_count() . '+ Free Online Tools | ' . SITE_NAME,
+    'title'       => 'All Tools, ' . tools_count() . '+ Free Online Tools | ' . SITE_NAME,
     'description' => 'Browse all ' . tools_count() . '+ free online tools on ' . SITE_NAME . '. Filter by category or search instantly.',
     'canonical'   => url('tools'),
     'breadcrumb'  => [
@@ -27,7 +27,7 @@ require __DIR__ . '/includes/header.php';
 <section class="page-head">
   <div class="container">
     <h1>All Tools</h1>
-    <p><?= tools_count() ?>+ free tools across <?= count($cats) ?> categories — filter or search to find exactly what you need.</p>
+    <p><?= tools_count() ?>+ free tools across <?= count($cats) ?> categories, filter or search to find exactly what you need.</p>
   </div>
 </section>
 

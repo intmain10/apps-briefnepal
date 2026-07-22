@@ -13,7 +13,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/functions.php';
 
 $page = $page ?? [];
-$pageTitle       = $page['title']       ?? SITE_NAME . ' — ' . SITE_TAGLINE;
+$pageTitle       = $page['title']       ?? SITE_NAME . ' · ' . SITE_TAGLINE;
 $pageDesc        = $page['description'] ?? SITE_DESCRIPTION;
 $canonical       = $page['canonical']   ?? (SITE_URL . strtok($_SERVER['REQUEST_URI'] ?? '/', '?'));
 $ogType          = $page['og_type']     ?? 'website';

@@ -60,7 +60,7 @@ $nav = [
 
 $faqs = [
     ['Is OmniTools really free?', 'Yes. Every tool on OmniTools is completely free to use, with no sign-up, no watermarks, and no hidden limits.'],
-    ['Are my files safe?', 'Most tools — including all image, text, developer, and calculator tools — run entirely inside your browser, so files never leave your device. The few tools that require a server delete uploaded files immediately after processing.'],
+    ['Are my files safe?', 'Most tools, including all image, text, developer, and calculator tools, run entirely inside your browser, so files never leave your device. The few tools that require a server delete uploaded files immediately after processing.'],
     ['Do I need to install anything?', 'No. OmniTools runs in any modern browser on desktop and mobile. There is nothing to download or install.'],
     ['Can I use OmniTools on my phone?', 'Yes. The platform is designed mobile-first and works on phones and tablets as well as desktop browsers.'],
     ['How many tools are there?', $total . '+ tools across ' . count($cats) . ' categories, with new tools added regularly.'],
@@ -68,7 +68,7 @@ $faqs = [
 
 $page = [
     'title'       => 'User Guide & Documentation | ' . SITE_NAME,
-    'description' => 'The complete OmniTools user guide — how to find and use ' . $total . '+ free online tools across ' . count($cats) . ' categories. Getting started, categories, privacy, FAQ and a quick reference.',
+    'description' => 'The complete OmniTools user guide, how to find and use ' . $total . '+ free online tools across ' . count($cats) . ' categories. Getting started, categories, privacy, FAQ and a quick reference.',
     'canonical'   => url('docs'),
     'breadcrumb'  => [['name' => 'Home', 'url' => url()], ['name' => 'User Guide', 'url' => url('docs')]],
     'jsonld'      => [
@@ -130,7 +130,7 @@ require __DIR__ . '/includes/header.php';
     <header class="docs-hero">
       <p class="docs-eyebrow">User Guide</p>
       <h1>Everything you need. One platform.</h1>
-      <p class="docs-lede"><strong><?= e(SITE_NAME) ?></strong> is a free, browser-based platform with <?= $total ?>+ online tools across <?= count($cats) ?> categories — no signup, no watermarks, and most tools run entirely on your device.</p>
+      <p class="docs-lede"><strong><?= e(SITE_NAME) ?></strong> is a free, browser-based platform with <?= $total ?>+ online tools across <?= count($cats) ?> categories, no signup, no watermarks, and most tools run entirely on your device.</p>
       <div class="docs-hero__actions">
         <a class="btn btn--primary btn--sm" href="<?= eattr(url('tools')) ?>">Browse all tools</a>
         <a class="btn btn--ghost btn--sm" href="<?= eattr(url('assets/manual/OmniTools_User_Manual.docx')) ?>" download>Download manual (.docx)</a>
@@ -140,7 +140,7 @@ require __DIR__ . '/includes/header.php';
     <!-- 1. Introduction -->
     <section id="introduction" class="docs-section">
       <h2>Introduction</h2>
-      <p>OmniTools is a free, browser-based platform offering <?= $total ?>+ online tools across <?= count($cats) ?> categories — including PDF, Image, Video, Audio, Text, Developer, SEO, Finance, Utilities, Calculators, Documents, AI, and Converters. This guide explains how to find, use, and get the most out of the tools on the platform.</p>
+      <p>OmniTools is a free, browser-based platform offering <?= $total ?>+ online tools across <?= count($cats) ?> categories, including PDF, Image, Video, Audio, Text, Developer, SEO, Finance, Utilities, Calculators, Documents, AI, and Converters. This guide explains how to find, use, and get the most out of the tools on the platform.</p>
 
       <h3 id="who-for">Who this guide is for</h3>
       <p>This guide is written for anyone using OmniTools for the first time, as well as returning users who want a quick reference for a specific tool or feature.</p>
@@ -150,14 +150,14 @@ require __DIR__ . '/includes/header.php';
         <div class="docs-card"><h4>100% free</h4><p>Every tool is free to use, with no watermarks or hidden usage limits.</p></div>
         <div class="docs-card"><h4>No signup required</h4><p>No account, registration, or login is needed to use any tool.</p></div>
         <div class="docs-card"><h4>Privacy-first</h4><p>Most tools run entirely in your browser, so your files never leave your device.</p></div>
-        <div class="docs-card"><h4>Works everywhere</h4><p>Runs in any modern browser on desktop, tablet, or mobile — nothing to install.</p></div>
+        <div class="docs-card"><h4>Works everywhere</h4><p>Runs in any modern browser on desktop, tablet, or mobile, nothing to install.</p></div>
       </div>
     </section>
 
     <!-- 2. Getting started -->
     <section id="accessing" class="docs-section">
       <h2>Accessing OmniTools</h2>
-      <p>Open a web browser and go to <a href="<?= eattr(url()) ?>"><?= e(SITE_DOMAIN) ?></a>. No download, installation, or account creation is required — the homepage loads directly into the tool library.</p>
+      <p>Open a web browser and go to <a href="<?= eattr(url()) ?>"><?= e(SITE_DOMAIN) ?></a>. No download, installation, or account creation is required, the homepage loads directly into the tool library.</p>
       <div class="docs-callout docs-callout--tip">
         <span class="docs-callout__icon">💡</span>
         <div><strong>Tip:</strong> Press <kbd>/</kbd> anywhere to open the search box instantly.</div>
@@ -168,15 +168,15 @@ require __DIR__ . '/includes/header.php';
       <h2>The homepage layout</h2>
       <p>The homepage is organized into the following sections:</p>
       <ul class="docs-list">
-        <li><strong>Top navigation bar</strong> — quick links to Categories, All Tools, Cardly, Blog, and About.</li>
-        <li><strong>Search bar</strong> — search across all <?= $total ?>+ tools by name or keyword.</li>
-        <li><strong>Quick-access shortcuts</strong> — direct links to frequently used tools such as Compress Image, Merge PDF, JSON Formatter, QR Code, and Password Generator.</li>
-        <li><strong>Recently Used</strong> — a personalized row showing the tools you opened most recently.</li>
-        <li><strong>Your Favourites</strong> — tools you have saved using the heart (♥) button.</li>
-        <li><strong>Popular Tools</strong> — the most-used tools across all visitors.</li>
-        <li><strong>Featured Categories</strong> — all <?= count($cats) ?> categories with their tool counts.</li>
-        <li><strong>Trending Now</strong> — tools gaining popularity that week.</li>
-        <li><strong>Recently Added</strong> — the newest tools shipped to the platform.</li>
+        <li><strong>Top navigation bar</strong>: quick links to Categories, All Tools, Cardly, Blog, and About.</li>
+        <li><strong>Search bar</strong>: search across all <?= $total ?>+ tools by name or keyword.</li>
+        <li><strong>Quick-access shortcuts</strong>: direct links to frequently used tools such as Compress Image, Merge PDF, JSON Formatter, QR Code, and Password Generator.</li>
+        <li><strong>Recently Used</strong>: a personalized row showing the tools you opened most recently.</li>
+        <li><strong>Your Favourites</strong>: tools you have saved using the heart (♥) button.</li>
+        <li><strong>Popular Tools</strong>: the most-used tools across all visitors.</li>
+        <li><strong>Featured Categories</strong>: all <?= count($cats) ?> categories with their tool counts.</li>
+        <li><strong>Trending Now</strong>: tools gaining popularity that week.</li>
+        <li><strong>Recently Added</strong>: the newest tools shipped to the platform.</li>
       </ul>
     </section>
 
@@ -196,10 +196,10 @@ require __DIR__ . '/includes/header.php';
       <p>While each tool is specialized, the general workflow is consistent across the platform:</p>
       <ol class="docs-steps">
         <li><strong>Open the tool</strong> from search, a category, or a homepage shortcut.</li>
-        <li><strong>Upload or input your content</strong> — drag-and-drop a file, click to browse, or paste text/data directly.</li>
-        <li><strong>Adjust settings</strong> — options such as quality, output format, or page order. Defaults are provided, so this is usually optional.</li>
-        <li><strong>Run the tool</strong> — click the primary action button (e.g., Compress, Convert, Merge, Generate).</li>
-        <li><strong>Download or copy the result</strong> — save the output file or copy the generated text/code.</li>
+        <li><strong>Upload or input your content</strong>: drag-and-drop a file, click to browse, or paste text/data directly.</li>
+        <li><strong>Adjust settings</strong>: options such as quality, output format, or page order. Defaults are provided, so this is usually optional.</li>
+        <li><strong>Run the tool</strong>: click the primary action button (e.g., Compress, Convert, Merge, Generate).</li>
+        <li><strong>Download or copy the result</strong>: save the output file or copy the generated text/code.</li>
       </ol>
       <div class="docs-callout">
         <span class="docs-callout__icon">🔒</span>
@@ -243,26 +243,26 @@ require __DIR__ . '/includes/header.php';
 
       <h3>Most popular</h3>
       <ul class="docs-list">
-        <li><?= $tl('merge-pdf', 'Merge PDF') ?> — combine multiple PDF files into one, in the order you choose.</li>
-        <li><?= $tl('compress-pdf', 'Compress PDF') ?> — reduce PDF file size while keeping quality high.</li>
-        <li><?= $tl('jpg-to-pdf', 'JPG to PDF') ?> — turn one or many images into a single PDF.</li>
-        <li><?= $tl('pdf-to-word', 'PDF to Word') ?> — extract a PDF into an editable Word document.</li>
-        <li><?= $tl('sign-pdf', 'Sign PDF') ?> — draw and place your signature on a PDF.</li>
-        <li><?= $tl('compress-image', 'Compress Image') ?> — reduce JPG, PNG, and WebP size with adjustable quality, on device.</li>
-        <li><?= $tl('resize-image', 'Resize Image') ?> — resize to exact pixel dimensions or by percentage.</li>
-        <li><?= $tl('image-converter', 'Image Converter') ?> — convert between PNG, JPG, WebP, and BMP.</li>
+        <li><?= $tl('merge-pdf', 'Merge PDF') ?>, combine multiple PDF files into one, in the order you choose.</li>
+        <li><?= $tl('compress-pdf', 'Compress PDF') ?>, reduce PDF file size while keeping quality high.</li>
+        <li><?= $tl('jpg-to-pdf', 'JPG to PDF') ?>, turn one or many images into a single PDF.</li>
+        <li><?= $tl('pdf-to-word', 'PDF to Word') ?>, extract a PDF into an editable Word document.</li>
+        <li><?= $tl('sign-pdf', 'Sign PDF') ?>, draw and place your signature on a PDF.</li>
+        <li><?= $tl('compress-image', 'Compress Image') ?>, reduce JPG, PNG, and WebP size with adjustable quality, on device.</li>
+        <li><?= $tl('resize-image', 'Resize Image') ?>, resize to exact pixel dimensions or by percentage.</li>
+        <li><?= $tl('image-converter', 'Image Converter') ?>, convert between PNG, JPG, WebP, and BMP.</li>
       </ul>
 
       <h3>Trending</h3>
       <ul class="docs-list">
-        <li><?= $tl('pdf-to-jpg', 'PDF to JPG') ?> — convert each page of a PDF into a high-quality JPG.</li>
-        <li><?= $tl('edit-pdf', 'Edit PDF') ?> — add text and notes anywhere on a PDF.</li>
-        <li><?= $tl('convert-webp', 'Convert to WebP') ?> — convert images to modern, lightweight WebP.</li>
-        <li><?= $tl('markdown-preview', 'Markdown Preview') ?> — write Markdown and preview the rendered HTML live.</li>
-        <li><?= $tl('jwt-decoder', 'JWT Decoder') ?> — decode and inspect a JSON Web Token.</li>
-        <li><?= $tl('schema-generator', 'Schema Markup Generator') ?> — generate JSON-LD structured data for rich results.</li>
-        <li><?= $tl('sip-calculator', 'SIP Calculator') ?> — estimate returns on a Systematic Investment Plan.</li>
-        <li><?= $tl('timestamp-converter', 'Timestamp Converter') ?> — convert between Unix timestamps and dates.</li>
+        <li><?= $tl('pdf-to-jpg', 'PDF to JPG') ?>, convert each page of a PDF into a high-quality JPG.</li>
+        <li><?= $tl('edit-pdf', 'Edit PDF') ?>, add text and notes anywhere on a PDF.</li>
+        <li><?= $tl('convert-webp', 'Convert to WebP') ?>, convert images to modern, lightweight WebP.</li>
+        <li><?= $tl('markdown-preview', 'Markdown Preview') ?>, write Markdown and preview the rendered HTML live.</li>
+        <li><?= $tl('jwt-decoder', 'JWT Decoder') ?>, decode and inspect a JSON Web Token.</li>
+        <li><?= $tl('schema-generator', 'Schema Markup Generator') ?>, generate JSON-LD structured data for rich results.</li>
+        <li><?= $tl('sip-calculator', 'SIP Calculator') ?>, estimate returns on a Systematic Investment Plan.</li>
+        <li><?= $tl('timestamp-converter', 'Timestamp Converter') ?>, convert between Unix timestamps and dates.</li>
       </ul>
 
       <h3>Recently added</h3>
@@ -271,8 +271,8 @@ require __DIR__ . '/includes/header.php';
 
     <!-- 6. Cardly -->
     <section id="cardly" class="docs-section">
-      <h2>Cardly — digital business card</h2>
-      <p>Cardly is a companion product from the OmniTools team, reachable via the <strong>Cardly ✨</strong> link in the top navigation. It creates a free digital business card — a single smart link that brings together your Instagram, LinkedIn, WhatsApp, resume, and email, with support for save-to-contact and QR code sharing.</p>
+      <h2>Cardly, digital business card</h2>
+      <p>Cardly is a companion product from the OmniTools team, reachable via the <strong>Cardly ✨</strong> link in the top navigation. It creates a free digital business card, a single smart link that brings together your Instagram, LinkedIn, WhatsApp, resume, and email, with support for save-to-contact and QR code sharing.</p>
       <ol class="docs-steps">
         <li>Click <strong>Cardly ✨</strong> in the navigation bar.</li>
         <li>Follow the on-screen steps to add your links and details.</li>
@@ -286,7 +286,7 @@ require __DIR__ . '/includes/header.php';
       <h2>Privacy &amp; data handling</h2>
       <p>OmniTools is built with a privacy-first approach:</p>
       <ul class="docs-list">
-        <li><strong>Most tools</strong> — including all image, text, developer, and calculator tools — run entirely inside your browser. Files are processed locally and never uploaded anywhere.</li>
+        <li><strong>Most tools</strong>: including all image, text, developer, and calculator tools, run entirely inside your browser. Files are processed locally and never uploaded anywhere.</li>
         <li><strong>A few tools</strong> require server-side processing. For these, uploaded files are deleted immediately after processing completes.</li>
       </ul>
       <p>For full details, see the <a href="<?= eattr(url('privacy')) ?>">Privacy Policy</a>.</p>

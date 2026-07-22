@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_error('Method not allowed', 405);
 }
 if (!csrf_verify($_POST['csrf_token'] ?? null)) {
-    json_error('Invalid session token — please refresh and try again.', 419);
+    json_error('Invalid session token, please refresh and try again.', 419);
 }
 
 /* --------------------------------------------------- check username availability */

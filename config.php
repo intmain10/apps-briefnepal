@@ -24,7 +24,7 @@ if (is_file(__DIR__ . '/config.local.php')) {
 /* -------------------------------------------------------------------------
  * Environment
  * ---------------------------------------------------------------------- */
-define('OMNITOOLS_VERSION', '1.16.0');
+define('OMNITOOLS_VERSION', '1.17.0');
 
 // Toggle to false on production to hide detailed PHP errors.
 if (!defined('DEBUG_MODE')) define('DEBUG_MODE', false);
@@ -42,7 +42,7 @@ if (DEBUG_MODE) {
  * ---------------------------------------------------------------------- */
 define('SITE_NAME', 'OmniTools');
 define('SITE_TAGLINE', 'Everything You Need. One Platform.');
-define('SITE_DESCRIPTION', 'OmniTools is a fast, free and modern online tools platform with 100+ tools for PDF, images, audio, developers, SEO, finance and more — all in one place, no signup required.');
+define('SITE_DESCRIPTION', 'OmniTools is a fast, free and modern online tools platform with 100+ tools for PDF, images, audio, developers, SEO, finance and more, all in one place, no signup required.');
 
 // No trailing slash. Used to build canonical URLs, sitemaps and OG tags.
 define('SITE_URL', (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')

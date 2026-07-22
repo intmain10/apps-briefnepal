@@ -51,7 +51,7 @@
         await navigator.share({ files: [file], title: document.title, text: url });
       } else {
         U.download('cardly-story.png', blob);
-        U.toast('Image saved — add it to your Instagram Story');
+        U.toast('Image saved, add it to your Instagram Story');
       }
     } catch (e) { U.toast('Could not create the story image'); }
     finally { storyBtn.disabled = false; storyBtn.innerHTML = orig; }
