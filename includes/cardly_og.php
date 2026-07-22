@@ -19,10 +19,19 @@ declare(strict_types=1);
 const CARDLY_OG_W = 1200;
 const CARDLY_OG_H = 630;
 
-/** Absolute path to the cached share image for a card. */
+/**
+ * Design revision of the share image. BUMP THIS whenever the generator's visual
+ * output changes: the cached file is keyed by version, so a bump invalidates
+ * every card's cached image at once (old file no longer referenced → each card
+ * regenerates on next view) and yields a new og:image URL so social crawlers
+ * re-fetch instead of serving their cached copy.
+ */
+const CARDLY_OG_VERSION = 3;
+
+/** Absolute path to the cached share image for a card (versioned). */
 function cardly_og_path(string $slug): string
 {
-    return UPLOADS_PATH . '/cardly/media/' . $slug . '/og.jpg';
+    return UPLOADS_PATH . '/cardly/media/' . $slug . '/og-v' . CARDLY_OG_VERSION . '.jpg';
 }
 
 /**
@@ -485,5 +494,13 @@ function cardly_og_render(string $slug, array $card, string $dest): bool
         @mkdir($dir, 0775, true);
     }
     $ok = imagejpeg($im, $dest, 90);
+    // Drop superseded images (old og.jpg / earlier versions) for this card.
+    if ($ok) {
+        foreach (glob($dir . '/og*.jpg') ?: [] as $old) {
+            if ($old !== $dest) {
+                @unlink($old);
+            }
+        }
+    }
     return (bool) $ok;
 }
