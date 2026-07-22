@@ -1495,10 +1495,29 @@
   /* ---- GIF Animation Studio: layered, per-element animation → GIF -------- */
   function easeOutCubic(p) { return 1 - Math.pow(1 - p, 3); }
   function easeOutBack(p) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); }
+  // Fonts for the studio: system fonts (instant) + 100+ Google Fonts (lazy-loaded on pick).
+  var GIF_SYSTEM = ['Arial', 'Georgia', 'Times New Roman', 'Courier New', 'Verdana', 'Impact', 'Trebuchet MS', 'Comic Sans MS'];
+  var GIF_GFONTS = ['Poppins', 'Montserrat', 'Roboto', 'Open Sans', 'Lato', 'Oswald', 'Raleway', 'Inter', 'Nunito', 'Nunito Sans', 'Playfair Display', 'Merriweather', 'Bebas Neue', 'Anton', 'Pacifico', 'Lobster', 'Dancing Script', 'Caveat', 'Righteous', 'Archivo', 'Archivo Black', 'Rubik', 'Work Sans', 'Quicksand', 'Josefin Sans', 'Comfortaa', 'Fredoka', 'Kanit', 'Teko', 'Barlow', 'Manrope', 'DM Sans', 'DM Serif Display', 'Sora', 'Space Grotesk', 'Outfit', 'Plus Jakarta Sans', 'Abril Fatface', 'Alfa Slab One', 'Bungee', 'Titan One', 'Luckiest Guy', 'Permanent Marker', 'Shadows Into Light', 'Satisfy', 'Great Vibes', 'Sacramento', 'Cookie', 'Courgette', 'Amatic SC', 'Indie Flower', 'Patrick Hand', 'Kalam', 'Bangers', 'Passion One', 'Concert One', 'Chewy', 'Cabin', 'PT Sans', 'PT Serif', 'Source Sans 3', 'Source Serif 4', 'Noto Sans', 'Noto Serif', 'Libre Baskerville', 'Crimson Text', 'Lora', 'Cormorant Garamond', 'EB Garamond', 'Bitter', 'Arvo', 'Zilla Slab', 'Domine', 'Vollkorn', 'Karla', 'Mukta', 'Heebo', 'Assistant', 'Varela Round', 'Exo 2', 'Orbitron', 'Audiowide', 'Press Start 2P', 'Monoton', 'Fjalla One', 'Staatliches', 'Russo One', 'Black Ops One', 'Bree Serif', 'Yellowtail', 'Kaushan Script', 'Gloria Hallelujah', 'Rock Salt', 'Special Elite', 'Chakra Petch', 'Rajdhani', 'Saira', 'Signika', 'Cairo', 'Prompt', 'Sarabun', 'Hind', 'Bricolage Grotesque', 'Unbounded', 'Onest', 'Instrument Serif', 'Baloo 2', 'Secular One', 'Jost', 'Lexend', 'Red Hat Display', 'Sen', 'Epilogue', 'Syne', 'Grandstander'];
+  var GIF_FONTS = GIF_SYSTEM.concat(GIF_GFONTS.slice().sort());
+  var _gfLoaded = {};
+  function loadWebFont(family) {
+    return new Promise(res => {
+      if (!family || GIF_SYSTEM.indexOf(family) >= 0) return res();
+      if (!_gfLoaded[family]) {
+        _gfLoaded[family] = true;
+        const lk = document.createElement('link'); lk.rel = 'stylesheet';
+        lk.href = 'https://fonts.googleapis.com/css2?family=' + family.replace(/ /g, '+') + '&display=swap';
+        document.head.appendChild(lk);
+      }
+      let done = false; const fin = () => { if (done) return; done = true; res(); };
+      try { Promise.allSettled([document.fonts.load("700 40px '" + family + "'"), document.fonts.load("400 40px '" + family + "'")]).then(fin); } catch (e) { fin(); }
+      setTimeout(fin, 2500);
+    });
+  }
 
   reg('gif-animation-studio', root => {
     const S = { W: 600, H: 600, bg: '#0d1117', duration: 2600, fps: 15, loop: true, layers: [], sel: null };
-    let uid = 1, playing = false, rafId = 0, startT = 0, drag = null, dragId = null;
+    let uid = 1, playing = false, rafId = 0, startT = 0, drag = null, dragId = null, snapV = false, snapH = false;
     const IN = [['none', 'None'], ['fade', 'Fade in'], ['slideL', 'Slide ← left'], ['slideR', 'Slide → right'], ['slideT', 'Slide ↑ top'], ['slideB', 'Slide ↓ bottom'], ['pop', 'Pop'], ['spin', 'Spin in'], ['blur', 'Blur in'], ['typewriter', 'Typewriter (text)']];
     const LP = [['none', 'None'], ['float', 'Float'], ['pulse', 'Pulse'], ['spin', 'Spin'], ['bounce', 'Bounce']];
 
@@ -1571,14 +1590,14 @@
       c.clearRect(0, 0, S.W, S.H); c.fillStyle = S.bg; c.fillRect(0, 0, S.W, S.H);
       S.layers.forEach(l => {
         const st = state(l, t); if (!st) return;
-        c.save(); c.globalAlpha = Math.max(0, Math.min(1, st.alpha));
+        c.save(); c.globalAlpha = Math.max(0, Math.min(1, st.alpha * (l.opacity == null ? 1 : l.opacity)));
         if (l.anim.in === 'blur' && st.p < 1) c.filter = 'blur(' + ((1 - st.p) * 18).toFixed(1) + 'px)';
         c.translate(l.x + st.dx, l.y + st.dy); c.rotate(st.rot + (l.rotation || 0)); c.scale(st.sc, st.sc);
         if (l.type === 'image' && l.img) c.drawImage(l.img, -l.w / 2, -l.h / 2, l.w, l.h);
         else if (l.type === 'text') {
           let txt = l.text || '';
           if (l.anim.in === 'typewriter' && st.p < 1) { const n = Math.max(0, Math.ceil(st.p * txt.length)); txt = txt.slice(0, n) + (n < txt.length ? '|' : ''); }
-          c.font = '700 ' + l.size + 'px Arial, sans-serif'; c.fillStyle = l.color; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, 0, 0);
+          c.font = "700 " + l.size + "px '" + (l.font || 'Arial') + "', Arial, sans-serif"; c.fillStyle = l.color; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(txt, 0, 0);
         }
         c.restore();
       });
@@ -1593,6 +1612,12 @@
           c.fillRect(l.x + b.w / 2 - hs / 2, l.y + b.h / 2 - hs / 2, hs, hs); // resize handle (bottom-right)
           c.restore();
         }
+      }
+      if (showSel && (snapV || snapH)) {
+        c.save(); c.strokeStyle = '#ec4899'; c.lineWidth = 1; c.setLineDash([5, 5]);
+        if (snapV) { c.beginPath(); c.moveTo(S.W / 2, 0); c.lineTo(S.W / 2, S.H); c.stroke(); }
+        if (snapH) { c.beginPath(); c.moveTo(0, S.H / 2); c.lineTo(S.W, S.H / 2); c.stroke(); }
+        c.restore();
       }
     }
     function drawStatic() { if (!playing) drawScene(ctx, S.duration, true); }
@@ -1654,18 +1679,28 @@
       qa('[data-bwd]', ls).forEach(b => b.addEventListener('click', () => moveLayer(+b.dataset.bwd, -1)));
       qa('[data-del]', ls).forEach(b => b.addEventListener('click', () => { const id = +b.dataset.del; S.layers = S.layers.filter(x => x.id !== id); if (S.sel === id) S.sel = S.layers.length ? S.layers[S.layers.length - 1].id : null; renderLayers(); renderPanel(); drawStatic(); }));
     }
+    function dupLayer(id) {
+      const l = S.layers.find(x => x.id === id); if (!l) return;
+      const c = Object.assign({}, l); c.anim = Object.assign({}, l.anim); c.id = uid++; c.x += 24; c.y += 24;
+      S.layers.push(c); S.sel = c.id; refresh();
+    }
     function renderPanel() {
       const p = q('#panel', root), l = S.layers.find(x => x.id === S.sel);
       if (!l) { p.innerHTML = ''; return; }
       const opt = (arr, v) => arr.map(o => '<option value="' + o[0] + '"' + (o[0] === v ? ' selected' : '') + '>' + o[1] + '</option>').join('');
+      const fontOpts = GIF_FONTS.map(f => '<option value="' + f + '"' + (f === (l.font || 'Arial') ? ' selected' : '') + ' style="font-family:\'' + f + '\'">' + f + '</option>').join('');
+      const op = Math.round((l.opacity == null ? 1 : l.opacity) * 100);
       p.innerHTML =
         '<div style="border:1px solid var(--border);border-radius:12px;padding:14px">' +
-        '<div class="field__label mb-2">Selected element</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="field__label" style="margin:0">Selected element</span>' +
+          '<span><button class="btn btn--ghost btn--sm" data-dup title="Duplicate" style="padding:3px 9px">⧉ Duplicate</button> <button class="btn btn--ghost btn--sm" data-del2 title="Delete" style="padding:3px 9px;color:var(--danger)">Delete</button></span></div>' +
         (l.type === 'text'
           ? '<div class="field"><input class="input" data-p="text" value="' + esc(l.text) + '" placeholder="Text"></div>' +
-            '<div class="row"><div class="field"><label class="field__label">Size</label><input class="input" type="number" data-p="size" value="' + l.size + '" min="10" max="300"></div>' +
+            '<label class="field__label">Font</label><select class="select" data-p="font" style="font-family:\'' + (l.font || 'Arial') + '\'">' + fontOpts + '</select>' +
+            '<div class="row mt-2"><div class="field"><label class="field__label">Size</label><input class="input" type="number" data-p="size" value="' + l.size + '" min="10" max="400"></div>' +
             '<div class="field"><label class="field__label">Color</label><input type="color" data-p="color" value="' + l.color + '" style="width:100%;height:38px;border:1px solid var(--border);border-radius:8px;background:none"></div></div>'
           : '<label class="field__label">Size: <b data-sv>' + Math.round(l.scale * 100) + '</b>%</label><input type="range" data-p="scale" min="10" max="300" value="' + Math.round(l.scale * 100) + '" style="width:100%">') +
+        '<label class="field__label mt-4">Opacity: <b data-ov>' + op + '</b>%</label><input type="range" data-p="opacity" min="0" max="100" value="' + op + '" style="width:100%">' +
         '<label class="field__label mt-4">Entrance</label><select class="select" data-p="in">' + opt(IN, l.anim.in) + '</select>' +
         '<label class="field__label mt-4">Continuous motion</label><select class="select" data-p="loop">' + opt(LP, l.anim.loop) + '</select>' +
         '<label class="field__label mt-4">Start delay: <b data-dv>' + l.anim.delay + '</b>ms</label><input type="range" data-p="delay" min="0" max="4000" step="100" value="' + l.anim.delay + '" style="width:100%">' +
@@ -1675,9 +1710,11 @@
       qa('[data-p]', p).forEach(inp => inp.addEventListener('input', () => {
         const k = inp.dataset.p, v = inp.value;
         if (k === 'text') l.text = v;
+        else if (k === 'font') { l.font = v; inp.style.fontFamily = "'" + v + "'"; loadWebFont(v).then(drawStatic); }
         else if (k === 'size') l.size = +v || 40;
         else if (k === 'color') l.color = v;
         else if (k === 'scale') { l.scale = (+v) / 100; const sv = q('[data-sv]', p); if (sv) sv.textContent = v; }
+        else if (k === 'opacity') { l.opacity = (+v) / 100; const ov = q('[data-ov]', p); if (ov) ov.textContent = v; }
         else if (k === 'in') l.anim.in = v;
         else if (k === 'loop') l.anim.loop = v;
         else if (k === 'delay') { l.anim.delay = +v; const dv = q('[data-dv]', p); if (dv) dv.textContent = v; }
@@ -1685,11 +1722,13 @@
         else if (k === 'rot') { l.rotation = (+v) * Math.PI / 180; const rv = q('[data-rv]', p); if (rv) rv.textContent = v; }
         drawStatic();
       }));
+      const dup = q('[data-dup]', p); if (dup) dup.addEventListener('click', () => dupLayer(l.id));
+      const del = q('[data-del2]', p); if (del) del.addEventListener('click', () => { S.layers = S.layers.filter(x => x.id !== l.id); S.sel = S.layers.length ? S.layers[S.layers.length - 1].id : null; refresh(); });
     }
     function refresh() { renderLayers(); renderPanel(); drawStatic(); }
 
     /* ---- add layers ---- */
-    function addText() { S.layers.push({ id: uid++, type: 'text', text: 'Your Text', color: '#ffffff', size: 56, x: S.W / 2, y: S.H / 2, scale: 1, rotation: 0, anim: { in: 'fade', delay: 0, dur: 600, loop: 'none', speed: 1 } }); S.sel = S.layers[S.layers.length - 1].id; refresh(); }
+    function addText() { S.layers.push({ id: uid++, type: 'text', text: 'Your Text', color: '#ffffff', size: 56, font: 'Poppins', opacity: 1, x: S.W / 2, y: S.H / 2, scale: 1, rotation: 0, anim: { in: 'fade', delay: 0, dur: 600, loop: 'none', speed: 1 } }); S.sel = S.layers[S.layers.length - 1].id; refresh(); loadWebFont('Poppins').then(drawStatic); }
     q('#addTxt', root).addEventListener('click', addText);
     q('#addImg', root).addEventListener('click', () => q('#imgFile', root).click());
     q('#imgFile', root).addEventListener('change', async e => {
@@ -1699,7 +1738,7 @@
         try {
           const im = await loadImageFile(f);
           const base = Math.min(S.W, S.H) * 0.35, s = base / Math.max(im.naturalWidth, im.naturalHeight);
-          S.layers.push({ id: uid++, type: 'image', img: im, w: im.naturalWidth * s, h: im.naturalHeight * s, x: S.W / 2 + (n * 30) % 120 - 60, y: S.H / 2 + (n * 24) % 100 - 50, scale: 1, rotation: 0, anim: { in: ['pop', 'fade', 'slideB', 'spin'][n % 4], delay: n * 250, dur: 600, loop: 'float', speed: 1 } });
+          S.layers.push({ id: uid++, type: 'image', img: im, w: im.naturalWidth * s, h: im.naturalHeight * s, opacity: 1, x: S.W / 2 + (n * 30) % 120 - 60, y: S.H / 2 + (n * 24) % 100 - 50, scale: 1, rotation: 0, anim: { in: ['pop', 'fade', 'slideB', 'spin'][n % 4], delay: n * 250, dur: 600, loop: 'float', speed: 1 } });
           S.sel = S.layers[S.layers.length - 1].id; n++;
         } catch (err) { /* skip */ }
       }
@@ -1729,10 +1768,16 @@
       if (drag.mode === 'resize') {
         const d = Math.max(1, Math.hypot(m.x - drag.l.x, m.y - drag.l.y));
         drag.l.scale = Math.max(0.1, Math.min(6, drag.startScale * (d / drag.startDist)));
-      } else { drag.l.x = Math.round(m.x - drag.ox); drag.l.y = Math.round(m.y - drag.oy); }
+      } else {
+        let nx = Math.round(m.x - drag.ox), ny = Math.round(m.y - drag.oy);
+        const th = Math.max(6, S.W * 0.012);
+        snapV = Math.abs(nx - S.W / 2) < th; if (snapV) nx = Math.round(S.W / 2);
+        snapH = Math.abs(ny - S.H / 2) < th; if (snapH) ny = Math.round(S.H / 2);
+        drag.l.x = nx; drag.l.y = ny;
+      }
       drawStatic();
     });
-    cv.addEventListener('pointerup', () => { if (drag && drag.mode === 'resize') renderPanel(); drag = null; cv.style.cursor = 'grab'; });
+    cv.addEventListener('pointerup', () => { if (drag && drag.mode === 'resize') renderPanel(); drag = null; snapV = false; snapH = false; cv.style.cursor = 'grab'; drawStatic(); });
 
     /* ---- controls ---- */
     qa('[data-size]', root).forEach(b => b.addEventListener('click', () => { const [w, h] = b.dataset.size.split(',').map(Number); setSize(w, h); S.layers.forEach(l => { l.x = Math.min(l.x, w); l.y = Math.min(l.y, h); }); drawStatic(); }));
@@ -1749,6 +1794,9 @@
       btn.disabled = true; prog.textContent = 'Loading encoder…';
       try {
         await loadGifenc();
+        // Ensure every text font is loaded before rasterising frames.
+        await Promise.all(S.layers.filter(l => l.type === 'text' && l.font).map(l => loadWebFont(l.font)));
+        try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
         const { GIFEncoder, quantize, applyPalette } = window.gifenc;
         const frames = Math.max(2, Math.min(120, Math.round(S.duration / 1000 * S.fps)));
         const delay = Math.round(1000 / S.fps), repeat = S.loop ? 0 : -1;
@@ -1777,7 +1825,7 @@
     /* ---- preset templates ---- */
     function loadPreset(name) {
       stop();
-      const T = (text, color, size, x, y, anim) => ({ id: uid++, type: 'text', text, color, size, x, y, scale: 1, rotation: 0, anim });
+      const T = (text, color, size, x, y, anim) => ({ id: uid++, type: 'text', text, color, size, font: 'Poppins', opacity: 1, x, y, scale: 1, rotation: 0, anim });
       if (name === 'blank') { S.bg = '#0d1117'; S.duration = 2600; S.layers = []; S.sel = null; setSize(600, 600); }
       else if (name === 'social') {
         S.bg = '#111827'; S.duration = 3000; setSize(540, 960);
@@ -1800,15 +1848,15 @@
       }
       S.sel = S.layers.length ? S.layers[0].id : null;
       q('#dur', root).value = S.duration; q('#bg', root).value = S.bg;
-      refresh();
+      refresh(); loadWebFont('Poppins').then(drawStatic);
     }
     qa('[data-tpl]', root).forEach(b => b.addEventListener('click', () => loadPreset(b.dataset.tpl)));
 
     /* ---- seed a starter scene ---- */
     setSize(600, 600);
-    S.layers.push({ id: uid++, type: 'text', text: 'Your Title', color: '#ffffff', size: 66, x: 300, y: 300, scale: 1, rotation: 0, anim: { in: 'pop', delay: 200, dur: 700, loop: 'float', speed: 1 } });
+    S.layers.push({ id: uid++, type: 'text', text: 'Your Title', color: '#ffffff', size: 66, font: 'Poppins', opacity: 1, x: 300, y: 300, scale: 1, rotation: 0, anim: { in: 'pop', delay: 200, dur: 700, loop: 'float', speed: 1 } });
     S.sel = S.layers[0].id;
-    refresh();
+    refresh(); loadWebFont('Poppins').then(drawStatic);
   });
 
   // PDF-category engines (merge, split, jpg-to-pdf, watermark, …) live in
