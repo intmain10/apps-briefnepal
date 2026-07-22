@@ -187,10 +187,12 @@ function cardly_og_render(string $slug, array $card, string $dest): bool
     // Dark scrim so text and the avatar read clearly on any accent.
     $scrim = imagecolorallocatealpha($im, 8, 8, 14, 58);   // ~55% dark
     imagefilledrectangle($im, 0, 0, $W, $H, $scrim);
-    // Extra darkening toward the bottom for the footer/link.
-    for ($y = (int) ($H * 0.6); $y < $H; $y++) {
-        $t = ($y - $H * 0.6) / ($H * 0.4);
-        $a = (int) round(90 - $t * 70); // 90→20 (fades to more opaque)
+    // Extra darkening toward the bottom for the footer/link — ramped from fully
+    // transparent so it blends smoothly (no visible seam where it begins).
+    $ds = (int) ($H * 0.5);
+    for ($y = $ds; $y < $H; $y++) {
+        $t = ($y - $ds) / ($H - $ds);
+        $a = (int) round(127 - $t * $t * 92); // 127 (clear) → ~35 (opaque), eased
         imageline($im, 0, $y, $W, $y, imagecolorallocatealpha($im, 6, 6, 12, max(0, $a)));
     }
 
@@ -294,9 +296,22 @@ function cardly_og_render(string $slug, array $card, string $dest): bool
     // ---- Footer: the card's access link, as a "glass" pill button ----
     $link = (string) preg_replace('~^https?://~', '', rtrim(cardly_link($slug), '/'));
     $lsz  = 25.0;
-    $lw   = cardly_og_text_w($lsz, $fBold, $link);
     $padL = 32; $dotR = 7; $gap = 18; $padR = 34; $pillH = 64;
     $px1 = $tx;
+    // The pill must never exceed the canvas — cap its width and fit the link by
+    // shrinking, then ellipsising, so a long slug can't clip off the edge.
+    $pillMaxRight = $W - 70;
+    $textMaxW = $pillMaxRight - $px1 - $padL - $dotR * 2 - $gap - $padR;
+    while ($lsz > 20 && cardly_og_text_w($lsz, $fBold, $link) > $textMaxW) {
+        $lsz -= 1;
+    }
+    if (cardly_og_text_w($lsz, $fBold, $link) > $textMaxW) {
+        while ($link !== '' && cardly_og_text_w($lsz, $fBold, $link . '…') > $textMaxW) {
+            $link = mb_substr($link, 0, -1);
+        }
+        $link = rtrim($link, '/-') . '…';
+    }
+    $lw  = cardly_og_text_w($lsz, $fBold, $link);
     $py2 = $H - 34;
     $py1 = $py2 - $pillH;
     $px2 = $px1 + $padL + $dotR * 2 + $gap + $lw + $padR;
