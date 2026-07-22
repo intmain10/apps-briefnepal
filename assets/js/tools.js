@@ -1339,6 +1339,16 @@
     const w = img.naturalWidth * s, h = img.naturalHeight * s;
     ctx.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
   }
+  // Persistent 64px thumbnail (loadImageFile revokes the object URL, so we
+  // can't reuse img.src in a new <img>).
+  function gifThumb(img) {
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const x = c.getContext('2d');
+    const s = Math.max(64 / img.naturalWidth, 64 / img.naturalHeight);
+    const w = img.naturalWidth * s, h = img.naturalHeight * s;
+    x.drawImage(img, (64 - w) / 2, (64 - h) / 2, w, h);
+    return c.toDataURL('image/jpeg', 0.75);
+  }
   function gifDrawCover(ctx, img, W, H, zoom, panX) {
     const s = Math.max(W / img.naturalWidth, H / img.naturalHeight) * (zoom || 1);
     const w = img.naturalWidth * s, h = img.naturalHeight * s;
@@ -1397,12 +1407,12 @@
         <div id="prog" class="muted mt-2" aria-live="polite"></div>
       </div>
       <div id="result" class="mt-4"></div>`;
-    const imgs = [];
+    const imgs = [], thumbs = [];
     makeDropzone(q('#drop', root), { accept: 'image/*', multiple: true, hint: 'One image → animate it with an effect · Several images → a slideshow. Processed locally.', onFiles: addFiles });
     async function addFiles(fl) {
       for (const f of fl) {
         if (!f.type || f.type.indexOf('image/') !== 0) continue;
-        try { imgs.push(await loadImageFile(f)); } catch (e) { /* skip */ }
+        try { const im = await loadImageFile(f); imgs.push(im); thumbs.push(gifThumb(im)); } catch (e) { /* skip */ }
       }
       if (!imgs.length) return;
       q('#opts', root).classList.remove('hidden');
@@ -1413,10 +1423,10 @@
       q('#fx', root).classList.toggle('hidden', !single);       // effects only for 1 image
       q('#delaywrap', root).style.display = single ? 'none' : ''; // per-frame delay only for slideshow
       q('#frames', root).innerHTML = imgs.map((im, i) =>
-        `<div style="position:relative"><img src="${im.src}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><button data-rm="${i}" title="Remove" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--danger);color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1">✕</button></div>`
+        `<div style="position:relative"><img src="${thumbs[i]}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><button data-rm="${i}" title="Remove" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--danger);color:#fff;border:none;cursor:pointer;font-size:11px;line-height:1">✕</button></div>`
       ).join('') + `<span class="muted" style="align-self:center;font-size:13px">${imgs.length} image${single ? '' : 's'}</span>`;
       qa('[data-rm]', root).forEach(b => b.addEventListener('click', () => {
-        imgs.splice(+b.dataset.rm, 1);
+        const idx = +b.dataset.rm; imgs.splice(idx, 1); thumbs.splice(idx, 1);
         if (!imgs.length) q('#opts', root).classList.add('hidden'); else renderFrames();
       }));
     }
