@@ -11,8 +11,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/functions.php';
-require_once __DIR__ . '/analytics.php';
-analytics_track_pageview();
 
 $page = $page ?? [];
 $pageTitle       = $page['title']       ?? SITE_NAME . ' — ' . SITE_TAGLINE;

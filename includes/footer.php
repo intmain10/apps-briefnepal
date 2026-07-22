@@ -90,6 +90,8 @@ $bare = !empty($page['bare']);
 <?php endif; /* !bare */ ?>
 
 <script>window.OMNITOOLS_BASE = <?= json_html(SITE_URL) ?>;</script>
+<script>/* privacy-first analytics beacon (no cookies) */
+(function(){try{var p=location.pathname||'/';if(/^\/(dashboard|admin|api|assets|uploads|analytics)/.test(p))return;var u='/api/track.php?p='+encodeURIComponent(p);if(navigator.sendBeacon){navigator.sendBeacon(u);}else{fetch(u,{method:'POST',keepalive:true,cache:'no-store'});}}catch(e){}})();</script>
 <?php if (cardly_is_host()): /* Register the Cardly PWA service worker */ ?>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){});});}</script>
 <?php endif; ?>

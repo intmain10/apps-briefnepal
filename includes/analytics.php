@@ -21,25 +21,33 @@ function analytics_dir(): string
     return $dir;
 }
 
-/** Record the current pageview (call once per HTML page render). */
+/** Low-level: append one pageview (host + path), skipping bots + internal paths. */
+function analytics_log(string $host, string $path): void
+{
+    $path = strtok($path, '?') ?: '';
+    if ($path === '' || $path[0] !== '/') {
+        return;
+    }
+    $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    // Skip bots, crawlers, previews and headless screenshots.
+    if ($ua === '' || preg_match('/bot|crawl|spider|slurp|bing|google|yandex|duckduck|facebookexternal|embedly|preview|monitor|curl|wget|python|headless|lighthouse|pingdom|uptime/i', $ua)) {
+        return;
+    }
+    if (preg_match('#^/(dashboard|admin|api|assets|uploads|analytics)\b#', $path)) {
+        return;
+    }
+    $host = strtolower($host);
+    $line = gmdate('H:i:s') . "\t" . $host . "\t" . mb_substr($path, 0, 200) . "\n";
+    @file_put_contents(analytics_dir() . '/' . gmdate('Y-m-d') . '.log', $line, FILE_APPEND | LOCK_EX);
+}
+
+/** Record the current server request as a pageview (server-side fallback). */
 function analytics_track_pageview(): void
 {
     if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
         return;
     }
-    $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
-    // Skip bots, crawlers, previews and our own headless screenshots.
-    if ($ua === '' || preg_match('/bot|crawl|spider|slurp|bing|google|yandex|duckduck|facebookexternal|embedly|preview|monitor|curl|wget|python|headless|lighthouse|pingdom|uptime/i', $ua)) {
-        return;
-    }
-    $host = strtolower($_SERVER['HTTP_HOST'] ?? '');
-    $path = strtok((string) ($_SERVER['REQUEST_URI'] ?? '/'), '?') ?: '/';
-    // Don't track internal/tooling paths.
-    if (preg_match('#^/(dashboard|admin|api|assets|uploads|analytics)\b#', $path)) {
-        return;
-    }
-    $line = gmdate('H:i:s') . "\t" . $host . "\t" . $path . "\n";
-    @file_put_contents(analytics_dir() . '/' . gmdate('Y-m-d') . '.log', $line, FILE_APPEND | LOCK_EX);
+    analytics_log($_SERVER['HTTP_HOST'] ?? '', (string) ($_SERVER['REQUEST_URI'] ?? '/'));
 }
 
 /**
