@@ -24,7 +24,7 @@ if (is_file(__DIR__ . '/config.local.php')) {
 /* -------------------------------------------------------------------------
  * Environment
  * ---------------------------------------------------------------------- */
-define('OMNITOOLS_VERSION', '1.9.6');
+define('OMNITOOLS_VERSION', '1.10.0');
 
 // Toggle to false on production to hide detailed PHP errors.
 if (!defined('DEBUG_MODE')) define('DEBUG_MODE', false);
@@ -81,6 +81,10 @@ if (!defined('DB_CHARSET')) define('DB_CHARSET', 'utf8mb4');
 // ⚠ Do NOT change this once Cardly cards exist — it would invalidate every
 //   existing Cardly edit link (tokens are hashed with APP_SECRET).
 if (!defined('APP_SECRET')) define('APP_SECRET', 'change-this-to-a-64-char-random-string-before-going-live-omnitools');
+
+// Password (bcrypt hash) for the private analytics dashboard (/dashboard.php).
+// Override in config.local.php to change it: define('DASHBOARD_PASS_HASH', password_hash('yourpass', PASSWORD_DEFAULT));
+if (!defined('DASHBOARD_PASS_HASH')) define('DASHBOARD_PASS_HASH', '$2y$12$jz87CO8S6J79nE8D/6QLSuFflnaGfWzpRJSPFezx.Vc6bPYsWohsO');
 
 // Default admin credentials (used to seed the DB). Change after first login.
 define('DEFAULT_ADMIN_EMAIL', 'admin@omnitools.local');
