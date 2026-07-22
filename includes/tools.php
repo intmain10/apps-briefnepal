@@ -115,6 +115,7 @@ function omnitools_tools(): array
     $t('image-converter', 'image', 'Image Converter', 'Convert between PNG, JPG, WebP and BMP in one place.', ['popular'], 'change format image');
     $t('image-to-gif', 'image', 'Image to GIF', 'Animate a single image (zoom, pan, pulse, fade) or combine multiple images (JPG, PNG, WebP) into an animated GIF — on device.', ['new'], 'jpg png webp to gif animated gif maker ken burns zoom pan photos slideshow');
     $t('image-to-base64', 'image', 'Image to Base64', 'Encode an image into a Base64 data URI for CSS/HTML.', [], 'data uri encode inline');
+    $t('gif-animation-studio', 'image', 'GIF Animation Studio', 'Compose images, icons and text on a canvas, animate each element independently (slide, fade, pop, spin, float, pulse) and export an animated GIF.', ['new'], 'motion graphics animation studio animated gif maker layers logo intro title');
 
     /* -------------------------------------------------------------- Video */
     $t('video-metadata', 'video', 'Video Metadata Viewer', 'View resolution, duration, aspect ratio and more from a video file.', [], 'inspect video info duration');

@@ -1492,6 +1492,216 @@
     });
   });
 
+  /* ---- GIF Animation Studio: layered, per-element animation → GIF -------- */
+  function easeOutCubic(p) { return 1 - Math.pow(1 - p, 3); }
+  function easeOutBack(p) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); }
+
+  reg('gif-animation-studio', root => {
+    const S = { W: 600, H: 600, bg: '#0d1117', duration: 2600, fps: 15, loop: true, layers: [], sel: null };
+    let uid = 1, playing = false, rafId = 0, startT = 0, drag = null;
+    const IN = [['none', 'None'], ['fade', 'Fade in'], ['slideL', 'Slide ← left'], ['slideR', 'Slide → right'], ['slideT', 'Slide ↑ top'], ['slideB', 'Slide ↓ bottom'], ['pop', 'Pop'], ['spin', 'Spin in']];
+    const LP = [['none', 'None'], ['float', 'Float'], ['pulse', 'Pulse'], ['spin', 'Spin'], ['bounce', 'Bounce']];
+
+    root.innerHTML =
+      '<div class="row" style="gap:18px;align-items:flex-start;flex-wrap:wrap">' +
+        '<div style="flex:1 1 320px;min-width:290px">' +
+          '<div class="btn-row mb-2" style="flex-wrap:wrap;gap:6px">' +
+            '<button class="btn btn--ghost btn--sm" data-size="600,600">Square</button>' +
+            '<button class="btn btn--ghost btn--sm" data-size="540,960">Story 9:16</button>' +
+            '<button class="btn btn--ghost btn--sm" data-size="800,450">Wide 16:9</button>' +
+            '<label class="chip" style="display:inline-flex;gap:6px;align-items:center">BG&nbsp;<input type="color" id="bg" value="#0d1117" style="width:32px;height:24px;border:none;background:none;padding:0"></label>' +
+          '</div>' +
+          '<canvas id="cv" style="width:100%;max-width:520px;display:block;margin:0 auto;background:#000;border-radius:12px;border:1px solid var(--border);touch-action:none;cursor:grab"></canvas>' +
+          '<div class="btn-row mt-2" style="justify-content:center;gap:10px;flex-wrap:wrap">' +
+            '<button class="btn btn--ghost btn--sm" id="play">▶ Play</button>' +
+            '<span class="muted" style="font-size:13px;display:inline-flex;align-items:center;gap:5px">Length <input id="dur" type="number" min="500" max="12000" step="100" value="2600" class="input" style="width:80px;padding:6px"> ms</span>' +
+            '<label class="chip" style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" id="loop" checked> Loop</label>' +
+          '</div>' +
+        '</div>' +
+        '<div style="flex:1 1 300px;min-width:270px">' +
+          '<div class="btn-row mb-3"><button class="btn btn--primary btn--sm" id="addImg">+ Image / Icon</button><button class="btn btn--ghost btn--sm" id="addTxt">+ Text</button><input type="file" id="imgFile" accept="image/*" hidden multiple></div>' +
+          '<div id="layers" class="mb-2"></div>' +
+          '<div id="panel"></div>' +
+          '<div class="btn-row mt-4"><button class="btn btn--primary" id="export">🎞 Export GIF</button></div>' +
+          '<div id="prog" class="muted mt-2" aria-live="polite"></div>' +
+          '<div id="result" class="mt-3"></div>' +
+        '</div>' +
+      '</div>';
+
+    const cv = q('#cv', root), ctx = cv.getContext('2d');
+    function setSize(w, h) { S.W = w; S.H = h; cv.width = w; cv.height = h; drawStatic(); }
+
+    function layerBox(l) {
+      if (l.type === 'image') return { w: l.w * l.scale, h: l.h * l.scale };
+      ctx.font = '700 ' + l.size + 'px Arial, sans-serif';
+      return { w: Math.max(20, ctx.measureText(l.text || '').width) * l.scale, h: l.size * 1.25 * l.scale };
+    }
+    function state(l, t) {
+      const a = l.anim; if (t < a.delay) return null;
+      let alpha = 1, dx = 0, dy = 0, sc = l.scale, rot = 0;
+      const p = Math.min(1, (t - a.delay) / (a.dur || 1)), e = easeOutCubic(p);
+      if (a.in === 'fade') alpha = p;
+      else if (a.in === 'slideL') { dx = -(1 - e) * S.W * 0.6; alpha = Math.min(1, p * 1.5); }
+      else if (a.in === 'slideR') { dx = (1 - e) * S.W * 0.6; alpha = Math.min(1, p * 1.5); }
+      else if (a.in === 'slideT') { dy = -(1 - e) * S.H * 0.6; alpha = Math.min(1, p * 1.5); }
+      else if (a.in === 'slideB') { dy = (1 - e) * S.H * 0.6; alpha = Math.min(1, p * 1.5); }
+      else if (a.in === 'pop') { sc = l.scale * easeOutBack(p); alpha = Math.min(1, p * 2); }
+      else if (a.in === 'spin') { rot = (1 - e) * Math.PI * 1.5; sc = l.scale * e; alpha = Math.min(1, p * 2); }
+      if (p >= 1 && a.loop && a.loop !== 'none') {
+        const tt = t / S.duration, ph = tt * Math.PI * 2 * 2;
+        if (a.loop === 'float') dy += Math.sin(ph) * S.H * 0.02;
+        else if (a.loop === 'pulse') sc *= 1 + 0.06 * Math.sin(ph);
+        else if (a.loop === 'spin') rot += tt * Math.PI * 2;
+        else if (a.loop === 'bounce') dy -= Math.abs(Math.sin(ph)) * S.H * 0.03;
+      }
+      return { alpha, dx, dy, sc, rot };
+    }
+    function drawScene(c, t, showSel) {
+      c.clearRect(0, 0, S.W, S.H); c.fillStyle = S.bg; c.fillRect(0, 0, S.W, S.H);
+      S.layers.forEach(l => {
+        const st = state(l, t); if (!st) return;
+        c.save(); c.globalAlpha = Math.max(0, Math.min(1, st.alpha));
+        c.translate(l.x + st.dx, l.y + st.dy); c.rotate(st.rot); c.scale(st.sc, st.sc);
+        if (l.type === 'image' && l.img) c.drawImage(l.img, -l.w / 2, -l.h / 2, l.w, l.h);
+        else if (l.type === 'text') { c.font = '700 ' + l.size + 'px Arial, sans-serif'; c.fillStyle = l.color; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(l.text || '', 0, 0); }
+        c.restore();
+      });
+      if (showSel && S.sel) { const l = S.layers.find(x => x.id === S.sel); if (l) { const b = layerBox(l); c.save(); c.globalAlpha = 1; c.strokeStyle = '#3b82f6'; c.lineWidth = 2; c.setLineDash([6, 4]); c.strokeRect(l.x - b.w / 2, l.y - b.h / 2, b.w, b.h); c.restore(); } }
+    }
+    function drawStatic() { if (!playing) drawScene(ctx, S.duration, true); }
+
+    /* ---- play / stop ---- */
+    function stop() { playing = false; cancelAnimationFrame(rafId); q('#play', root).textContent = '▶ Play'; drawStatic(); }
+    function play() {
+      if (playing) return stop();
+      playing = true; q('#play', root).textContent = '⏸ Pause'; startT = performance.now();
+      (function loop() {
+        if (!playing) return;
+        const el = performance.now() - startT;
+        if (!S.loop && el >= S.duration) { drawScene(ctx, S.duration, false); return stop(); }
+        drawScene(ctx, el % S.duration, false); rafId = requestAnimationFrame(loop);
+      })();
+    }
+
+    /* ---- layer + panel UI ---- */
+    function renderLayers() {
+      const ls = q('#layers', root);
+      if (!S.layers.length) { ls.innerHTML = '<p class="muted" style="font-size:13px">No layers yet. Add an image/icon or text.</p>'; return; }
+      ls.innerHTML = S.layers.map((l, i) =>
+        '<div data-lyr="' + l.id + '" style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid ' + (l.id === S.sel ? 'var(--accent)' : 'var(--border)') + ';border-radius:10px;margin-bottom:6px;cursor:pointer">' +
+          '<span style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (l.type === 'image' ? '🖼 ' : '🔤 ') + esc(l.type === 'text' ? (l.text || 'Text') : ('Image ' + (i + 1))) + '</span>' +
+          '<button class="btn btn--ghost btn--sm" data-up="' + l.id + '" title="Bring forward" style="padding:2px 7px">↑</button>' +
+          '<button class="btn btn--ghost btn--sm" data-del="' + l.id + '" title="Delete" style="padding:2px 7px;color:var(--danger)">✕</button>' +
+        '</div>').join('');
+      qa('[data-lyr]', ls).forEach(el => el.addEventListener('click', e => { if (e.target.closest('[data-del],[data-up]')) return; S.sel = +el.dataset.lyr; renderLayers(); renderPanel(); drawStatic(); }));
+      qa('[data-del]', ls).forEach(b => b.addEventListener('click', () => { S.layers = S.layers.filter(x => x.id !== +b.dataset.del); if (S.sel === +b.dataset.del) S.sel = S.layers.length ? S.layers[S.layers.length - 1].id : null; renderLayers(); renderPanel(); drawStatic(); }));
+      qa('[data-up]', ls).forEach(b => b.addEventListener('click', () => { const i = S.layers.findIndex(x => x.id === +b.dataset.up); if (i > -1 && i < S.layers.length - 1) { const [x] = S.layers.splice(i, 1); S.layers.push(x); renderLayers(); drawStatic(); } }));
+    }
+    function renderPanel() {
+      const p = q('#panel', root), l = S.layers.find(x => x.id === S.sel);
+      if (!l) { p.innerHTML = ''; return; }
+      const opt = (arr, v) => arr.map(o => '<option value="' + o[0] + '"' + (o[0] === v ? ' selected' : '') + '>' + o[1] + '</option>').join('');
+      p.innerHTML =
+        '<div style="border:1px solid var(--border);border-radius:12px;padding:14px">' +
+        '<div class="field__label mb-2">Selected element</div>' +
+        (l.type === 'text'
+          ? '<div class="field"><input class="input" data-p="text" value="' + esc(l.text) + '" placeholder="Text"></div>' +
+            '<div class="row"><div class="field"><label class="field__label">Size</label><input class="input" type="number" data-p="size" value="' + l.size + '" min="10" max="300"></div>' +
+            '<div class="field"><label class="field__label">Color</label><input type="color" data-p="color" value="' + l.color + '" style="width:100%;height:38px;border:1px solid var(--border);border-radius:8px;background:none"></div></div>'
+          : '<label class="field__label">Size: <b data-sv>' + Math.round(l.scale * 100) + '</b>%</label><input type="range" data-p="scale" min="10" max="300" value="' + Math.round(l.scale * 100) + '" style="width:100%">') +
+        '<label class="field__label mt-4">Entrance</label><select class="select" data-p="in">' + opt(IN, l.anim.in) + '</select>' +
+        '<label class="field__label mt-4">Continuous motion</label><select class="select" data-p="loop">' + opt(LP, l.anim.loop) + '</select>' +
+        '<label class="field__label mt-4">Start delay: <b data-dv>' + l.anim.delay + '</b>ms</label><input type="range" data-p="delay" min="0" max="4000" step="100" value="' + l.anim.delay + '" style="width:100%">' +
+        '</div>';
+      qa('[data-p]', p).forEach(inp => inp.addEventListener('input', () => {
+        const k = inp.dataset.p, v = inp.value;
+        if (k === 'text') l.text = v;
+        else if (k === 'size') l.size = +v || 40;
+        else if (k === 'color') l.color = v;
+        else if (k === 'scale') { l.scale = (+v) / 100; const sv = q('[data-sv]', p); if (sv) sv.textContent = v; }
+        else if (k === 'in') l.anim.in = v;
+        else if (k === 'loop') l.anim.loop = v;
+        else if (k === 'delay') { l.anim.delay = +v; const dv = q('[data-dv]', p); if (dv) dv.textContent = v; }
+        drawStatic();
+      }));
+    }
+    function refresh() { renderLayers(); renderPanel(); drawStatic(); }
+
+    /* ---- add layers ---- */
+    function addText() { S.layers.push({ id: uid++, type: 'text', text: 'Your Text', color: '#ffffff', size: 56, x: S.W / 2, y: S.H / 2, scale: 1, anim: { in: 'fade', delay: 0, dur: 600, loop: 'none' } }); S.sel = S.layers[S.layers.length - 1].id; refresh(); }
+    q('#addTxt', root).addEventListener('click', addText);
+    q('#addImg', root).addEventListener('click', () => q('#imgFile', root).click());
+    q('#imgFile', root).addEventListener('change', async e => {
+      let n = 0;
+      for (const f of e.target.files) {
+        if (!f.type || f.type.indexOf('image/') !== 0) continue;
+        try {
+          const im = await loadImageFile(f);
+          const base = Math.min(S.W, S.H) * 0.35, s = base / Math.max(im.naturalWidth, im.naturalHeight);
+          S.layers.push({ id: uid++, type: 'image', img: im, w: im.naturalWidth * s, h: im.naturalHeight * s, x: S.W / 2 + (n * 30) % 120 - 60, y: S.H / 2 + (n * 24) % 100 - 50, scale: 1, anim: { in: ['pop', 'fade', 'slideB', 'spin'][n % 4], delay: n * 250, dur: 600, loop: 'float' } });
+          S.sel = S.layers[S.layers.length - 1].id; n++;
+        } catch (err) { /* skip */ }
+      }
+      e.target.value = ''; refresh();
+    });
+
+    /* ---- drag to position ---- */
+    function pt(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * (S.W / r.width), y: (e.clientY - r.top) * (S.H / r.height) }; }
+    cv.addEventListener('pointerdown', e => {
+      const m = pt(e);
+      for (let i = S.layers.length - 1; i >= 0; i--) { const l = S.layers[i], b = layerBox(l); if (m.x >= l.x - b.w / 2 && m.x <= l.x + b.w / 2 && m.y >= l.y - b.h / 2 && m.y <= l.y + b.h / 2) { S.sel = l.id; drag = { l, ox: m.x - l.x, oy: m.y - l.y }; cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing'; renderLayers(); renderPanel(); drawStatic(); return; } }
+      S.sel = null; renderLayers(); renderPanel(); drawStatic();
+    });
+    cv.addEventListener('pointermove', e => { if (!drag) return; const m = pt(e); drag.l.x = Math.round(m.x - drag.ox); drag.l.y = Math.round(m.y - drag.oy); drawStatic(); });
+    cv.addEventListener('pointerup', () => { drag = null; cv.style.cursor = 'grab'; });
+
+    /* ---- controls ---- */
+    qa('[data-size]', root).forEach(b => b.addEventListener('click', () => { const [w, h] = b.dataset.size.split(',').map(Number); setSize(w, h); S.layers.forEach(l => { l.x = Math.min(l.x, w); l.y = Math.min(l.y, h); }); drawStatic(); }));
+    q('#bg', root).addEventListener('input', () => { S.bg = q('#bg', root).value; drawStatic(); });
+    q('#dur', root).addEventListener('input', () => { S.duration = Math.max(500, +q('#dur', root).value || 2600); });
+    q('#loop', root).addEventListener('change', () => { S.loop = q('#loop', root).checked; });
+    q('#play', root).addEventListener('click', play);
+
+    /* ---- export ---- */
+    q('#export', root).addEventListener('click', async () => {
+      if (!S.layers.length) { U.toast('Add an image or text first.'); return; }
+      stop();
+      const prog = q('#prog', root), btn = q('#export', root);
+      btn.disabled = true; prog.textContent = 'Loading encoder…';
+      try {
+        await loadGifenc();
+        const { GIFEncoder, quantize, applyPalette } = window.gifenc;
+        const frames = Math.max(2, Math.min(120, Math.round(S.duration / 1000 * S.fps)));
+        const delay = Math.round(1000 / S.fps), repeat = S.loop ? 0 : -1;
+        const oc = document.createElement('canvas'); oc.width = S.W; oc.height = S.H; const octx = oc.getContext('2d');
+        const gif = GIFEncoder();
+        for (let f = 0; f < frames; f++) {
+          prog.textContent = 'Rendering frame ' + (f + 1) + ' of ' + frames + '…';
+          await new Promise(r => setTimeout(r));
+          drawScene(octx, f / frames * S.duration, false);
+          const data = octx.getImageData(0, 0, S.W, S.H).data;
+          const palette = quantize(data, 256);
+          const index = applyPalette(data, palette);
+          gif.writeFrame(index, S.W, S.H, f === 0 ? { palette, delay, repeat } : { palette, delay });
+        }
+        gif.finish();
+        const blob = new Blob([gif.bytes()], { type: 'image/gif' });
+        const url = URL.createObjectURL(blob);
+        prog.textContent = '';
+        q('#result', root).innerHTML =
+          '<img src="' + url + '" alt="GIF" style="max-width:100%;max-height:320px;border-radius:12px;border:1px solid var(--border)" class="mb-2"><div class="muted mb-2">GIF · ' + S.W + '×' + S.H + ' · ' + frames + ' frames · ' + fmtBytes(blob.size) + '</div><div class="btn-row"><button class="btn btn--primary" id="dl">Download GIF</button></div>';
+        q('#dl', root).addEventListener('click', () => U.download('animation.gif', blob));
+      } catch (err) { prog.textContent = ''; U.toast('Could not export — try a shorter animation or smaller canvas.'); }
+      finally { btn.disabled = false; }
+    });
+
+    /* ---- seed a starter scene ---- */
+    setSize(600, 600);
+    S.layers.push({ id: uid++, type: 'text', text: 'Your Title', color: '#ffffff', size: 66, x: 300, y: 300, scale: 1, anim: { in: 'pop', delay: 200, dur: 700, loop: 'float' } });
+    S.sel = S.layers[0].id;
+    refresh();
+  });
+
   // PDF-category engines (merge, split, jpg-to-pdf, watermark, …) live in
   // assets/js/pdf-tools.js, which uses pdf-lib + pdf.js and is loaded only on
   // PDF tool pages.
