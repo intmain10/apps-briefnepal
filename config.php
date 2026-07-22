@@ -53,6 +53,9 @@ define('SITE_DOMAIN', 'apps.briefnepal.com');
 // Dedicated domain for Cardly (served from the same codebase via host-based
 // routing). Empty string = disabled (Cardly stays at /cardly on the main host).
 if (!defined('CARDLY_DOMAIN')) define('CARDLY_DOMAIN', getenv('CARDLY_DOMAIN') ?: 'cardly.briefnepal.com');
+// IndexNow key for instant search-engine indexing (Bing, Yandex, DuckDuckGo,
+// Seznam). The verification file <key>.txt must exist at each host's web root.
+if (!defined('INDEXNOW_KEY')) define('INDEXNOW_KEY', getenv('INDEXNOW_KEY') ?: 'fcc23e938a1598e4719afb6f56e20afc');
 define('SITE_EMAIL', 'hello@briefnepal.com');
 define('SITE_LOCALE', 'en_US');
 define('SITE_AUTHOR', 'OmniTools Team');

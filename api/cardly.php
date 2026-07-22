@@ -182,6 +182,11 @@ if ($action === 'save') {
     // the moment it is shared (best-effort; never blocks the save response).
     $card['slug'] = $slug;
     @cardly_og_render($slug, $card, cardly_og_path($slug));
+    // Ping IndexNow so search engines crawl the (published, discoverable) card
+    // within minutes. Skip drafts and opted-out cards.
+    if (!empty($card['published']) && ($card['discoverable'] ?? true)) {
+        cardly_indexnow_submit([cardly_link($slug)]);
+    }
     json_response(['ok' => true, 'viewUrl' => cardly_link($slug)]);
 }
 

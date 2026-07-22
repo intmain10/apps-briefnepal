@@ -37,22 +37,58 @@ $cta = cardly_cta($card);
 $shareImage = cardly_og_ensure($slug, $card)
     ?: ($card['cover'] ?: ($card['photo'] ?: url('assets/images/og-default.png')));
 
+// ---- SEO / GEO / AIO: make this the definitive result for the person's name.
+$tagline = trim((string) ($card['tagline'] ?? ''));
+$roles = cardly_og_roles($tagline);                 // ["Founder @X", "Product Architect", …]
+$jobTitle = $roles ? trim((string) preg_replace('~\s*@.*$~u', '', $roles[0])) : $tagline;
+// Company: "@Acme" or "… at Acme" in the tagline.
+$company = '';
+if (preg_match('~@\s*([A-Za-z0-9][\w .&\'-]{1,40})~u', $tagline, $m)) {
+    $company = trim((string) $m[1]);
+} elseif (preg_match('~\bat\s+([A-Z][\w .&\'-]{1,40})~u', $tagline, $m)) {
+    $company = trim((string) $m[1]);
+}
+$company = trim((string) preg_replace('~\s*[|/,•·].*$~u', '', $company));
+$location = trim((string) ($card['contact']['address'] ?? ''));
+
+// One clean factual sentence — what AI Overviews and rich snippets quote.
+$summary = $card['about'] ?: rtrim($name . ($tagline ? ' — ' . $tagline : '') . '.', '.') . '.'
+    . ' Save contact, connect and follow on ' . $name . '’s Cardly digital card.';
+
 $sameAs = array_values(array_filter($card['socials'] ?? []));
 if (!empty($card['contact']['website'])) $sameAs[] = $card['contact']['website'];
 
-$person = ['@type' => 'Person', '@id' => $cardUrl . '#person', 'name' => $name, 'url' => $cardUrl];
-if ($card['tagline']) $person['jobTitle'] = $card['tagline'];
-if ($card['about'])   $person['description'] = $card['about'];
-if ($card['photo'])   $person['image'] = $card['photo'];
+$person = [
+    '@type' => 'Person',
+    '@id' => $cardUrl . '#person',
+    'name' => $name,
+    'url' => $cardUrl,
+    'mainEntityOfPage' => $cardUrl,
+];
+if ($jobTitle) {
+    $person['jobTitle'] = $jobTitle;
+    $person['hasOccupation'] = ['@type' => 'Occupation', 'name' => $jobTitle];
+}
+if ($company)         $person['worksFor'] = ['@type' => 'Organization', 'name' => $company];
+$person['description'] = $summary;
+if ($card['photo'])   $person['image'] = ['@type' => 'ImageObject', 'url' => $card['photo']];
 if (!empty($card['contact']['email']))   $person['email'] = $card['contact']['email'];
 if (!empty($card['contact']['phone']))   $person['telephone'] = $card['contact']['phone'];
-if (!empty($card['contact']['address'])) $person['address'] = $card['contact']['address'];
+if ($location)        $person['address'] = ['@type' => 'PostalAddress', 'streetAddress' => $location];
 if (!empty($card['skills']))             $person['knowsAbout'] = array_values($card['skills']);
-if ($sameAs) $person['sameAs'] = array_values($sameAs);
+if ($sameAs)          $person['sameAs'] = array_values($sameAs);
+
+// Name-first, keyword-rich title (name is what a name query matches on).
+$title = $name
+    . ($jobTitle ? ' — ' . $jobTitle . ($company && stripos($jobTitle, $company) === false ? ' at ' . $company : '') : '')
+    . ' | Cardly';
+
+$mtime = date('c', isset($card['updatedAt']) ? (strtotime((string) $card['updatedAt']) ?: time()) : time());
+$ctime = date('c', isset($card['createdAt']) ? (strtotime((string) $card['createdAt']) ?: time()) : time());
 
 $page = [
-    'title'       => $name . ($card['tagline'] ? ' · ' . $card['tagline'] : '') . ' | Digital Card',
-    'description' => $card['about'] ?: ($name . ', digital business card. Save contact, connect and follow.'),
+    'title'       => $title,
+    'description' => mb_substr($summary, 0, 300),
     'canonical'   => $cardUrl,
     'og_type'     => 'profile',
     'image'       => $shareImage,
@@ -64,12 +100,24 @@ $page = [
         || (array_key_exists('discoverable', $card) && $card['discoverable'] === false),
     'cardly_js'   => 'cardly-view.js',
     'body_class'  => 'cardly-page',
-    'jsonld'      => [[
-        '@context'     => 'https://schema.org',
-        '@type'        => 'ProfilePage',
-        'dateModified' => date('c', isset($card['updatedAt']) ? (strtotime((string) $card['updatedAt']) ?: time()) : time()),
-        'mainEntity'   => $person,
-    ]],
+    'jsonld'      => [
+        [
+            '@context'      => 'https://schema.org',
+            '@type'         => 'ProfilePage',
+            'dateModified'  => $mtime,
+            'datePublished' => $ctime,
+            'primaryImageOfPage' => $shareImage,
+            'mainEntity'    => $person,
+        ],
+        [
+            '@context' => 'https://schema.org',
+            '@type'    => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Cardly', 'item' => cardly_link()],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => $name, 'item' => $cardUrl],
+            ],
+        ],
+    ],
 ];
 
 // Build the ordered list of "link block" items (primary CTA + contact + custom).

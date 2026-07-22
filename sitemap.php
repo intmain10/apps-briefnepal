@@ -35,14 +35,21 @@ echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
  * Only the marketing pages. Individual cards are intentionally left out so
  * their random links stay unlisted/private. */
 if (cardly_is_host()) {
-    echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+    echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
     echo xml_url(cardly_link(), $today, 'weekly', '1.0');
     echo xml_url(cardly_link('about'), $today, 'monthly', '0.8');
-    // Published cards — so each person's card is discoverable as their
-    // internet identity. (Unlisted cards opt out via discoverable=false.)
+    // Published cards — so each person's card is discoverable as their internet
+    // identity, with an image entry so the profile also wins image search.
+    // (Unlisted cards opt out via discoverable=false.)
     foreach (cardly_published_cards() as $pc) {
         $lm = date('Y-m-d', strtotime((string) $pc['updated']) ?: time());
-        echo xml_url(cardly_link($pc['slug']), $lm, 'weekly', '0.7');
+        $img = $pc['photo'] !== '' ? $pc['photo']
+            : cardly_media_url($pc['slug']) . '/og-v' . CARDLY_OG_VERSION . '.jpg';
+        $cap = trim(($pc['name'] !== '' ? $pc['name'] : $pc['slug']) . ' — Cardly digital card');
+        echo "  <url>\n    <loc>" . eattr(cardly_link($pc['slug'])) . "</loc>\n"
+            . "    <lastmod>{$lm}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n"
+            . "    <image:image>\n      <image:loc>" . eattr($img) . "</image:loc>\n"
+            . "      <image:title>" . eattr($cap) . "</image:title>\n    </image:image>\n  </url>\n";
     }
     echo '</urlset>';
     exit;

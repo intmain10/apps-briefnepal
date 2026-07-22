@@ -422,7 +422,8 @@ function cardly_published_cards(int $limit = 5000): array
         foreach ($rows as $r) {
             $d = json_decode((string) $r['data'], true);
             if (is_array($d) && cardly_card_discoverable($d)) {
-                $out[] = ['slug' => $r['slug'], 'updated' => $r['updated_at']];
+                $out[] = ['slug' => $r['slug'], 'updated' => $r['updated_at'],
+                    'name' => (string) ($d['name'] ?? ''), 'photo' => (string) ($d['photo'] ?? '')];
             }
         }
         return $out;
@@ -438,7 +439,8 @@ function cardly_published_cards(int $limit = 5000): array
         if (!cardly_card_discoverable($d)) {
             continue;
         }
-        $out[] = ['slug' => basename($f, '.json'), 'updated' => $d['updatedAt'] ?? date('c')];
+        $out[] = ['slug' => basename($f, '.json'), 'updated' => $d['updatedAt'] ?? date('c'),
+            'name' => (string) ($d['name'] ?? ''), 'photo' => (string) ($d['photo'] ?? '')];
         if (count($out) >= $limit) {
             break;
         }
@@ -559,6 +561,41 @@ function cardly_blank(string $template = 'default'): array
 function cardly_media_url(string $slug): string
 {
     return url('uploads/cardly/media/' . $slug);
+}
+
+/**
+ * Notify IndexNow (Bing, Yandex, DuckDuckGo, Seznam) that URLs changed, so a
+ * card gets crawled/indexed within minutes instead of days. Best-effort and
+ * non-blocking-ish (short timeout); silently no-ops without a key or cURL.
+ */
+function cardly_indexnow_submit(array $urls): void
+{
+    $key = defined('INDEXNOW_KEY') ? (string) INDEXNOW_KEY : '';
+    $urls = array_values(array_filter(array_map('strval', $urls)));
+    if ($key === '' || !$urls || !function_exists('curl_init')) {
+        return;
+    }
+    $host = parse_url($urls[0], PHP_URL_HOST) ?: '';
+    if ($host === '') {
+        return;
+    }
+    $payload = json_encode([
+        'host'        => $host,
+        'key'         => $key,
+        'keyLocation' => 'https://' . $host . '/' . $key . '.txt',
+        'urlList'     => array_slice($urls, 0, 100),
+    ]);
+    $ch = curl_init('https://api.indexnow.org/indexnow');
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $payload,
+        CURLOPT_HTTPHEADER     => ['Content-Type: application/json; charset=utf-8'],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 4,
+        CURLOPT_CONNECTTIMEOUT => 3,
+    ]);
+    @curl_exec($ch);
+    @curl_close($ch);
 }
 
 /**
