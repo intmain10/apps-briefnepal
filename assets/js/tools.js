@@ -1520,15 +1520,14 @@
     let uid = 1, playing = false, rafId = 0, startT = 0, drag = null, dragId = null, snapV = false, snapH = false;
     const IN = [['none', 'None'], ['fade', 'Fade in'], ['slideL', 'Slide ← left'], ['slideR', 'Slide → right'], ['slideT', 'Slide ↑ top'], ['slideB', 'Slide ↓ bottom'], ['pop', 'Pop'], ['spin', 'Spin in'], ['blur', 'Blur in'], ['typewriter', 'Typewriter (text)']];
     const LP = [['none', 'None'], ['float', 'Float'], ['pulse', 'Pulse'], ['spin', 'Spin'], ['bounce', 'Bounce']];
+    const TEMPLATE_LIST = [['social', 'Social — Follow me'], ['logo', 'Logo reveal'], ['title', 'Title card'], ['sale', 'Sale / Promo'], ['quote', 'Quote card'], ['coming', 'Coming soon'], ['event', 'Event invite'], ['lower', 'Lower third'], ['youtube', 'YouTube intro'], ['birthday', 'Birthday']];
 
     root.innerHTML =
       '<div class="row" style="gap:18px;align-items:flex-start;flex-wrap:wrap">' +
         '<div style="flex:1 1 320px;min-width:290px">' +
-          '<div class="btn-row mb-2" style="flex-wrap:wrap;gap:6px">' +
-            '<span class="muted" style="align-self:center;font-size:13px">Template:</span>' +
-            '<button class="btn btn--ghost btn--sm" data-tpl="social">Social intro</button>' +
-            '<button class="btn btn--ghost btn--sm" data-tpl="logo">Logo reveal</button>' +
-            '<button class="btn btn--ghost btn--sm" data-tpl="title">Title card</button>' +
+          '<div class="btn-row mb-2" style="flex-wrap:wrap;gap:6px;align-items:center">' +
+            '<span class="muted" style="font-size:13px">Template:</span>' +
+            '<select class="select" id="tpl" style="max-width:220px"><option value="">Choose a template…</option>' + TEMPLATE_LIST.map(t => '<option value="' + t[0] + '">' + t[1] + '</option>').join('') + '</select>' +
             '<button class="btn btn--ghost btn--sm" data-tpl="blank">Blank</button>' +
           '</div>' +
           '<div class="btn-row mb-2" style="flex-wrap:wrap;gap:6px">' +
@@ -1545,7 +1544,7 @@
           '</div>' +
         '</div>' +
         '<div style="flex:1 1 300px;min-width:270px">' +
-          '<div class="btn-row mb-3"><button class="btn btn--primary btn--sm" id="addImg">+ Image / Icon</button><button class="btn btn--ghost btn--sm" id="addTxt">+ Text</button><input type="file" id="imgFile" accept="image/*" hidden multiple></div>' +
+          '<div class="btn-row mb-3" style="flex-wrap:wrap;gap:6px"><button class="btn btn--primary btn--sm" id="addImg">+ Image / Icon</button><button class="btn btn--ghost btn--sm" id="addTxt">+ Text</button><button class="btn btn--ghost btn--sm" id="addShape">+ Shape</button><input type="file" id="imgFile" accept="image/*" hidden multiple></div>' +
           '<div id="layers" class="mb-2"></div>' +
           '<div id="panel"></div>' +
           '<div class="btn-row mt-4"><button class="btn btn--primary" id="export">🎞 Export GIF</button></div>' +
@@ -1558,8 +1557,8 @@
     function setSize(w, h) { S.W = w; S.H = h; cv.width = w; cv.height = h; drawStatic(); }
 
     function layerBox(l) {
-      if (l.type === 'image') return { w: l.w * l.scale, h: l.h * l.scale };
-      ctx.font = '700 ' + l.size + 'px Arial, sans-serif';
+      if (l.type === 'image' || l.type === 'shape') return { w: l.w * l.scale, h: l.h * l.scale };
+      ctx.font = "700 " + l.size + "px '" + (l.font || 'Arial') + "', Arial, sans-serif";
       return { w: Math.max(20, ctx.measureText(l.text || '').width) * l.scale, h: l.size * 1.25 * l.scale };
     }
     function state(l, t) {
@@ -1594,6 +1593,12 @@
         if (l.anim.in === 'blur' && st.p < 1) c.filter = 'blur(' + ((1 - st.p) * 18).toFixed(1) + 'px)';
         c.translate(l.x + st.dx, l.y + st.dy); c.rotate(st.rot + (l.rotation || 0)); c.scale(st.sc, st.sc);
         if (l.type === 'image' && l.img) c.drawImage(l.img, -l.w / 2, -l.h / 2, l.w, l.h);
+        else if (l.type === 'shape') {
+          c.fillStyle = l.color;
+          if (l.shape === 'circle') { c.beginPath(); c.ellipse(0, 0, l.w / 2, l.h / 2, 0, 0, Math.PI * 2); c.fill(); }
+          else if (c.roundRect) { const r = Math.min(l.radius || 0, Math.min(l.w, l.h) / 2); c.beginPath(); c.roundRect(-l.w / 2, -l.h / 2, l.w, l.h, r); c.fill(); }
+          else c.fillRect(-l.w / 2, -l.h / 2, l.w, l.h);
+        }
         else if (l.type === 'text') {
           let txt = l.text || '';
           if (l.anim.in === 'typewriter' && st.p < 1) { const n = Math.max(0, Math.ceil(st.p * txt.length)); txt = txt.slice(0, n) + (n < txt.length ? '|' : ''); }
@@ -1650,10 +1655,11 @@
       ls.innerHTML = '<div class="muted" style="font-size:12px;margin-bottom:6px">Drag to reorder · top = front</div>' +
         order.map(l => {
           const idx = S.layers.indexOf(l);
-          const name = l.type === 'text' ? (l.text || 'Text') : ('Image ' + (idx + 1));
+          const name = l.type === 'text' ? (l.text || 'Text') : l.type === 'shape' ? (l.shape === 'circle' ? 'Circle' : 'Rectangle') : ('Image ' + (idx + 1));
+          const licon = l.type === 'text' ? '🔤 ' : l.type === 'shape' ? (l.shape === 'circle' ? '⬤ ' : '▭ ') : '🖼 ';
           return '<div class="cst-lyr" draggable="true" data-lyr="' + l.id + '" style="display:flex;align-items:center;gap:6px;padding:8px;border:1px solid ' + (l.id === S.sel ? 'var(--accent)' : 'var(--border)') + ';border-radius:10px;margin-bottom:6px;cursor:pointer">' +
             '<span data-grip style="cursor:grab;color:var(--text-3);font-size:15px" title="Drag to reorder">⠿</span>' +
-            '<span style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (l.type === 'image' ? '🖼 ' : '🔤 ') + esc(name) + '</span>' +
+            '<span style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + licon + esc(name) + '</span>' +
             '<button class="btn btn--ghost btn--sm" data-fwd="' + l.id + '" title="Bring forward" style="padding:2px 6px">↑</button>' +
             '<button class="btn btn--ghost btn--sm" data-bwd="' + l.id + '" title="Send backward" style="padding:2px 6px">↓</button>' +
             '<button class="btn btn--ghost btn--sm" data-del="' + l.id + '" title="Delete" style="padding:2px 6px;color:var(--danger)">✕</button>' +
@@ -1699,6 +1705,12 @@
             '<label class="field__label">Font</label><select class="select" data-p="font" style="font-family:\'' + (l.font || 'Arial') + '\'">' + fontOpts + '</select>' +
             '<div class="row mt-2"><div class="field"><label class="field__label">Size</label><input class="input" type="number" data-p="size" value="' + l.size + '" min="10" max="400"></div>' +
             '<div class="field"><label class="field__label">Color</label><input type="color" data-p="color" value="' + l.color + '" style="width:100%;height:38px;border:1px solid var(--border);border-radius:8px;background:none"></div></div>'
+          : l.type === 'shape'
+          ? '<label class="field__label">Shape</label><select class="select" data-p="shape"><option value="rect"' + (l.shape === 'rect' ? ' selected' : '') + '>Rectangle</option><option value="circle"' + (l.shape === 'circle' ? ' selected' : '') + '>Circle</option></select>' +
+            '<div class="row mt-2"><div class="field"><label class="field__label">Width</label><input class="input" type="number" data-p="w" value="' + Math.round(l.w) + '" min="4"></div>' +
+            '<div class="field"><label class="field__label">Height</label><input class="input" type="number" data-p="h" value="' + Math.round(l.h) + '" min="4"></div></div>' +
+            '<div class="row mt-2"><div class="field"><label class="field__label">Color</label><input type="color" data-p="color" value="' + l.color + '" style="width:100%;height:38px;border:1px solid var(--border);border-radius:8px;background:none"></div>' +
+            '<div class="field"><label class="field__label">Corner radius</label><input class="input" type="number" data-p="radius" value="' + (l.radius || 0) + '" min="0" max="400"' + (l.shape === 'circle' ? ' disabled' : '') + '></div></div>'
           : '<label class="field__label">Size: <b data-sv>' + Math.round(l.scale * 100) + '</b>%</label><input type="range" data-p="scale" min="10" max="300" value="' + Math.round(l.scale * 100) + '" style="width:100%">') +
         '<label class="field__label mt-4">Opacity: <b data-ov>' + op + '</b>%</label><input type="range" data-p="opacity" min="0" max="100" value="' + op + '" style="width:100%">' +
         '<label class="field__label mt-4">Entrance</label><select class="select" data-p="in">' + opt(IN, l.anim.in) + '</select>' +
@@ -1713,6 +1725,10 @@
         else if (k === 'font') { l.font = v; inp.style.fontFamily = "'" + v + "'"; loadWebFont(v).then(drawStatic); }
         else if (k === 'size') l.size = +v || 40;
         else if (k === 'color') l.color = v;
+        else if (k === 'shape') { l.shape = v; renderPanel(); }
+        else if (k === 'w') l.w = Math.max(4, +v || 4);
+        else if (k === 'h') l.h = Math.max(4, +v || 4);
+        else if (k === 'radius') l.radius = Math.max(0, +v || 0);
         else if (k === 'scale') { l.scale = (+v) / 100; const sv = q('[data-sv]', p); if (sv) sv.textContent = v; }
         else if (k === 'opacity') { l.opacity = (+v) / 100; const ov = q('[data-ov]', p); if (ov) ov.textContent = v; }
         else if (k === 'in') l.anim.in = v;
@@ -1729,7 +1745,9 @@
 
     /* ---- add layers ---- */
     function addText() { S.layers.push({ id: uid++, type: 'text', text: 'Your Text', color: '#ffffff', size: 56, font: 'Poppins', opacity: 1, x: S.W / 2, y: S.H / 2, scale: 1, rotation: 0, anim: { in: 'fade', delay: 0, dur: 600, loop: 'none', speed: 1 } }); S.sel = S.layers[S.layers.length - 1].id; refresh(); loadWebFont('Poppins').then(drawStatic); }
+    function addShape() { S.layers.push({ id: uid++, type: 'shape', shape: 'rect', w: Math.round(S.W * 0.5), h: Math.round(S.H * 0.12), color: '#2563eb', radius: 12, opacity: 1, x: S.W / 2, y: S.H / 2, scale: 1, rotation: 0, anim: { in: 'slideL', delay: 0, dur: 600, loop: 'none', speed: 1 } }); S.sel = S.layers[S.layers.length - 1].id; refresh(); }
     q('#addTxt', root).addEventListener('click', addText);
+    q('#addShape', root).addEventListener('click', addShape);
     q('#addImg', root).addEventListener('click', () => q('#imgFile', root).click());
     q('#imgFile', root).addEventListener('change', async e => {
       let n = 0;
@@ -1825,32 +1843,80 @@
     /* ---- preset templates ---- */
     function loadPreset(name) {
       stop();
+      // Layer builders — T(ext), R(ounded rect), C(ircle); A(nim) shorthand.
       const T = (text, color, size, x, y, anim) => ({ id: uid++, type: 'text', text, color, size, font: 'Poppins', opacity: 1, x, y, scale: 1, rotation: 0, anim });
-      if (name === 'blank') { S.bg = '#0d1117'; S.duration = 2600; S.layers = []; S.sel = null; setSize(600, 600); }
-      else if (name === 'social') {
-        S.bg = '#111827'; S.duration = 3000; setSize(540, 960);
-        S.layers = [
-          T('Follow Me', '#ffffff', 72, 270, 360, { in: 'pop', delay: 200, dur: 700, loop: 'float', speed: 1 }),
-          T('@yourhandle', '#38bdf8', 42, 270, 470, { in: 'slideB', delay: 800, dur: 600, loop: 'none', speed: 1 }),
-        ];
-      } else if (name === 'logo') {
-        S.bg = '#0d1117'; S.duration = 2600; setSize(600, 600);
-        S.layers = [
-          T('LOGO', '#ffffff', 100, 300, 275, { in: 'spin', delay: 200, dur: 800, loop: 'pulse', speed: 1 }),
-          T('Your tagline here', '#9ca3af', 34, 300, 380, { in: 'fade', delay: 1000, dur: 600, loop: 'none', speed: 1 }),
-        ];
-      } else if (name === 'title') {
-        S.bg = '#0b0b12'; S.duration = 3400; setSize(800, 450);
-        S.layers = [
-          T('Your Title', '#ffffff', 74, 400, 195, { in: 'typewriter', delay: 200, dur: 1500, loop: 'none', speed: 1 }),
-          T('a short subtitle', '#38bdf8', 34, 400, 285, { in: 'fade', delay: 1800, dur: 700, loop: 'none', speed: 1 }),
-        ];
-      }
+      const R = (w, h, color, x, y, anim, radius) => ({ id: uid++, type: 'shape', shape: 'rect', w, h, color, radius: radius == null ? 12 : radius, opacity: 1, x, y, scale: 1, rotation: 0, anim });
+      const C = (d, color, x, y, anim) => ({ id: uid++, type: 'shape', shape: 'circle', w: d, h: d, color, radius: 0, opacity: 1, x, y, scale: 1, rotation: 0, anim });
+      const A = (inn, delay, loop, dur) => ({ in: inn, delay: delay || 0, dur: dur || 600, loop: loop || 'none', speed: 1 });
+      // Each template returns {bg, dur, w, h, layers}. Layers are back → front.
+      const P = {
+        blank: () => ({ bg: '#0d1117', dur: 2600, w: 600, h: 600, layers: [] }),
+        social: () => ({ bg: '#0f172a', dur: 3200, w: 540, h: 960, layers: [
+          C(380, '#1e293b', 270, 360, A('fade', 100)),
+          T('Follow Me', '#ffffff', 76, 270, 340, A('pop', 200, 'float', 700)),
+          R(200, 6, '#38bdf8', 270, 412, A('slideL', 700), 3),
+          T('@yourhandle', '#38bdf8', 44, 270, 470, A('slideB', 900)),
+        ] }),
+        logo: () => ({ bg: '#0d1117', dur: 2800, w: 600, h: 600, layers: [
+          T('LOGO', '#ffffff', 104, 300, 265, A('spin', 200, 'pulse', 800)),
+          R(220, 6, '#2563eb', 300, 335, A('slideL', 900), 3),
+          T('Your tagline here', '#9ca3af', 34, 300, 385, A('fade', 1100)),
+        ] }),
+        title: () => ({ bg: '#0b0b12', dur: 3400, w: 800, h: 450, layers: [
+          T('Your Title', '#ffffff', 74, 400, 185, A('typewriter', 200, 'none', 1500)),
+          R(160, 5, '#38bdf8', 400, 245, A('slideR', 1700), 3),
+          T('a short subtitle', '#38bdf8', 32, 400, 290, A('fade', 1900)),
+        ] }),
+        sale: () => ({ bg: '#111827', dur: 3200, w: 600, h: 600, layers: [
+          T('MEGA SALE', '#ffffff', 56, 300, 175, A('slideT', 200)),
+          T('50% OFF', '#fde047', 118, 300, 315, A('pop', 600, 'pulse', 700)),
+          R(280, 66, '#fde047', 300, 460, A('pop', 1100), 33),
+          T('Shop Now →', '#111827', 34, 300, 460, A('fade', 1300)),
+        ] }),
+        quote: () => ({ bg: '#0f172a', dur: 3000, w: 600, h: 600, layers: [
+          T('“', '#2563eb', 150, 150, 210, A('fade', 100)),
+          T('Do what you love.', '#ffffff', 46, 300, 320, A('fade', 400)),
+          R(120, 4, '#38bdf8', 300, 420, A('slideL', 900), 2),
+          T('— Author', '#94a3b8', 30, 300, 470, A('fade', 1000)),
+        ] }),
+        coming: () => ({ bg: '#0d1117', dur: 3000, w: 800, h: 450, layers: [
+          T('COMING SOON', '#ffffff', 66, 400, 195, A('blur', 200, 'none', 900)),
+          R(180, 5, '#2563eb', 400, 255, A('slideR', 1000), 3),
+          T('Stay tuned', '#38bdf8', 32, 400, 300, A('fade', 1100)),
+        ] }),
+        event: () => ({ bg: '#1e1b4b', dur: 3400, w: 540, h: 960, layers: [
+          T("YOU'RE INVITED", '#fbbf24', 40, 270, 300, A('slideT', 200)),
+          T('Event Name', '#ffffff', 66, 270, 410, A('pop', 600, 'float', 700)),
+          R(200, 5, '#fbbf24', 270, 490, A('slideL', 900), 3),
+          T('Date · Time · Place', '#c7d2fe', 30, 270, 560, A('fade', 1100)),
+        ] }),
+        lower: () => ({ bg: '#0d1117', dur: 2800, w: 800, h: 450, layers: [
+          R(420, 96, '#111827', 262, 355, A('slideL', 220), 10),
+          R(12, 96, '#2563eb', 46, 355, A('slideL', 150), 0),
+          T('Your Name', '#ffffff', 42, 270, 338, A('slideL', 450)),
+          T('Your Title', '#93c5fd', 26, 270, 382, A('slideL', 600)),
+        ] }),
+        youtube: () => ({ bg: '#0f0f0f', dur: 3000, w: 800, h: 450, layers: [
+          C(96, '#ff0000', 400, 170, A('pop', 200, 'pulse', 700)),
+          T('▶', '#ffffff', 50, 406, 170, A('pop', 300)),
+          T('SUBSCRIBE', '#ffffff', 58, 400, 300, A('slideB', 700)),
+          T('for more videos', '#9ca3af', 30, 400, 360, A('fade', 1100)),
+        ] }),
+        birthday: () => ({ bg: '#312e81', dur: 3200, w: 600, h: 600, layers: [
+          T('🎉', '#ffffff', 96, 300, 180, A('pop', 200, 'bounce', 700)),
+          T('Happy Birthday', '#fbbf24', 60, 300, 330, A('pop', 600, 'pulse', 700)),
+          R(200, 5, '#ffffff', 300, 400, A('slideL', 1000), 3),
+          T('Name', '#ffffff', 46, 300, 460, A('fade', 1200)),
+        ] }),
+      };
+      const cfg = (P[name] || P.blank)();
+      S.bg = cfg.bg; S.duration = cfg.dur; setSize(cfg.w, cfg.h); S.layers = cfg.layers;
       S.sel = S.layers.length ? S.layers[0].id : null;
       q('#dur', root).value = S.duration; q('#bg', root).value = S.bg;
       refresh(); loadWebFont('Poppins').then(drawStatic);
     }
     qa('[data-tpl]', root).forEach(b => b.addEventListener('click', () => loadPreset(b.dataset.tpl)));
+    q('#tpl', root).addEventListener('change', e => { if (e.target.value) { loadPreset(e.target.value); e.target.value = ''; } });
 
     /* ---- seed a starter scene ---- */
     setSize(600, 600);
