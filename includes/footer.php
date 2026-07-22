@@ -62,6 +62,7 @@ $bare = !empty($page['bare']);
         <ul class="footer__list">
           <li><a href="<?= eattr(url('about')) ?>">About</a></li>
           <li><a href="<?= eattr(url('shushant-singh')) ?>">Founder</a></li>
+          <li><a href="<?= eattr(url('docs')) ?>">User Guide</a></li>
           <li><a href="<?= eattr(url('blog')) ?>">Blog</a></li>
           <li><a href="<?= eattr(url('contact')) ?>">Contact</a></li>
           <li><a href="<?= eattr(url('changelog')) ?>">Changelog</a></li>

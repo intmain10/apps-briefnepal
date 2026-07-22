@@ -31,7 +31,7 @@ ErrorDocument 404 /404.php
     # =====================================================================
     # OmniTools sections don't belong on the Cardly domain → send to main site
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
-    RewriteRule ^(tools|category|blog|privacy|terms|contact|changelog|feedback|sitemap|shushant-singh|founder)(/.*)?$ https://apps.briefnepal.com/$1$2 [R=301,L]
+    RewriteRule ^(tools|category|blog|privacy|terms|contact|changelog|feedback|sitemap|shushant-singh|founder|docs|guide|manual)(/.*)?$ https://apps.briefnepal.com/$1$2 [R=301,L]
     # Cardly landing
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
     RewriteRule ^$ cardly.php [L,QSA]
@@ -92,6 +92,10 @@ ErrorDocument 404 /404.php
     RewriteRule ^cardly/(login|signup|logout|dashboard|verify|forgot|reset|resend)/?$ cardly-account.php?do=$1 [L,QSA]
     RewriteRule ^cardly/([a-z0-9-]+)/edit/?$ cardly-edit.php?slug=$1 [L,QSA]
     RewriteRule ^cardly/([a-z0-9-]+)/?$ cardly-view.php?slug=$1 [L,QSA]
+
+    # User guide / documentation (aliases 301 to the canonical /docs)
+    RewriteRule ^(guide|manual)/?$ /docs [R=301,L]
+    RewriteRule ^docs/?$ docs.php [L,QSA]
 
     # Static pages
     RewriteRule ^(about|privacy|terms|contact|changelog|sitemap|feedback)/?$ page.php?p=$1 [L,QSA]

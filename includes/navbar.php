@@ -62,6 +62,7 @@ $cats = omnitools_categories();
       <a href="<?= eattr(url('tools')) ?>" class="navbar__link">All Tools</a>
       <a href="<?= eattr(cardly_link()) ?>" class="navbar__link">Cardly ✨</a>
       <a href="<?= eattr(url('blog')) ?>" class="navbar__link">Blog</a>
+      <a href="<?= eattr(url('docs')) ?>" class="navbar__link">Guide</a>
       <a href="<?= eattr(url('about')) ?>" class="navbar__link">About</a>
     </nav>
 
@@ -84,6 +85,7 @@ $cats = omnitools_categories();
     <a href="<?= eattr(url('tools')) ?>" class="mobile-menu__link">All Tools</a>
     <a href="<?= eattr(cardly_link()) ?>" class="mobile-menu__link">Cardly ✨</a>
     <a href="<?= eattr(url('blog')) ?>" class="mobile-menu__link">Blog</a>
+    <a href="<?= eattr(url('docs')) ?>" class="mobile-menu__link">Guide</a>
     <a href="<?= eattr(url('about')) ?>" class="mobile-menu__link">About</a>
     <div class="mobile-menu__cats">
       <?php foreach ($cats as $cslug => $c): ?>

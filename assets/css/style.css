@@ -483,3 +483,172 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.15; font-weigh
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .001ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
 }
+
+/* ============================================================================
+   User Guide / documentation (Mintlify-style layout) — see docs.php
+   ========================================================================== */
+.docs {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 48px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 20px 96px;
+}
+.docs-menu-btn {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.docs__sidebar {
+  position: sticky;
+  top: 84px;
+  align-self: start;
+  max-height: calc(100vh - 104px);
+  overflow-y: auto;
+  padding-right: 6px;
+}
+.docs-nav__group { margin-bottom: 22px; }
+.docs-nav__title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin: 0 0 6px;
+  padding-left: 12px;
+}
+.docs-nav__link {
+  display: block;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-2);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  border-radius: 0 8px 8px 0;
+  transition: color .12s, background .12s, border-color .12s;
+}
+.docs-nav__link:hover { color: var(--text); background: var(--surface-2); }
+.docs-nav__link.is-active {
+  color: var(--accent);
+  font-weight: 600;
+  border-left-color: var(--accent);
+  background: var(--surface-2);
+}
+.docs__main { min-width: 0; }
+
+/* Hero */
+.docs-hero { padding-bottom: 8px; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+.docs-eyebrow {
+  font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent); margin: 0 0 8px;
+}
+.docs-hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; margin: 0 0 12px; }
+.docs-lede { font-size: 1.05rem; color: var(--text-2); max-width: 62ch; margin: 0 0 18px; }
+.docs-hero__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+
+/* Sections */
+.docs-section { scroll-margin-top: 90px; padding: 20px 0; }
+.docs-section + .docs-section { border-top: 1px solid var(--border); }
+.docs-section h2 { font-size: 1.5rem; margin: 0 0 12px; scroll-margin-top: 90px; }
+.docs-section h3 { font-size: 1.15rem; margin: 26px 0 10px; scroll-margin-top: 90px; }
+.docs-section h4 { font-size: .98rem; margin: 0 0 6px; }
+.docs-section p { color: var(--text-2); line-height: 1.7; margin: 0 0 12px; }
+.docs-section a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.docs-section a:hover { text-decoration: underline; }
+
+/* Lists */
+.docs-list { margin: 0 0 12px; padding-left: 20px; }
+.docs-list li { color: var(--text-2); line-height: 1.7; margin-bottom: 7px; }
+.docs-list li strong { color: var(--text); }
+
+/* Numbered steps */
+.docs-steps { list-style: none; counter-reset: step; padding: 0; margin: 0 0 12px; }
+.docs-steps li {
+  position: relative; counter-increment: step;
+  padding: 4px 0 14px 42px; color: var(--text-2); line-height: 1.7;
+}
+.docs-steps li strong { color: var(--text); }
+.docs-steps li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: 2px;
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: var(--accent-ink);
+  background: var(--accent);
+}
+.docs-steps li:not(:last-child)::after {
+  content: ""; position: absolute; left: 12px; top: 32px; bottom: 2px;
+  width: 2px; background: var(--border);
+}
+
+/* Cards grid */
+.docs-cards {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px; margin: 4px 0 12px;
+}
+.docs-card { border: 1px solid var(--border); border-radius: 14px; padding: 16px; background: var(--surface); }
+.docs-card h4 { color: var(--text); }
+.docs-card p { margin: 0; font-size: .92rem; }
+
+/* Callouts */
+.docs-callout {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 14px 16px; margin: 18px 0;
+  border: 1px solid var(--border); border-left: 3px solid var(--accent);
+  border-radius: 12px; background: var(--surface); color: var(--text-2); line-height: 1.6;
+}
+.docs-callout strong { color: var(--text); }
+.docs-callout--tip { border-left-color: #10b981; }
+.docs-callout--warn { border-left-color: #f59e0b; }
+.docs-callout__icon { font-size: 18px; line-height: 1.4; }
+.docs-callout kbd {
+  font: inherit; font-size: 12px; background: var(--surface-2);
+  border: 1px solid var(--border-strong); border-bottom-width: 2px;
+  border-radius: 6px; padding: 1px 6px;
+}
+
+/* Tables */
+.docs-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 14px; margin: 8px 0 12px; }
+.docs-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.docs-table th, .docs-table td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border); }
+.docs-table thead th { background: var(--surface-2); color: var(--text); font-weight: 600; }
+.docs-table tbody tr:last-child td { border-bottom: none; }
+.docs-table td { color: var(--text-2); vertical-align: top; }
+.docs-table a { color: var(--accent); text-decoration: none; }
+.docs-table a:hover { text-decoration: underline; }
+
+/* FAQ */
+.docs-faq { display: flex; flex-direction: column; gap: 10px; }
+.docs-faq__item { border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 4px 16px; }
+.docs-faq__item summary {
+  cursor: pointer; padding: 12px 0; font-weight: 600; color: var(--text);
+  list-style: none; display: flex; justify-content: space-between; align-items: center;
+}
+.docs-faq__item summary::-webkit-details-marker { display: none; }
+.docs-faq__item summary::after { content: "+"; color: var(--text-3); font-size: 20px; font-weight: 400; }
+.docs-faq__item[open] summary::after { content: "\2212"; }
+.docs-faq__item p { color: var(--text-2); line-height: 1.7; margin: 0 0 14px; }
+
+.docs-foot { font-size: 13px; color: var(--text-3); margin-top: 24px; }
+
+@media (max-width: 900px) {
+  .docs { grid-template-columns: 1fr; gap: 16px; }
+  .docs-menu-btn { display: inline-flex; }
+  .docs__sidebar {
+    position: static; max-height: none; overflow: visible;
+    display: none; border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px; background: var(--surface);
+  }
+  .docs__sidebar.is-open { display: block; }
+}

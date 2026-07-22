@@ -71,6 +71,7 @@ if ($emitPages) {
     echo xml_url(url('blog'), $today, 'weekly', '0.7');
     echo xml_url(cardly_link(), $today, 'weekly', '0.8');
     echo xml_url(url('shushant-singh'), $today, 'monthly', '0.6');
+    echo xml_url(url('docs'), $today, 'monthly', '0.7');
     foreach (['about', 'contact', 'privacy', 'terms', 'changelog', 'sitemap'] as $p) {
         echo xml_url(url($p), $today, 'monthly', '0.4');
     }
