@@ -60,7 +60,7 @@ function cardly_og_ensure(string $slug, array $card): ?string
 function cardly_og_url(string $slug, int $updated = 0): string
 {
     $v = $updated ? substr(md5((string) $updated), 0, 8) : substr(md5((string) @filemtime(cardly_og_path($slug))), 0, 8);
-    return cardly_media_url($slug) . '/og.jpg?v=' . $v;
+    return cardly_media_url($slug) . '/' . basename(cardly_og_path($slug)) . '?v=' . $v;
 }
 
 /** Convert "#rrggbb" (or "#rgb") to an [r,g,b] triple. */
