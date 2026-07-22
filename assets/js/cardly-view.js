@@ -8,6 +8,19 @@
   const U = window.OmniUtil || { toast(m) { alert(m); }, copy(t) { navigator.clipboard && navigator.clipboard.writeText(t); }, download() {} };
   const $ = id => document.getElementById(id);
 
+  /* ---- Reveal protected contact links (phone/email/WhatsApp) ----
+     The raw destinations are base64-encoded in data-cx-to so they're absent
+     from the page source (privacy from search engines and scrapers). Decode
+     them here so tap-to-call/email/WhatsApp still works for real visitors. */
+  document.querySelectorAll('a[data-cx-to]').forEach(a => {
+    try {
+      const dest = atob(a.getAttribute('data-cx-to'));
+      a.setAttribute('href', dest);
+      if (/^https?:/i.test(dest)) { a.target = '_blank'; a.rel = 'noopener'; }
+      a.removeAttribute('data-cx-to');
+    } catch (e) { /* leave as-is */ }
+  });
+
   /* ---- Share / copy ---- */
   $('cardlyShare') && $('cardlyShare').addEventListener('click', async () => {
     if (navigator.share) { try { await navigator.share({ title: document.title, url }); return; } catch (e) {} }

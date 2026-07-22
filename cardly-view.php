@@ -72,8 +72,9 @@ if ($jobTitle) {
 if ($company)         $person['worksFor'] = ['@type' => 'Organization', 'name' => $company];
 $person['description'] = $summary;
 if ($card['photo'])   $person['image'] = ['@type' => 'ImageObject', 'url' => $card['photo']];
-if (!empty($card['contact']['email']))   $person['email'] = $card['contact']['email'];
-if (!empty($card['contact']['phone']))   $person['telephone'] = $card['contact']['phone'];
+// Note: email/telephone are deliberately NOT published in structured data —
+// they'd be exposed in search results and to scrapers. People still get them
+// via the one-tap contact buttons and the "Save contact (VCF)" download.
 if ($location)        $person['address'] = ['@type' => 'PostalAddress', 'streetAddress' => $location];
 if (!empty($card['skills']))             $person['knowsAbout'] = array_values($card['skills']);
 if ($sameAs)          $person['sameAs'] = array_values($sameAs);
@@ -122,6 +123,28 @@ $page = [
 
 // Build the ordered list of "link block" items (primary CTA + contact + custom).
 $c = $card['contact'] ?? [];
+
+/**
+ * Attributes for a link. Private destinations (phone/email/WhatsApp) are
+ * base64-encoded into data-cx-to and NOT placed in a real href, so search
+ * engines and email/phone scrapers can't harvest them from the page source;
+ * cardly-view.js decodes them and wires the tap action for real visitors.
+ */
+if (!function_exists('cx_link_attrs')) {
+    function cx_link_attrs(string $url): string
+    {
+        $private = (bool) preg_match('~^(tel:|mailto:)~i', $url)
+            || str_contains($url, 'wa.me/') || str_contains($url, 'api.whatsapp.com');
+        if ($private) {
+            return ' href="#" data-cx-to="' . eattr(base64_encode($url)) . '" rel="nofollow"';
+        }
+        if (str_starts_with($url, 'http')) {
+            return ' href="' . eattr($url) . '" target="_blank" rel="noopener"';
+        }
+        return ' href="' . eattr($url) . '"';
+    }
+}
+
 require __DIR__ . '/includes/header.php';
 ?>
 <div class="cx" style="--c1:<?= eattr($a1) ?>;--c2:<?= eattr($a2) ?>"
@@ -172,7 +195,7 @@ require __DIR__ . '/includes/header.php';
     <div class="cx__body">
       <div id="cxWork">
         <?php if ($cta): ?>
-          <a class="cx__link cx__link--primary" href="<?= eattr($cta['url']) ?>"<?= str_starts_with($cta['url'], 'http') ? ' target="_blank" rel="noopener"' : '' ?>>
+          <a class="cx__link cx__link--primary"<?= cx_link_attrs($cta['url']) ?>>
             <span class="cx__link-ic"><?= cardly_icon_svg($cta['icon']) ?></span>
             <span class="cx__link-tx"><b><?= e($cta['label']) ?></b><small><?= e($cta['sub']) ?></small></span>
             <span class="cx__link-ch"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
@@ -182,12 +205,14 @@ require __DIR__ . '/includes/header.php';
         <?php
         $contactLinks = [];
         if (!empty($sec['contact'])) {
+            // Sub-labels are generic on purpose — the raw number/email are never
+            // written to the page, only wired to the tap action via JS.
             if (!empty($c['whatsapp'])) $contactLinks[] = ['WhatsApp', 'Message me', 'https://wa.me/' . preg_replace('/[^0-9]/', '', $c['whatsapp']), 'phone'];
-            if (!empty($c['phone']))    $contactLinks[] = ['Call', $c['phone'], 'tel:' . preg_replace('/[^0-9+]/', '', $c['phone']), 'phone'];
-            if (!empty($c['email']))    $contactLinks[] = ['Email', $c['email'], 'mailto:' . $c['email'], 'link'];
+            if (!empty($c['phone']))    $contactLinks[] = ['Call', 'Tap to call', 'tel:' . preg_replace('/[^0-9+]/', '', $c['phone']), 'phone'];
+            if (!empty($c['email']))    $contactLinks[] = ['Email', 'Tap to email', 'mailto:' . $c['email'], 'link'];
         }
         foreach ($contactLinks as $cl): ?>
-          <a class="cx__link" href="<?= eattr($cl[2]) ?>"<?= str_starts_with($cl[2], 'http') ? ' target="_blank" rel="noopener"' : '' ?>>
+          <a class="cx__link"<?= cx_link_attrs($cl[2]) ?>>
             <span class="cx__link-ic cx__link-ic--soft"><?= cardly_icon_svg($cl[3]) ?></span>
             <span class="cx__link-tx"><b><?= e($cl[0]) ?></b><small><?= e($cl[1]) ?></small></span>
             <span class="cx__link-ch"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
