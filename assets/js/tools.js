@@ -1498,7 +1498,7 @@
 
   reg('gif-animation-studio', root => {
     const S = { W: 600, H: 600, bg: '#0d1117', duration: 2600, fps: 15, loop: true, layers: [], sel: null };
-    let uid = 1, playing = false, rafId = 0, startT = 0, drag = null;
+    let uid = 1, playing = false, rafId = 0, startT = 0, drag = null, dragId = null;
     const IN = [['none', 'None'], ['fade', 'Fade in'], ['slideL', 'Slide ← left'], ['slideR', 'Slide → right'], ['slideT', 'Slide ↑ top'], ['slideB', 'Slide ↓ bottom'], ['pop', 'Pop'], ['spin', 'Spin in'], ['blur', 'Blur in'], ['typewriter', 'Typewriter (text)']];
     const LP = [['none', 'None'], ['float', 'Float'], ['pulse', 'Pulse'], ['spin', 'Spin'], ['bounce', 'Bounce']];
 
@@ -1611,18 +1611,48 @@
     }
 
     /* ---- layer + panel UI ---- */
+    function moveLayer(id, dir) { // dir +1 = toward front, -1 = toward back
+      const i = S.layers.findIndex(x => x.id === id); if (i < 0) return;
+      const j = i + dir; if (j < 0 || j >= S.layers.length) return;
+      const t = S.layers[i]; S.layers[i] = S.layers[j]; S.layers[j] = t;
+      renderLayers(); drawStatic();
+    }
     function renderLayers() {
       const ls = q('#layers', root);
       if (!S.layers.length) { ls.innerHTML = '<p class="muted" style="font-size:13px">No layers yet. Add an image/icon or text.</p>'; return; }
-      ls.innerHTML = S.layers.map((l, i) =>
-        '<div data-lyr="' + l.id + '" style="display:flex;align-items:center;gap:8px;padding:8px;border:1px solid ' + (l.id === S.sel ? 'var(--accent)' : 'var(--border)') + ';border-radius:10px;margin-bottom:6px;cursor:pointer">' +
-          '<span style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (l.type === 'image' ? '🖼 ' : '🔤 ') + esc(l.type === 'text' ? (l.text || 'Text') : ('Image ' + (i + 1))) + '</span>' +
-          '<button class="btn btn--ghost btn--sm" data-up="' + l.id + '" title="Bring forward" style="padding:2px 7px">↑</button>' +
-          '<button class="btn btn--ghost btn--sm" data-del="' + l.id + '" title="Delete" style="padding:2px 7px;color:var(--danger)">✕</button>' +
-        '</div>').join('');
-      qa('[data-lyr]', ls).forEach(el => el.addEventListener('click', e => { if (e.target.closest('[data-del],[data-up]')) return; S.sel = +el.dataset.lyr; renderLayers(); renderPanel(); drawStatic(); }));
-      qa('[data-del]', ls).forEach(b => b.addEventListener('click', () => { S.layers = S.layers.filter(x => x.id !== +b.dataset.del); if (S.sel === +b.dataset.del) S.sel = S.layers.length ? S.layers[S.layers.length - 1].id : null; renderLayers(); renderPanel(); drawStatic(); }));
-      qa('[data-up]', ls).forEach(b => b.addEventListener('click', () => { const i = S.layers.findIndex(x => x.id === +b.dataset.up); if (i > -1 && i < S.layers.length - 1) { const [x] = S.layers.splice(i, 1); S.layers.push(x); renderLayers(); drawStatic(); } }));
+      // Front layer (last in array) shown at the top of the list, like a design tool.
+      const order = S.layers.slice().reverse();
+      ls.innerHTML = '<div class="muted" style="font-size:12px;margin-bottom:6px">Drag to reorder · top = front</div>' +
+        order.map(l => {
+          const idx = S.layers.indexOf(l);
+          const name = l.type === 'text' ? (l.text || 'Text') : ('Image ' + (idx + 1));
+          return '<div class="cst-lyr" draggable="true" data-lyr="' + l.id + '" style="display:flex;align-items:center;gap:6px;padding:8px;border:1px solid ' + (l.id === S.sel ? 'var(--accent)' : 'var(--border)') + ';border-radius:10px;margin-bottom:6px;cursor:pointer">' +
+            '<span data-grip style="cursor:grab;color:var(--text-3);font-size:15px" title="Drag to reorder">⠿</span>' +
+            '<span style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (l.type === 'image' ? '🖼 ' : '🔤 ') + esc(name) + '</span>' +
+            '<button class="btn btn--ghost btn--sm" data-fwd="' + l.id + '" title="Bring forward" style="padding:2px 6px">↑</button>' +
+            '<button class="btn btn--ghost btn--sm" data-bwd="' + l.id + '" title="Send backward" style="padding:2px 6px">↓</button>' +
+            '<button class="btn btn--ghost btn--sm" data-del="' + l.id + '" title="Delete" style="padding:2px 6px;color:var(--danger)">✕</button>' +
+          '</div>';
+        }).join('');
+      qa('[data-lyr]', ls).forEach(el => {
+        el.addEventListener('click', e => { if (e.target.closest('[data-del],[data-fwd],[data-bwd]')) return; S.sel = +el.dataset.lyr; renderLayers(); renderPanel(); drawStatic(); });
+        el.addEventListener('dragstart', e => { dragId = +el.dataset.lyr; el.style.opacity = '.5'; e.dataTransfer.effectAllowed = 'move'; });
+        el.addEventListener('dragend', () => { el.style.opacity = ''; });
+        el.addEventListener('dragover', e => e.preventDefault());
+        el.addEventListener('drop', e => {
+          e.preventDefault();
+          const targetId = +el.dataset.lyr;
+          if (!dragId || dragId === targetId) return;
+          const di = S.layers.findIndex(x => x.id === dragId); if (di < 0) return;
+          const [drg] = S.layers.splice(di, 1);
+          const ti = S.layers.findIndex(x => x.id === targetId);
+          S.layers.splice(ti + 1, 0, drg); // dropped row goes in front of target
+          dragId = null; renderLayers(); drawStatic();
+        });
+      });
+      qa('[data-fwd]', ls).forEach(b => b.addEventListener('click', () => moveLayer(+b.dataset.fwd, +1)));
+      qa('[data-bwd]', ls).forEach(b => b.addEventListener('click', () => moveLayer(+b.dataset.bwd, -1)));
+      qa('[data-del]', ls).forEach(b => b.addEventListener('click', () => { const id = +b.dataset.del; S.layers = S.layers.filter(x => x.id !== id); if (S.sel === id) S.sel = S.layers.length ? S.layers[S.layers.length - 1].id : null; renderLayers(); renderPanel(); drawStatic(); }));
     }
     function renderPanel() {
       const p = q('#panel', root), l = S.layers.find(x => x.id === S.sel);
