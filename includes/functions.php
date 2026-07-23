@@ -193,6 +193,89 @@ function rate_limit(string $bucket, int $max = RATE_LIMIT_MAX, int $window = RAT
     return $data['count'] <= $max;
 }
 
+/**
+ * Persistent, per-IP rate limiter (survives cookie-dropping bots, unlike the
+ * session limiter above). Returns true if the request is allowed. Fails OPEN
+ * on any filesystem error so a disk issue can never lock users out.
+ */
+function rate_limit_ip(string $bucket, int $max, int $window): bool
+{
+    $dir = UPLOADS_PATH . '/ratelimit';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0775, true);
+        @file_put_contents($dir . '/.htaccess', "Require all denied\n<IfModule !mod_authz_core.c>\nDeny from all\n</IfModule>\n");
+    }
+    security_ensure_uploads_htaccess();
+    $file = $dir . '/' . hash('sha256', $bucket . '|' . client_ip()) . '.txt';
+    $now = time();
+    $fp = @fopen($file, 'c+');
+    if (!$fp) {
+        return true; // fail open
+    }
+    @flock($fp, LOCK_EX);
+    $raw = trim((string) stream_get_contents($fp));
+    $count = 0;
+    $start = $now;
+    if ($raw !== '' && preg_match('/^(\d+):(\d+)$/', $raw, $m)) {
+        $count = (int) $m[1];
+        $start = (int) $m[2];
+    }
+    if ($now - $start > $window) {
+        $count = 0;
+        $start = $now;
+    }
+    $count++;
+    ftruncate($fp, 0);
+    rewind($fp);
+    fwrite($fp, $count . ':' . $start);
+    @flock($fp, LOCK_UN);
+    fclose($fp);
+    // Occasional cleanup of stale buckets.
+    if (mt_rand(1, 60) === 1) {
+        foreach (glob($dir . '/*.txt') ?: [] as $old) {
+            if (@filemtime($old) < $now - 86400) {
+                @unlink($old);
+            }
+        }
+    }
+    return $count <= $max;
+}
+
+/**
+ * Make the uploads directory refuse to execute code (defense-in-depth against
+ * a malicious upload ever being served as a script on shared hosting). Written
+ * once, lazily — uploads/ is not part of the deploy so it must be created at
+ * runtime.
+ */
+function security_ensure_uploads_htaccess(): void
+{
+    $f = UPLOADS_PATH . '/.htaccess';
+    if (is_file($f)) {
+        return;
+    }
+    if (!is_dir(UPLOADS_PATH)) {
+        @mkdir(UPLOADS_PATH, 0775, true);
+    }
+    @file_put_contents($f, <<<'HT'
+# Uploaded files must never execute as code.
+<IfModule mod_php.c>
+php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+php_flag engine off
+</IfModule>
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phps .pht .cgi .pl .py .jsp .asp .aspx .sh .lua
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .phps .pht
+<FilesMatch "(?i)\.(php[0-9]?|phtml|phps|pht|cgi|pl|py|jsp|asp|aspx|sh|lua|htaccess)$">
+  Require all denied
+</FilesMatch>
+Options -ExecCGI -Indexes
+<IfModule mod_headers.c>
+Header set X-Content-Type-Options "nosniff"
+</IfModule>
+HT);
+}
+
 /* =========================================================================
  * JSON API response helpers
  * ====================================================================== */

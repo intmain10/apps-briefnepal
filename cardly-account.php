@@ -60,8 +60,17 @@ if (!$accounts && in_array($do, ['login', 'signup', 'dashboard', 'forgot', 'rese
 
 /* -------------------------------------------------- POST: process actions */
 if ($isPost) {
+    // Per-IP brute-force / abuse limits (persistent, cookie-independent).
+    $limits = [
+        'login'  => [10, 900],   // 10 attempts / 15 min
+        'signup' => [6, 3600],   // 6 signups / hour
+        'forgot' => [6, 3600],   // 6 reset emails / hour
+        'reset'  => [12, 3600],  // 12 reset submits / hour
+    ];
     if (!csrf_verify($_POST['csrf_token'] ?? null)) {
         $error = 'Your session expired, please try again.';
+    } elseif (isset($limits[$do]) && !rate_limit_ip('cardly_' . $do, $limits[$do][0], $limits[$do][1])) {
+        $error = 'Too many attempts. Please wait a few minutes and try again.';
     } elseif ($do === 'login') {
         $r = cardly_login((string) ($_POST['email'] ?? ''), (string) ($_POST['password'] ?? ''));
         if ($r['ok']) {

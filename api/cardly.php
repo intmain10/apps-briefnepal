@@ -46,7 +46,7 @@ if ($action === 'check') {
 
 /* --------------------------------------------------------------------- create */
 if ($action === 'create') {
-    if (!rate_limit('cardly_create', 15, 3600)) {
+    if (!rate_limit('cardly_create', 15, 3600) || !rate_limit_ip('cardly_create', 20, 3600)) {
         json_error('Too many cards created. Please try again later.', 429);
     }
     // When accounts are available, creating a card requires a signed-in user
@@ -108,7 +108,7 @@ function cardly_authorize(): array
 
 /* ----------------------------------------------------------------------- save */
 if ($action === 'save') {
-    if (!rate_limit('cardly_save', 120, 3600)) {
+    if (!rate_limit('cardly_save', 120, 3600) || !rate_limit_ip('cardly_save', 200, 3600)) {
         json_error('Too many saves. Slow down a moment.', 429);
     }
     [$slug, $card] = cardly_authorize();
@@ -192,7 +192,7 @@ if ($action === 'save') {
 
 /* --------------------------------------------------------------------- upload */
 if ($action === 'upload') {
-    if (!rate_limit('cardly_upload', 60, 3600)) {
+    if (!rate_limit('cardly_upload', 60, 3600) || !rate_limit_ip('cardly_upload', 80, 3600)) {
         json_error('Too many uploads. Please wait a moment.', 429);
     }
     [$slug, $card] = cardly_authorize();

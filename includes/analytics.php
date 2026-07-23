@@ -13,6 +13,11 @@ declare(strict_types=1);
 /** Directory holding daily logs (created + web-protected on first use). */
 function analytics_dir(): string
 {
+    // Runs on nearly every pageview (the beacon) — a cheap place to make sure
+    // the uploads dir can never execute an uploaded script.
+    if (function_exists('security_ensure_uploads_htaccess')) {
+        security_ensure_uploads_htaccess();
+    }
     $dir = UPLOADS_PATH . '/analytics';
     if (!is_dir($dir)) {
         @mkdir($dir, 0775, true);

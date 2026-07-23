@@ -150,8 +150,16 @@ ErrorDocument 404 /404.php
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
-    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+    Header always set X-XSS-Protection "0"
+    # Force HTTPS for 180 days once seen (site is HTTPS-only via the host).
+    Header always set Strict-Transport-Security "max-age=15552000"
+    # Isolate the browsing context (mitigates cross-origin leaks/clickjacking).
+    Header always set Cross-Origin-Opener-Policy "same-origin"
+    # Conservative CSP: blocks plugin/object injection, <base> hijacking and
+    # framing, without restricting the app's own inline scripts/styles/images
+    # (so nothing breaks). Tighten to a nonce-based policy later if desired.
+    Header always set Content-Security-Policy "object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
 </IfModule>
 
 # =========================================================================
