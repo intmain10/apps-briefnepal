@@ -87,7 +87,7 @@ if (!defined('APP_SECRET')) define('APP_SECRET', 'change-this-to-a-64-char-rando
 
 // Password (bcrypt hash) for the private analytics dashboard (/dashboard.php).
 // Override in config.local.php to change it: define('DASHBOARD_PASS_HASH', password_hash('yourpass', PASSWORD_DEFAULT));
-if (!defined('DASHBOARD_PASS_HASH')) define('DASHBOARD_PASS_HASH', '$2y$12$jz87CO8S6J79nE8D/6QLSuFflnaGfWzpRJSPFezx.Vc6bPYsWohsO');
+if (!defined('DASHBOARD_PASS_HASH')) define('DASHBOARD_PASS_HASH', '$2y$12$NT//sMkju2OZRLcFi/3WOOV1bzfXfGZRrHJaep0/SmsXXsmeSxc..');
 
 // Default admin credentials (used to seed the DB). Change after first login.
 define('DEFAULT_ADMIN_EMAIL', 'admin@omnitools.local');
