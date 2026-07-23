@@ -15,13 +15,21 @@ $bare = !empty($page['bare']);
 <?php if (!$bare && cardly_is_host()): ?>
 <footer class="footer footer--cardly">
   <div class="container">
-    <div class="footer__bottom" style="flex-direction:column;gap:8px;text-align:center;justify-content:center">
+    <div class="cardly-foot">
       <a href="<?= eattr(cardly_link()) ?>" class="brand brand--footer" style="justify-content:center">
         <img class="brand__logo" src="<?= eattr(url('assets/images/cardly-icon.png?v=' . OMNITOOLS_VERSION)) ?>" width="30" height="30" alt="Cardly logo">
         <span class="brand__name">Cardly</span>
       </a>
-      <p class="footer__made">Free digital business cards · by <a href="https://apps.briefnepal.com" rel="noopener">OmniTools</a></p>
-      <p>&copy; <?= date('Y') ?> Cardly</p>
+      <p class="cardly-foot__tag">Your whole world, one smart link. Free digital business cards, no ads and no credit card.</p>
+      <nav class="cardly-foot__links" aria-label="Footer">
+        <a href="<?= eattr(cardly_link('new')) ?>">Create a card</a>
+        <a href="<?= eattr(cardly_link('discover')) ?>">Discover</a>
+        <a href="<?= eattr(cardly_link('about')) ?>">About</a>
+        <a href="https://apps.briefnepal.com/privacy" rel="noopener">Privacy</a>
+        <a href="https://apps.briefnepal.com/terms" rel="noopener">Terms</a>
+        <a href="https://apps.briefnepal.com/contact" rel="noopener">Contact</a>
+      </nav>
+      <p class="cardly-foot__copy">&copy; <?= date('Y') ?> Cardly · Free forever · by <a href="https://apps.briefnepal.com" rel="noopener">OmniTools</a></p>
     </div>
   </div>
 </footer>

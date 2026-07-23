@@ -288,3 +288,18 @@ body.cardly-page { background: #050509; }
 .cdir__pager { display: flex; align-items: center; justify-content: center; gap: 20px; margin-top: 36px; color: var(--text-2); }
 .cdir__pager a { color: var(--accent); text-decoration: none; font-weight: 600; }
 .cdir__pager a:hover { text-decoration: underline; }
+
+/* ---- Landing: "free forever" trust band (set intentions before signup) ---- */
+.cardly-trust__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-top: 30px; }
+.cardly-trust__item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 22px; text-align: center; }
+.cardly-trust__item b { display: block; font-family: var(--font-display); font-size: 30px; letter-spacing: -.02em; background: linear-gradient(135deg, #0071e3, #7c3aed); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; margin-bottom: 10px; }
+.cardly-trust__item span { color: var(--text-2); font-size: 14px; line-height: 1.5; }
+
+/* ---- Cardly footer (filled, tidy — no empty bordered band) ---- */
+.footer--cardly { border-top: 1px solid var(--border); background: var(--bg-subtle); margin-top: 40px; padding: 44px 0 34px; }
+.cardly-foot { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+.cardly-foot__tag { color: var(--text-2); font-size: 14px; max-width: 440px; margin: 0; }
+.cardly-foot__links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 24px; margin: 2px 0; }
+.cardly-foot__links a { color: var(--text-2); font-size: 14px; font-weight: 500; }
+.cardly-foot__links a:hover { color: var(--text); }
+.cardly-foot__copy { color: var(--text-3); font-size: 13px; margin: 4px 0 0; }

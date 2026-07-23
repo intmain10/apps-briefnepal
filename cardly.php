@@ -54,7 +54,22 @@ require __DIR__ . '/includes/header.php';
       <a class="btn btn--ghost" href="#templates">See templates</a>
       <a class="btn btn--ghost" href="<?= eattr(cardly_link('discover')) ?>">Discover people</a>
     </div>
-    <p class="muted mt-4" style="font-size:13px"><?= cardly_accounts_enabled() ? 'Free · Your account · Yours in 2 minutes' : 'No signup · Free · Yours in 2 minutes' ?></p>
+    <p class="muted mt-4" style="font-size:13px">Free forever · No credit card · Yours in 2 minutes</p>
+  </div>
+</section>
+
+<section class="section container">
+  <div class="section__head" style="justify-content:center;text-align:center">
+    <div>
+      <h2 class="section__title">Free forever. Here's the deal.</h2>
+      <p class="section__desc" style="max-width:580px;margin:8px auto 0">No pricing tricks, no credit card, no catch. Cardly is free, there are no ads, and we never sell your data. Your card is yours to edit or delete anytime.</p>
+    </div>
+  </div>
+  <div class="cardly-trust__grid">
+    <div class="cardly-trust__item"><b>$0</b><span>Free forever. No credit card, no trial, no subscription.</span></div>
+    <div class="cardly-trust__item"><b>No ads</b><span>No trackers and no selling your data, ever.</span></div>
+    <div class="cardly-trust__item"><b>Yours</b><span>Edit or delete your card anytime. Keep it unlisted if you like.</span></div>
+    <div class="cardly-trust__item"><b>2 min</b><span>No app to install. Build it and share one link.</span></div>
   </div>
 </section>
 
