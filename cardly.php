@@ -11,8 +11,8 @@ $templates = cardly_templates();
 $cardlyUser = cardly_current_user();
 
 $page = [
-    'title'       => 'Cardly, Create a Free Digital Business Card | ' . SITE_NAME,
-    'description' => 'Cardly by ' . SITE_NAME . ', build a beautiful digital business card in minutes. Share one link everywhere: Instagram, LinkedIn, X, WhatsApp, resumes and email signatures. Free.',
+    'title'       => 'Cardly, Create a Free Digital Business Card',
+    'description' => 'Cardly, build a beautiful digital business card in minutes. Share one link everywhere: Instagram, LinkedIn, X, WhatsApp, resumes and email signatures. Free.',
     'canonical'   => cardly_link(),
     'is_cardly'   => true,
     'image'       => url('assets/images/cardly-og.png?v=' . OMNITOOLS_VERSION),

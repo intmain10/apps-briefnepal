@@ -18,6 +18,8 @@ $pageDesc        = $page['description'] ?? SITE_DESCRIPTION;
 $canonical       = $page['canonical']   ?? (SITE_URL . strtok($_SERVER['REQUEST_URI'] ?? '/', '?'));
 $ogType          = $page['og_type']     ?? 'website';
 $ogImage         = $page['image']       ?? url('assets/images/og-default.png');
+// Cardly is its own brand — its shares read "Cardly", not the platform name.
+$siteName        = $page['site_name']   ?? (!empty($page['is_cardly']) ? 'Cardly' : SITE_NAME);
 $bodyClass       = $page['body_class']  ?? '';
 $breadcrumb      = $page['breadcrumb']  ?? [];
 $noindex         = $page['noindex']     ?? false;
@@ -74,7 +76,7 @@ if (!empty($breadcrumb)) {
 <?php endif; ?>
 
 <!-- Open Graph -->
-<meta property="og:site_name" content="<?= eattr(SITE_NAME) ?>">
+<meta property="og:site_name" content="<?= eattr($siteName) ?>">
 <meta property="og:type" content="<?= eattr($ogType) ?>">
 <meta property="og:title" content="<?= eattr($pageTitle) ?>">
 <meta property="og:description" content="<?= eattr($pageDesc) ?>">
