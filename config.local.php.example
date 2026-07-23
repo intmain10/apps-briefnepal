@@ -7,8 +7,8 @@
  * (Hostinger → File Manager → public_html/apps/) with your real MySQL details.
  * config.php auto-loads it, and every value here overrides the defaults.
  *
- * ⚠ Do NOT set APP_SECRET here if Cardly cards already exist — changing it
- *   invalidates every existing Cardly edit link (tokens are hashed with it).
+ * Put ALL secrets here (not in config.php — config.php is deployed and would
+ * overwrite server edits on every deploy; this file never is).
  */
 declare(strict_types=1);
 
@@ -17,3 +17,16 @@ define('DB_HOST', 'localhost');              // Hostinger: usually 'localhost'
 define('DB_NAME', 'u682902872_cardly');      // your database name
 define('DB_USER', 'u682902872_cardly');      // your database user
 define('DB_PASS', 'YOUR-DB-PASSWORD-HERE');  // your database password
+
+/* --- APP_SECRET: peppers Cardly edit-token hashes. Set a unique 64-char
+ *     random value ONCE and never change it (changing it invalidates every
+ *     existing Cardly guest edit link). Generate with:
+ *       php -r "echo bin2hex(random_bytes(32));"                              */
+// define('APP_SECRET', 'REPLACE-WITH-64-RANDOM-HEX-CHARS');
+
+/* --- Analytics dashboard password hash (see /dashboard.php). Generate with:
+ *       php -r "echo password_hash('your-password', PASSWORD_DEFAULT);"       */
+// define('DASHBOARD_PASS_HASH', '$2y$12$...');
+
+/* --- IndexNow key (only if you change it from the repo default) --- */
+// define('INDEXNOW_KEY', 'your-32-hex-key');
