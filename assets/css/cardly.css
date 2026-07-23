@@ -292,7 +292,7 @@ body.cardly-page { background: #050509; }
 /* ---- Landing: "free forever" trust band (set intentions before signup) ---- */
 .cardly-trust__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-top: 30px; }
 .cardly-trust__item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 22px; text-align: center; }
-.cardly-trust__item b { display: block; font-family: var(--font-display); font-size: 30px; letter-spacing: -.02em; background: linear-gradient(135deg, #0071e3, #7c3aed); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; margin-bottom: 10px; }
+.cardly-trust__item b { display: block; font-family: var(--font-display); font-size: clamp(20px, 4vw, 24px); letter-spacing: -.02em; background: linear-gradient(135deg, #0071e3, #7c3aed); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; margin-bottom: 10px; }
 .cardly-trust__item span { color: var(--text-2); font-size: 14px; line-height: 1.5; }
 
 /* ---- Cardly footer (filled, tidy — no empty bordered band) ---- */
@@ -303,3 +303,25 @@ body.cardly-page { background: #050509; }
 .cardly-foot__links a { color: var(--text-2); font-size: 14px; font-weight: 500; }
 .cardly-foot__links a:hover { color: var(--text); }
 .cardly-foot__copy { color: var(--text-3); font-size: 13px; margin: 4px 0 0; }
+
+/* ---- Landing: hero product preview (the premium card, with a 3D tilt) ---- */
+.cardly-herocard { max-width: 660px; margin: 40px auto 0; border-radius: 20px; overflow: hidden; box-shadow: 0 40px 90px -24px color-mix(in srgb, #7c3aed 45%, transparent), 0 18px 44px rgba(0,0,0,.28); transform: perspective(1500px) rotateX(7deg); transition: transform .45s var(--ease); }
+.cardly-herocard:hover { transform: perspective(1500px) rotateX(0deg) scale(1.015); }
+.cardly-herocard img { display: block; width: 100%; height: auto; }
+@media (prefers-reduced-motion: reduce) { .cardly-herocard { transform: none; } }
+
+/* ---- Landing: real social proof (avatar stack + audience line) ---- */
+.cardly-proof { display: inline-flex; align-items: center; gap: 12px; margin: 26px auto 0; }
+.cardly-proof__avatars { display: inline-flex; }
+.cardly-proof__avatars img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid var(--bg); margin-left: -10px; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+.cardly-proof__avatars img:first-child { margin-left: 0; }
+.cardly-proof__txt { color: var(--text-2); font-size: 13.5px; text-align: left; max-width: 300px; }
+.cardly-proof:hover .cardly-proof__txt { color: var(--text); }
+
+/* ---- Landing: "three steps" ---- */
+.cardly-steps { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 30px 0 0; padding: 0; }
+.cardly-steps li { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+.cardly-steps__n { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #0071e3, #7c3aed); color: #fff; font-weight: 800; font-size: 15px; margin-bottom: 12px; }
+.cardly-steps h3 { font-size: 17px; margin: 0 0 4px; }
+.cardly-steps p { color: var(--text-2); font-size: 14px; margin: 0; line-height: 1.5; }
+@media (max-width: 640px) { .cardly-steps { grid-template-columns: 1fr; } }
