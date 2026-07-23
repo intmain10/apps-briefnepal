@@ -63,10 +63,37 @@ require __DIR__ . '/includes/header.php';
     </div>
     <p class="muted mt-4" style="font-size:13px">Free forever · No credit card · Yours in 2 minutes</p>
 
-    <!-- Product preview: the premium card is the hero -->
-    <div class="cardly-herocard">
-      <img src="<?= eattr(url('assets/images/cardly-hero-card.jpg?v=' . OMNITOOLS_VERSION)) ?>" alt="Example Cardly digital card, showing name, role, socials and a scannable QR code" width="1200" height="630">
+    <!-- Product preview: a stack of theme cards that auto-cycles -->
+    <div class="cardly-deck" id="cardlyDeck" role="img" aria-label="Example Cardly cards shown in six different themes">
+      <?php for ($i = 1; $i <= 6; $i++): ?>
+      <img class="cardly-deck__card" src="<?= eattr(url('assets/images/cardly-hero-' . $i . '.jpg?v=' . OMNITOOLS_VERSION)) ?>" alt="" width="1200" height="630" <?= $i === 1 ? 'fetchpriority="high"' : 'loading="lazy"' ?>>
+      <?php endfor; ?>
     </div>
+    <p class="muted" style="font-size:12.5px;margin-top:14px">One card, <?= count($templates) ?> themes, endless connections.</p>
+    <script>
+    (function () {
+      var deck = document.getElementById('cardlyDeck');
+      if (!deck) return;
+      var cards = [].slice.call(deck.querySelectorAll('.cardly-deck__card'));
+      if (cards.length < 2) return;
+      var VISIBLE = 3;
+      function layout() {
+        cards.forEach(function (c, i) {
+          c.style.transform = 'translateY(' + (i * 16) + 'px) scale(' + (1 - i * 0.05) + ')';
+          c.style.zIndex = String(cards.length - i);
+          c.style.opacity = i < VISIBLE ? '1' : '0';
+          c.style.filter = 'brightness(' + (1 - i * 0.08) + ')';
+        });
+      }
+      layout();
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce) return;
+      var timer = setInterval(cycle, 3000);
+      function cycle() { cards.push(cards.shift()); layout(); }
+      deck.addEventListener('mouseenter', function () { clearInterval(timer); timer = null; });
+      deck.addEventListener('mouseleave', function () { if (!timer) timer = setInterval(cycle, 3000); });
+    })();
+    </script>
 
     <!-- Real social proof -->
     <a class="cardly-proof" href="<?= eattr(cardly_link('discover')) ?>">

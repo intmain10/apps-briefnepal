@@ -304,11 +304,14 @@ body.cardly-page { background: #050509; }
 .cardly-foot__links a:hover { color: var(--text); }
 .cardly-foot__copy { color: var(--text-3); font-size: 13px; margin: 4px 0 0; }
 
-/* ---- Landing: hero product preview (the premium card, with a 3D tilt) ---- */
-.cardly-herocard { max-width: 660px; margin: 40px auto 0; border-radius: 20px; overflow: hidden; box-shadow: 0 40px 90px -24px color-mix(in srgb, #7c3aed 45%, transparent), 0 18px 44px rgba(0,0,0,.28); transform: perspective(1500px) rotateX(7deg); transition: transform .45s var(--ease); }
-.cardly-herocard:hover { transform: perspective(1500px) rotateX(0deg) scale(1.015); }
-.cardly-herocard img { display: block; width: 100%; height: auto; }
-@media (prefers-reduced-motion: reduce) { .cardly-herocard { transform: none; } }
+/* ---- Landing: hero product preview — auto-cycling stack of theme cards ---- */
+.cardly-deck { position: relative; width: min(640px, 100%); margin: 42px auto 0; aspect-ratio: 1200 / 704; }
+.cardly-deck__card { position: absolute; inset: 0; width: 100%; height: auto; aspect-ratio: 1200 / 630; border-radius: 18px;
+  box-shadow: 0 34px 80px -26px color-mix(in srgb, #7c3aed 45%, transparent), 0 16px 40px rgba(0,0,0,.3);
+  transform-origin: 50% 0; transition: transform .6s var(--ease), opacity .6s var(--ease), filter .6s var(--ease); will-change: transform; }
+/* Fallback before JS runs / if JS disabled: show only the front card. */
+.cardly-deck__card:not(:first-child) { opacity: 0; }
+.cardly-deck__card:first-child { opacity: 1; }
 
 /* ---- Landing: real social proof (avatar stack + audience line) ---- */
 .cardly-proof { display: inline-flex; align-items: center; gap: 12px; margin: 26px auto 0; }
