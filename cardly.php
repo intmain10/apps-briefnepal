@@ -15,6 +15,7 @@ $page = [
     'description' => 'Cardly by ' . SITE_NAME . ', build a beautiful digital business card in minutes. Share one link everywhere: Instagram, LinkedIn, X, WhatsApp, resumes and email signatures. Free.',
     'canonical'   => cardly_link(),
     'is_cardly'   => true,
+    'image'       => url('assets/images/cardly-og.png?v=' . OMNITOOLS_VERSION),
     'breadcrumb'  => [['name' => 'Home', 'url' => url()], ['name' => 'Cardly', 'url' => cardly_link()]],
     'jsonld'      => [[
         '@context' => 'https://schema.org', '@type' => 'WebApplication',
