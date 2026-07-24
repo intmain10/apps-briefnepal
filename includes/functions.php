@@ -5,7 +5,7 @@
  * This file is included on every page (via header.php). It bootstraps the
  * config, database and tool registry, and exposes small reusable helpers.
  *
- * @package OmniTools
+ * @package Toolzy
  */
 
 declare(strict_types=1);

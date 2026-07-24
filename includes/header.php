@@ -5,7 +5,7 @@
  * Pages define a $page array before including this file:
  *   $page = ['title'=>..,'description'=>..,'canonical'=>..,'breadcrumb'=>[..],'jsonld'=>[..]];
  *
- * @package OmniTools
+ * @package Toolzy
  */
 
 declare(strict_types=1);

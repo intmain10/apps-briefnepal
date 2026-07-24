@@ -14,7 +14,7 @@
  *
  * DELETE THIS FILE after a successful run.
  *
- * @package OmniTools\Cardly
+ * @package Toolzy\Cardly
  */
 declare(strict_types=1);
 

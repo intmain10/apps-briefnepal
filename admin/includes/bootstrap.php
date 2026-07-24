@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin bootstrap — loads core, enforces auth (except on the login page).
- * @package OmniTools\Admin
+ * @package Toolzy\Admin
  */
 declare(strict_types=1);
 

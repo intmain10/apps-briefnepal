@@ -1,7 +1,7 @@
 <?php
 /**
  * Dynamic robots.txt generator (served at /robots.txt via .htaccess).
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 

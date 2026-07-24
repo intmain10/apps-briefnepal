@@ -1,12 +1,12 @@
 <?php
 /**
- * Lightweight, file-based analytics for OmniTools + Cardly.
+ * Lightweight, file-based analytics for Toolzy + Cardly.
  *
  * Every human pageview appends one tab-separated line to a per-day log under
  * uploads/analytics/YYYY-MM-DD.log (denied from the web). No DB, no cookies,
  * no third parties. The dashboard aggregates the last N days on read.
  *
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 

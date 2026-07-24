@@ -12,7 +12,7 @@
  * only when the card (or the design version) changes, so crawlers get a fast
  * static file.
  *
- * @package OmniTools\Cardly
+ * @package Toolzy\Cardly
  */
 declare(strict_types=1);
 

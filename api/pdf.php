@@ -8,7 +8,7 @@
  *
  * Security: strict upload validation, random temp names, immediate cleanup.
  *
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 

@@ -3,9 +3,9 @@
  * User Guide / documentation — a Mintlify-style, single-page manual with a
  * sticky nested sidebar, scroll-spy and cross-links into the live tools.
  *
- * Content is based on assets/manual/OmniTools_User_Manual.docx.
+ * Content is based on assets/manual/Toolzy_User_Manual.docx.
  *
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 
@@ -39,7 +39,7 @@ $nav = [
         ['id' => 'features',     'label' => 'Key features'],
     ]],
     ['title' => 'Basics', 'items' => [
-        ['id' => 'accessing',    'label' => 'Accessing OmniTools'],
+        ['id' => 'accessing',    'label' => 'Accessing Toolzy'],
         ['id' => 'homepage',     'label' => 'Homepage layout'],
         ['id' => 'finding',      'label' => 'Finding a tool'],
         ['id' => 'using',        'label' => 'Using a tool'],
@@ -59,25 +59,25 @@ $nav = [
 ];
 
 $faqs = [
-    ['Is OmniTools really free?', 'Yes. Every tool on OmniTools is completely free to use, with no sign-up, no watermarks, and no hidden limits.'],
+    ['Is Toolzy really free?', 'Yes. Every tool on Toolzy is completely free to use, with no sign-up, no watermarks, and no hidden limits.'],
     ['Are my files safe?', 'Most tools, including all image, text, developer, and calculator tools, run entirely inside your browser, so files never leave your device. The few tools that require a server delete uploaded files immediately after processing.'],
-    ['Do I need to install anything?', 'No. OmniTools runs in any modern browser on desktop and mobile. There is nothing to download or install.'],
-    ['Can I use OmniTools on my phone?', 'Yes. The platform is designed mobile-first and works on phones and tablets as well as desktop browsers.'],
+    ['Do I need to install anything?', 'No. Toolzy runs in any modern browser on desktop and mobile. There is nothing to download or install.'],
+    ['Can I use Toolzy on my phone?', 'Yes. The platform is designed mobile-first and works on phones and tablets as well as desktop browsers.'],
     ['How many tools are there?', $total . '+ tools across ' . count($cats) . ' categories, with new tools added regularly.'],
 ];
 
 $page = [
     'title'       => 'User Guide & Documentation | ' . SITE_NAME,
-    'description' => 'The complete OmniTools user guide, how to find and use ' . $total . '+ free online tools across ' . count($cats) . ' categories. Getting started, categories, privacy, FAQ and a quick reference.',
+    'description' => 'The complete Toolzy user guide, how to find and use ' . $total . '+ free online tools across ' . count($cats) . ' categories. Getting started, categories, privacy, FAQ and a quick reference.',
     'canonical'   => url('docs'),
     'breadcrumb'  => [['name' => 'Home', 'url' => url()], ['name' => 'User Guide', 'url' => url('docs')]],
     'jsonld'      => [
         [
             '@context'      => 'https://schema.org',
             '@type'         => 'TechArticle',
-            'headline'      => 'OmniTools User Guide',
-            'name'          => 'OmniTools User Guide & Documentation',
-            'description'   => 'How to find and use ' . $total . '+ free online tools on OmniTools across ' . count($cats) . ' categories.',
+            'headline'      => 'Toolzy User Guide',
+            'name'          => 'Toolzy User Guide & Documentation',
+            'description'   => 'How to find and use ' . $total . '+ free online tools on Toolzy across ' . count($cats) . ' categories.',
             'url'           => url('docs'),
             'inLanguage'    => 'en',
             'datePublished' => '2026-07-22',
@@ -133,17 +133,17 @@ require __DIR__ . '/includes/header.php';
       <p class="docs-lede"><strong><?= e(SITE_NAME) ?></strong> is a free, browser-based platform with <?= $total ?>+ online tools across <?= count($cats) ?> categories, no signup, no watermarks, and most tools run entirely on your device.</p>
       <div class="docs-hero__actions">
         <a class="btn btn--primary btn--sm" href="<?= eattr(url('tools')) ?>">Browse all tools</a>
-        <a class="btn btn--ghost btn--sm" href="<?= eattr(url('assets/manual/OmniTools_User_Manual.docx')) ?>" download>Download manual (.docx)</a>
+        <a class="btn btn--ghost btn--sm" href="<?= eattr(url('assets/manual/Toolzy_User_Manual.docx')) ?>" download>Download manual (.docx)</a>
       </div>
     </header>
 
     <!-- 1. Introduction -->
     <section id="introduction" class="docs-section">
       <h2>Introduction</h2>
-      <p>OmniTools is a free, browser-based platform offering <?= $total ?>+ online tools across <?= count($cats) ?> categories, including PDF, Image, Video, Audio, Text, Developer, SEO, Finance, Utilities, Calculators, Documents, AI, and Converters. This guide explains how to find, use, and get the most out of the tools on the platform.</p>
+      <p>Toolzy is a free, browser-based platform offering <?= $total ?>+ online tools across <?= count($cats) ?> categories, including PDF, Image, Video, Audio, Text, Developer, SEO, Finance, Utilities, Calculators, Documents, AI, and Converters. This guide explains how to find, use, and get the most out of the tools on the platform.</p>
 
       <h3 id="who-for">Who this guide is for</h3>
-      <p>This guide is written for anyone using OmniTools for the first time, as well as returning users who want a quick reference for a specific tool or feature.</p>
+      <p>This guide is written for anyone using Toolzy for the first time, as well as returning users who want a quick reference for a specific tool or feature.</p>
 
       <h3 id="features">Key features</h3>
       <div class="docs-cards">
@@ -156,7 +156,7 @@ require __DIR__ . '/includes/header.php';
 
     <!-- 2. Getting started -->
     <section id="accessing" class="docs-section">
-      <h2>Accessing OmniTools</h2>
+      <h2>Accessing Toolzy</h2>
       <p>Open a web browser and go to <a href="<?= eattr(url()) ?>"><?= e(SITE_DOMAIN) ?></a>. No download, installation, or account creation is required, the homepage loads directly into the tool library.</p>
       <div class="docs-callout docs-callout--tip">
         <span class="docs-callout__icon">💡</span>
@@ -213,7 +213,7 @@ require __DIR__ . '/includes/header.php';
     <!-- 4. Categories -->
     <section id="categories" class="docs-section">
       <h2>Tool categories</h2>
-      <p>OmniTools organizes its <?= $total ?>+ tools into <?= count($cats) ?> categories. Counts update automatically as new tools ship.</p>
+      <p>Toolzy organizes its <?= $total ?>+ tools into <?= count($cats) ?> categories. Counts update automatically as new tools ship.</p>
       <div class="docs-table-wrap">
         <table class="docs-table">
           <thead><tr><th>Category</th><th>Tools</th><th>Examples</th></tr></thead>
@@ -272,7 +272,7 @@ require __DIR__ . '/includes/header.php';
     <!-- 6. Cardly -->
     <section id="cardly" class="docs-section">
       <h2>Cardly, digital business card</h2>
-      <p>Cardly is a companion product from the OmniTools team, reachable via the <strong>Cardly ✨</strong> link in the top navigation. It creates a free digital business card, a single smart link that brings together your Instagram, LinkedIn, WhatsApp, resume, and email, with support for save-to-contact and QR code sharing.</p>
+      <p>Cardly is a companion product from the Toolzy team, reachable via the <strong>Cardly ✨</strong> link in the top navigation. It creates a free digital business card, a single smart link that brings together your Instagram, LinkedIn, WhatsApp, resume, and email, with support for save-to-contact and QR code sharing.</p>
       <ol class="docs-steps">
         <li>Click <strong>Cardly ✨</strong> in the navigation bar.</li>
         <li>Follow the on-screen steps to add your links and details.</li>
@@ -284,7 +284,7 @@ require __DIR__ . '/includes/header.php';
     <!-- 7. Privacy -->
     <section id="privacy" class="docs-section">
       <h2>Privacy &amp; data handling</h2>
-      <p>OmniTools is built with a privacy-first approach:</p>
+      <p>Toolzy is built with a privacy-first approach:</p>
       <ul class="docs-list">
         <li><strong>Most tools</strong>: including all image, text, developer, and calculator tools, run entirely inside your browser. Files are processed locally and never uploaded anywhere.</li>
         <li><strong>A few tools</strong> require server-side processing. For these, uploaded files are deleted immediately after processing completes.</li>

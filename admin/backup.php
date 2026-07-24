@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin — database backup (SQL dump download, pure PHP, no mysqldump needed).
- * @package OmniTools\Admin
+ * @package Toolzy\Admin
  */
 declare(strict_types=1);
 
@@ -17,7 +17,7 @@ if (isset($_GET['download']) && $db->isConnected() && csrf_verify($_GET['csrf_to
     header('Content-Type: application/sql; charset=utf-8');
     header('Content-Disposition: attachment; filename="omnitools-backup-' . date('Ymd-His') . '.sql"');
 
-    echo "-- OmniTools database backup\n-- Generated: " . date('c') . "\n\n";
+    echo "-- Toolzy database backup\n-- Generated: " . date('c') . "\n\n";
     echo "SET NAMES utf8mb4;\nSET foreign_key_checks = 0;\n\n";
 
     foreach ($tables as $table) {

@@ -2,11 +2,11 @@
 /**
  * Top navigation bar with search trigger, category menu and theme toggle.
  *
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 
-/* On the dedicated Cardly domain, render a Cardly-only navbar (no OmniTools
+/* On the dedicated Cardly domain, render a Cardly-only navbar (no Toolzy
    menu) and stop — this domain is exclusively Cardly. */
 if (cardly_is_host()):
     $cUser = function_exists('cardly_current_user') ? cardly_current_user() : null;

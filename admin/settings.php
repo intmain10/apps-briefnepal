@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin — site settings, SEO defaults & ads.
- * @package OmniTools\Admin
+ * @package Toolzy\Admin
  */
 declare(strict_types=1);
 
@@ -42,7 +42,7 @@ if ($notice) echo '<div class="notice notice--success mb-4">' . e($notice) . '</
   <div class="field"><label class="field__label">Tagline</label><input class="input" name="site_tagline" value="<?= eattr($vals['site_tagline'] ?: SITE_TAGLINE) ?>"></div>
 
   <h2 style="font-size:18px;margin:24px 0 12px">SEO defaults</h2>
-  <div class="field"><label class="field__label">Title suffix</label><input class="input" name="seo_title_suffix" value="<?= eattr($vals['seo_title_suffix']) ?>" placeholder=" | OmniTools"></div>
+  <div class="field"><label class="field__label">Title suffix</label><input class="input" name="seo_title_suffix" value="<?= eattr($vals['seo_title_suffix']) ?>" placeholder=" | Toolzy"></div>
   <div class="field"><label class="field__label">Default meta description</label><textarea class="textarea" name="seo_default_description" style="min-height:80px"><?= e($vals['seo_default_description']) ?></textarea></div>
 
   <h2 style="font-size:18px;margin:24px 0 12px">Advertising (Google AdSense)</h2>

@@ -1,12 +1,12 @@
 <?php
 /**
- * OmniTools — Global Configuration
+ * Toolzy — Global Configuration
  *
  * Central configuration for the entire platform. Edit the DB credentials
  * and SITE_URL to match your shared hosting environment. Everything else
  * works out of the box.
  *
- * @package OmniTools
+ * @package Toolzy
  */
 
 declare(strict_types=1);
@@ -40,9 +40,9 @@ if (DEBUG_MODE) {
 /* -------------------------------------------------------------------------
  * Site identity
  * ---------------------------------------------------------------------- */
-define('SITE_NAME', 'OmniTools');
+define('SITE_NAME', 'Toolzy');
 define('SITE_TAGLINE', 'Everything You Need. One Platform.');
-define('SITE_DESCRIPTION', 'OmniTools is a fast, free and modern online tools platform with 100+ tools for PDF, images, audio, developers, SEO, finance and more, all in one place, no signup required.');
+define('SITE_DESCRIPTION', 'Toolzy is a free online tools platform with 100+ tools for PDF, images, audio, text, developers, SEO and finance — fast, private and no signup required.');
 
 // No trailing slash. Used to build canonical URLs, sitemaps and OG tags.
 define('SITE_URL', (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
@@ -58,7 +58,7 @@ if (!defined('CARDLY_DOMAIN')) define('CARDLY_DOMAIN', getenv('CARDLY_DOMAIN') ?
 if (!defined('INDEXNOW_KEY')) define('INDEXNOW_KEY', getenv('INDEXNOW_KEY') ?: 'fcc23e938a1598e4719afb6f56e20afc');
 define('SITE_EMAIL', 'hello@briefnepal.com');
 define('SITE_LOCALE', 'en_US');
-define('SITE_AUTHOR', 'OmniTools Team');
+define('SITE_AUTHOR', 'Toolzy Team');
 
 /* -------------------------------------------------------------------------
  * Filesystem paths

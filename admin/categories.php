@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin — categories overview.
- * @package OmniTools\Admin
+ * @package Toolzy\Admin
  */
 declare(strict_types=1);
 

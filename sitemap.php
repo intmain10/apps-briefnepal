@@ -9,7 +9,7 @@
  *   /sitemap-blog.xml     → blog only  (?type=blog)
  *   /sitemap-pages.xml    → static + categories (?type=pages)
  *
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 

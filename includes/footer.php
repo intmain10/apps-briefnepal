@@ -2,7 +2,7 @@
 /**
  * Global footer + closing scripts.
  *
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 
@@ -29,7 +29,7 @@ $bare = !empty($page['bare']);
         <a href="https://apps.briefnepal.com/terms" rel="noopener">Terms</a>
         <a href="https://apps.briefnepal.com/contact" rel="noopener">Contact</a>
       </nav>
-      <p class="cardly-foot__copy">&copy; <?= date('Y') ?> Cardly · Free forever · by <a href="https://apps.briefnepal.com" rel="noopener">OmniTools</a></p>
+      <p class="cardly-foot__copy">&copy; <?= date('Y') ?> Cardly · Free forever · by <a href="https://apps.briefnepal.com" rel="noopener">Toolzy</a></p>
     </div>
   </div>
 </footer>

@@ -1,7 +1,7 @@
 <?php
 /**
  * Cardly — public card page (premium, immersive, SEO/GEO).
- * @package OmniTools\Cardly
+ * @package Toolzy\Cardly
  */
 declare(strict_types=1);
 

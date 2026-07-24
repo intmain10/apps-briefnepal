@@ -1,9 +1,9 @@
 <?php
 /**
- * Private analytics dashboard for OmniTools + Cardly (file-based, no DB).
+ * Private analytics dashboard for Toolzy + Cardly (file-based, no DB).
  * Access: https://apps.briefnepal.com/dashboard.php  (password-gated).
  *
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 
@@ -105,13 +105,13 @@ header('X-Robots-Tag: noindex, nofollow');
 ?>
   <div class="wrap">
     <div class="top">
-      <div><h1>📊 Analytics</h1><div class="sub">OmniTools + Cardly · last <?= $days ?> days · <?= htmlspecialchars(SITE_DOMAIN) ?></div></div>
+      <div><h1>📊 Analytics</h1><div class="sub">Toolzy + Cardly · last <?= $days ?> days · <?= htmlspecialchars(SITE_DOMAIN) ?></div></div>
       <a class="btn btn--ghost" href="?logout=1">Sign out</a>
     </div>
 
     <div class="tiles">
       <div class="tile"><b><?= number_format($t['all']) ?></b><span>Total views (<?= $days ?>d)</span></div>
-      <div class="tile apps"><b><?= number_format($t['apps']) ?></b><span>OmniTools views</span></div>
+      <div class="tile apps"><b><?= number_format($t['apps']) ?></b><span>Toolzy views</span></div>
       <div class="tile cardly"><b><?= number_format($t['cardly']) ?></b><span>Cardly views</span></div>
       <div class="tile"><b><?= number_format($t['today']) ?></b><span>Today</span></div>
     </div>
@@ -127,7 +127,7 @@ header('X-Robots-Tag: noindex, nofollow');
 
     <div class="grid2">
       <div class="panel">
-        <h2>Top OmniTools tools</h2>
+        <h2>Top Toolzy tools</h2>
         <table>
           <?php foreach ($topTools as $slug => $n): $tool = get_tool($slug); ?>
             <tr><td><?= htmlspecialchars($tool['name'] ?? $slug) ?></td><td class="n"><?= number_format($n) ?></td></tr>

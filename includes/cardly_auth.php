@@ -6,7 +6,7 @@
  * config.php. Verification / reset tokens are random, emailed as a raw value,
  * and stored only as a SHA-256 hash with an expiry.
  *
- * @package OmniTools\Cardly
+ * @package Toolzy\Cardly
  */
 declare(strict_types=1);
 
@@ -260,7 +260,7 @@ function cardly_mail(string $to, string $subject, string $html): bool
         'Content-Type: text/html; charset=UTF-8',
         'From: ' . SITE_NAME . ' <' . $from . '>',
         'Reply-To: ' . SITE_EMAIL,
-        'X-Mailer: OmniTools',
+        'X-Mailer: Toolzy',
     ];
     $wrapped = '<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;'
         . 'max-width:520px;margin:0 auto;color:#111;line-height:1.6">'

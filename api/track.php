@@ -3,7 +3,7 @@
  * Analytics beacon — records one pageview from the client (accurate even when
  * pages are served from the CDN cache, since JS still runs in the browser).
  *
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 

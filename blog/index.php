@@ -1,7 +1,7 @@
 <?php
 /**
  * Blog index.
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 
@@ -25,7 +25,7 @@ require __DIR__ . '/../includes/header.php';
 
 <section class="page-head">
   <div class="container">
-    <h1>The OmniTools Blog</h1>
+    <h1>The Toolzy Blog</h1>
     <p>Guides, tips and deep-dives to help you get more from free web tools.</p>
   </div>
 </section>

@@ -2,7 +2,7 @@
 /**
  * Feedback / contact submission endpoint.
  * Stores messages in the DB when available; always validates & rate-limits.
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 

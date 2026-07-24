@@ -8,7 +8,7 @@
  *   $db = Database::getInstance();
  *   $rows = $db->select("SELECT * FROM tools WHERE category_id = ?", [$id]);
  *
- * @package OmniTools
+ * @package Toolzy
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ final class Database
             // white-screen when MySQL is not yet provisioned.
             $this->connected = false;
             if (DEBUG_MODE) {
-                error_log('OmniTools DB connection failed: ' . $e->getMessage());
+                error_log('Toolzy DB connection failed: ' . $e->getMessage());
             }
         }
     }

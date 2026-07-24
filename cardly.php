@@ -1,7 +1,7 @@
 <?php
 /**
  * Cardly — landing page.
- * @package OmniTools\Cardly
+ * @package Toolzy\Cardly
  */
 declare(strict_types=1);
 

@@ -1,7 +1,7 @@
 <?php
 /**
  * Homepage.
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 
@@ -16,8 +16,19 @@ $recent   = array_slice(array_reverse($allTools, true), 0, 8, true); // last def
 $posts    = array_slice(get_posts(), 0, 3);
 $total    = tools_count();
 
+// FAQ content — rendered visibly below AND emitted as FAQPage JSON-LD so search
+// and AI engines (Google AI Overviews, ChatGPT, Perplexity) can quote answers.
+$faqs = [
+    ['Is ' . SITE_NAME . ' really free?', 'Yes. Every tool on ' . SITE_NAME . ' is completely free to use with no sign-up, no watermarks and no hidden limits.'],
+    ['Are my files safe?', 'Most of our tools, including all image, text, developer and calculator tools, run entirely inside your browser. Your files never leave your device. The few tools that need a server delete your files immediately after processing.'],
+    ['Do I need to install anything?', 'No. ' . SITE_NAME . ' runs in any modern browser on desktop and mobile. There is nothing to download or install.'],
+    ['Can I use ' . SITE_NAME . ' on my phone?', 'Absolutely. The entire platform is designed mobile-first and works beautifully on phones and tablets.'],
+    ['How many free online tools are there?', 'We currently offer ' . $total . '+ free online tools across ' . count($cats) . ' categories — including PDF, image, audio, video, text, developer, SEO, finance and calculator tools — and we add more every week toward our goal of 1000+.'],
+    ['What kinds of tools does ' . SITE_NAME . ' offer?', SITE_NAME . ' offers tools for PDF (merge, split, compress, convert), images (compress, resize, convert, crop), audio and video, text and writing, developers (JSON, Base64, hashing, formatters), SEO, finance and everyday calculators — all in one place.'],
+];
+
 $page = [
-    'title'       => SITE_NAME . ' · ' . SITE_TAGLINE,
+    'title'       => 'Free Online Tools — 100+ PDF, Image, Text & Dev Tools | ' . SITE_NAME,
     'description' => SITE_DESCRIPTION,
     'canonical'   => url(),
     'jsonld'      => [
@@ -73,6 +84,36 @@ $page = [
                 return $out;
             })(),
         ],
+        // WebApplication — tells search + AI engines this is a free, browser-based
+        // utility app (not just a website), which is how utility queries resolve.
+        [
+            '@context'        => 'https://schema.org',
+            '@type'           => 'WebApplication',
+            'name'            => SITE_NAME,
+            'url'             => SITE_URL,
+            'applicationCategory' => 'UtilitiesApplication',
+            'operatingSystem' => 'Any (web browser)',
+            'browserRequirements' => 'Requires JavaScript. Runs in any modern browser.',
+            'description'     => SITE_DESCRIPTION,
+            'offers'          => [
+                '@type'         => 'Offer',
+                'price'         => '0',
+                'priceCurrency' => 'USD',
+            ],
+        ],
+        // FAQPage — built from the same $faqs rendered on the page, so the
+        // structured data and visible content always match (Google requirement).
+        [
+            '@context'   => 'https://schema.org',
+            '@type'      => 'FAQPage',
+            'mainEntity' => array_map(static function (array $f): array {
+                return [
+                    '@type'          => 'Question',
+                    'name'           => $f[0],
+                    'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f[1]],
+                ];
+            }, $faqs),
+        ],
     ],
 ];
 
@@ -82,8 +123,8 @@ require __DIR__ . '/includes/header.php';
 <section class="hero">
   <div class="container">
     <span class="hero__badge">✨ <b><?= $total ?>+</b> free tools · No signup · Private</span>
-    <h1>Everything You Need.<br><span class="grad">One Platform.</span></h1>
-    <p class="hero__sub">Fast, beautiful, privacy-first online tools for PDF, images, audio, developers, SEO, finance and more.</p>
+    <h1>Free Online Tools.<br><span class="grad">All in One Place.</span></h1>
+    <p class="hero__sub"><?= $total ?>+ fast, privacy-first online tools for PDF, images, audio, video, text, developers, SEO and finance — free, no signup, right in your browser.</p>
 
     <form class="hero-search" id="heroSearchForm" role="search">
       <div class="hero-search__box">
@@ -216,15 +257,7 @@ require __DIR__ . '/includes/header.php';
 <section class="section container">
   <div class="section__head"><div><h2 class="section__title">Frequently Asked Questions</h2></div></div>
   <div class="faq">
-    <?php
-    $faqs = [
-        ['Is OmniTools really free?', 'Yes. Every tool on OmniTools is completely free to use with no sign-up, no watermarks and no hidden limits.'],
-        ['Are my files safe?', 'Most of our tools, including all image, text, developer and calculator tools, run entirely inside your browser. Your files never leave your device. The few tools that need a server delete your files immediately after processing.'],
-        ['Do I need to install anything?', 'No. OmniTools runs in any modern browser on desktop and mobile. There is nothing to download or install.'],
-        ['Can I use OmniTools on my phone?', 'Absolutely. The entire platform is designed mobile-first and works beautifully on phones and tablets.'],
-        ['How many tools are there?', 'We currently offer ' . $total . '+ tools across ' . count($cats) . ' categories, and we are adding more every week toward our goal of 1000+.'],
-    ];
-    foreach ($faqs as $f): ?>
+    <?php foreach ($faqs as $f): ?>
       <details class="faq__item">
         <summary class="faq__q"><?= e($f[0]) ?> <?= icon_svg('plus', 'icon icon-sm') ?></summary>
         <div class="faq__a"><?= e($f[1]) ?></div>

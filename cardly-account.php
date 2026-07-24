@@ -3,7 +3,7 @@
  * Cardly — account controller (login / signup / logout / dashboard /
  * verify / forgot / reset / resend). Routed via .htaccess: /cardly/<do>.
  *
- * @package OmniTools\Cardly
+ * @package Toolzy\Cardly
  */
 declare(strict_types=1);
 

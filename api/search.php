@@ -1,7 +1,7 @@
 <?php
 /**
  * Search API — returns matching tools as JSON for the command palette.
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 

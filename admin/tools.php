@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin — tools overview (registry + DB view analytics).
- * @package OmniTools\Admin
+ * @package Toolzy\Admin
  */
 declare(strict_types=1);
 

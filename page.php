@@ -1,7 +1,7 @@
 <?php
 /**
  * Static pages renderer: about, privacy, terms, contact, changelog, sitemap.
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 
@@ -17,7 +17,7 @@ if (!in_array($p, $valid, true)) {
 if ($p === 'feedback') $p = 'contact';
 
 $titles = [
-    'about'     => 'About OmniTools',
+    'about'     => 'About Toolzy',
     'privacy'   => 'Privacy Policy',
     'terms'     => 'Terms of Service',
     'contact'   => 'Contact & Feedback',
@@ -54,7 +54,7 @@ require __DIR__ . '/includes/header.php';
     <p>The web is full of tool sites cluttered with ads and dark patterns. We wanted something clean, honest and genuinely useful, a Swiss-army knife you can trust and enjoy using.</p>
 
     <h2>About the founder</h2>
-    <p><strong>OmniTools was founded by <a href="<?= eattr(url('shushant-singh')) ?>">Shushant Singh</a></strong> (Shushant Kumar Singh), a Nepali product architect, entrepreneur, podcaster and recording artist based in Ahmedabad, India. He is also the founder of <a href="https://briefnepal.com" rel="noopener">BriefNepal</a> and the creator of <a href="<?= eattr(cardly_link()) ?>" rel="noopener">Cardly</a> (free digital business cards), and works as a Product Architect at <a href="https://begenuin.com" rel="noopener">Genuin</a>. Alongside building products, he hosts the <a href="https://open.spotify.com/show/033Ka2C5wynL6xq41YAsbG" rel="noopener">Nepal Travel Podcast</a> and <a href="https://open.spotify.com/show/033K9Ye7NX5mRELkuCt7Nk" rel="noopener">Mind Atlas</a>, and releases music as a singer on <a href="https://open.spotify.com/artist/5b03eorWX5RxJqXCsTUgFz" rel="noopener">Spotify</a> and <a href="https://music.apple.com/us/artist/shushant-singh/6788654900" rel="noopener">Apple Music</a>.</p>
+    <p><strong>Toolzy was founded by <a href="<?= eattr(url('shushant-singh')) ?>">Shushant Singh</a></strong> (Shushant Kumar Singh), a Nepali product architect, entrepreneur, podcaster and recording artist based in Ahmedabad, India. He is also the founder of <a href="https://briefnepal.com" rel="noopener">BriefNepal</a> and the creator of <a href="<?= eattr(cardly_link()) ?>" rel="noopener">Cardly</a> (free digital business cards), and works as a Product Architect at <a href="https://begenuin.com" rel="noopener">Genuin</a>. Alongside building products, he hosts the <a href="https://open.spotify.com/show/033Ka2C5wynL6xq41YAsbG" rel="noopener">Nepal Travel Podcast</a> and <a href="https://open.spotify.com/show/033K9Ye7NX5mRELkuCt7Nk" rel="noopener">Mind Atlas</a>, and releases music as a singer on <a href="https://open.spotify.com/artist/5b03eorWX5RxJqXCsTUgFz" rel="noopener">Spotify</a> and <a href="https://music.apple.com/us/artist/shushant-singh/6788654900" rel="noopener">Apple Music</a>.</p>
     <p><a href="<?= eattr(url('shushant-singh')) ?>">Read more about Shushant Singh →</a></p>
 
     <p>Have an idea for a tool? <a href="<?= eattr(url('contact')) ?>">Let us know</a>.</p>
@@ -124,7 +124,7 @@ require __DIR__ . '/includes/header.php';
   <div class="prose" style="margin:0 auto">
     <?php
     $log = [
-        ['v1.0.0', date('F j, Y'), ['Launched OmniTools with ' . tools_count() . '+ tools across ' . count(omnitools_categories()) . ' categories.', 'Instant command-palette search with keyboard navigation.', 'Dark & light themes with system preference detection.', 'Full SEO: sitemaps, JSON-LD, Open Graph and FAQ schema.', 'Integrated blog and admin panel.']],
+        ['v1.0.0', date('F j, Y'), ['Launched Toolzy with ' . tools_count() . '+ tools across ' . count(omnitools_categories()) . ' categories.', 'Instant command-palette search with keyboard navigation.', 'Dark & light themes with system preference detection.', 'Full SEO: sitemaps, JSON-LD, Open Graph and FAQ schema.', 'Integrated blog and admin panel.']],
         ['v0.9.0', 'Beta', ['On-device image, audio and PDF tooling.', 'Favourites and recent tools.', 'Accessibility pass, ARIA, keyboard and contrast support.']],
     ];
     foreach ($log as $entry): ?>

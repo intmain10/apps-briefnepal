@@ -1,7 +1,7 @@
 <?php
 /**
  * Single blog article.
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 

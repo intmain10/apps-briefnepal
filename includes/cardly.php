@@ -13,7 +13,7 @@
  * No accounts — each card carries a hashed edit token; the raw token is shown
  * to the creator once.
  *
- * @package OmniTools\Cardly
+ * @package Toolzy\Cardly
  */
 declare(strict_types=1);
 

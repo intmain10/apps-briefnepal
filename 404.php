@@ -1,7 +1,7 @@
 <?php
 /**
  * 404 Not Found page. Can be included by routers or hit directly via .htaccess.
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 

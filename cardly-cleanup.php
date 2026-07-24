@@ -4,7 +4,7 @@
  * Kept as an inert stub because the deploy never deletes server files.
  * Safe to delete from the server via File Manager.
  *
- * @package OmniTools\Cardly
+ * @package Toolzy\Cardly
  */
 declare(strict_types=1);
 

@@ -8,7 +8,7 @@
  * an ItemList of people they can enumerate. Cards opted out via
  * discoverable=false never appear here (same rule as the sitemap).
  *
- * @package OmniTools\Cardly
+ * @package Toolzy\Cardly
  */
 declare(strict_types=1);
 

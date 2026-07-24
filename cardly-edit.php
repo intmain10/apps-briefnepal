@@ -1,7 +1,7 @@
 <?php
 /**
  * Cardly — builder (create + edit). Shell that boots assets/js/cardly.js.
- * @package OmniTools\Cardly
+ * @package Toolzy\Cardly
  */
 declare(strict_types=1);
 

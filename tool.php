@@ -1,7 +1,7 @@
 <?php
 /**
  * Tool page — the SEO-optimised router that renders any tool by slug.
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 

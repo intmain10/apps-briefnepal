@@ -1,7 +1,7 @@
 <?php
 /**
  * All Tools — full directory with client-side filtering by category & query.
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 

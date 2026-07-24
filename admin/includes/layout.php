@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin layout — call admin_head($title) then your content, then admin_foot().
- * @package OmniTools\Admin
+ * @package Toolzy\Admin
  */
 declare(strict_types=1);
 

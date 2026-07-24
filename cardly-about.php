@@ -1,7 +1,7 @@
 <?php
 /**
  * Cardly — About page (served on the Cardly domain).
- * @package OmniTools\Cardly
+ * @package Toolzy\Cardly
  */
 declare(strict_types=1);
 
@@ -11,7 +11,7 @@ require_once __DIR__ . '/includes/cardly.php';
 $makerProfiles = [
     ['label' => 'LinkedIn',             'url' => 'https://www.linkedin.com/in/shushant-kumar-singh/', 'note' => 'Professional profile'],
     ['label' => 'BriefNepal',           'url' => 'https://briefnepal.com',      'note' => 'News platform he founded'],
-    ['label' => 'OmniTools',            'url' => 'https://apps.briefnepal.com', 'note' => '100+ free online tools he founded'],
+    ['label' => 'Toolzy',            'url' => 'https://apps.briefnepal.com', 'note' => '100+ free online tools he founded'],
     ['label' => 'Genuin',               'url' => 'https://begenuin.com',        'note' => 'Product Architect'],
     ['label' => 'Spotify, Artist',     'url' => 'https://open.spotify.com/artist/5b03eorWX5RxJqXCsTUgFz', 'note' => 'Singer / recording artist'],
     ['label' => 'Apple Music, Artist', 'url' => 'https://music.apple.com/us/artist/shushant-singh/6788654900', 'note' => 'Music profile'],
@@ -21,7 +21,7 @@ $makerProfiles = [
 
 $page = [
     'title'       => 'About Cardly, Free Digital Business Card',
-    'description' => 'Cardly is a free digital business card, one smart link for your contact, socials, portfolio and QR code. Built by Shushant Singh, part of OmniTools.',
+    'description' => 'Cardly is a free digital business card, one smart link for your contact, socials, portfolio and QR code. Built by Shushant Singh, part of Toolzy.',
     'canonical'   => cardly_link('about'),
     'is_cardly'   => true,
     'breadcrumb'  => [
@@ -49,7 +49,7 @@ $page = [
                 ],
                 'publisher'       => [
                     '@type' => 'Organization',
-                    'name'  => 'OmniTools',
+                    'name'  => 'Toolzy',
                     'url'   => 'https://apps.briefnepal.com',
                 ],
             ],
@@ -64,7 +64,7 @@ $page = [
                 ['What is Cardly?', 'Cardly is a free digital business card. You build one page with your name, contact details, social links, portfolio and a scannable QR code, and share it with a single link.'],
                 ['Is Cardly free?', 'Yes, Cardly is completely free. There are no watermarks and no limits.'],
                 ['Do I need an app?', 'No. Your Cardly card opens in any web browser, and the people you share it with need no app either.'],
-                ['Who made Cardly?', 'Cardly was built by Shushant Singh, a product architect and founder of OmniTools and BriefNepal.'],
+                ['Who made Cardly?', 'Cardly was built by Shushant Singh, a product architect and founder of Toolzy and BriefNepal.'],
             ]),
         ],
     ],
@@ -99,12 +99,12 @@ require __DIR__ . '/includes/header.php';
     </ul>
 
     <h2>About the maker, Shushant Singh</h2>
-    <p>Cardly was designed and built by <strong><a href="https://apps.briefnepal.com/shushant-singh" rel="noopener">Shushant Singh</a></strong> (Shushant Kumar Singh), a <strong>Nepali</strong> product architect, entrepreneur, podcaster and recording artist based in <strong>Ahmedabad, India</strong>. He builds digital products that make everyday life simpler, Cardly is part of the OmniTools family, built with the same focus on clean, honest, genuinely useful products. <a href="https://apps.briefnepal.com/shushant-singh" rel="noopener">Read his full profile →</a></p>
+    <p>Cardly was designed and built by <strong><a href="https://apps.briefnepal.com/shushant-singh" rel="noopener">Shushant Singh</a></strong> (Shushant Kumar Singh), a <strong>Nepali</strong> product architect, entrepreneur, podcaster and recording artist based in <strong>Ahmedabad, India</strong>. He builds digital products that make everyday life simpler, Cardly is part of the Toolzy family, built with the same focus on clean, honest, genuinely useful products. <a href="https://apps.briefnepal.com/shushant-singh" rel="noopener">Read his full profile →</a></p>
 
     <h3>Ventures &amp; work</h3>
     <ul>
       <li><strong>Founder &amp; Owner, BriefNepal</strong> (<a href="https://briefnepal.com" rel="noopener">briefnepal.com</a>): a modern Nepali news, jobs and travel platform.</li>
-      <li><strong>Founder &amp; Owner, OmniTools</strong> (<a href="https://apps.briefnepal.com" rel="noopener">apps.briefnepal.com</a>): 100+ free, privacy-first PDF, image, developer and utility tools, plus Cardly.</li>
+      <li><strong>Founder &amp; Owner, Toolzy</strong> (<a href="https://apps.briefnepal.com" rel="noopener">apps.briefnepal.com</a>): 100+ free, privacy-first PDF, image, developer and utility tools, plus Cardly.</li>
       <li><strong>Product Architect, Genuin</strong> (<a href="https://begenuin.com" rel="noopener">begenuin.com</a>): designing product experiences, user flows and technical architecture.</li>
     </ul>
 

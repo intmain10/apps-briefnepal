@@ -5,7 +5,7 @@
  * Auth model: no accounts. Creating a card mints a random edit token (shown to
  * the creator once, stored hashed). Editing/saving/uploading requires that token.
  *
- * @package OmniTools\Cardly
+ * @package Toolzy\Cardly
  */
 declare(strict_types=1);
 

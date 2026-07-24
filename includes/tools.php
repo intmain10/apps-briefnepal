@@ -8,7 +8,7 @@
  *
  * This design scales cleanly to 1000+ tools without touching page templates.
  *
- * @package OmniTools
+ * @package Toolzy
  */
 
 declare(strict_types=1);

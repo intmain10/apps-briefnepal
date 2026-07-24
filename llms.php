@@ -7,7 +7,7 @@
  * curated link sections. Lists every tool so AI engines can cite the exact
  * page for any tool-related query.
  *
- * @package OmniTools
+ * @package Toolzy
  */
 declare(strict_types=1);
 

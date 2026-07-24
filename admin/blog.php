@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin — blog CMS (create / edit / delete DB posts).
- * @package OmniTools\Admin
+ * @package Toolzy\Admin
  */
 declare(strict_types=1);
 
