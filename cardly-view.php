@@ -39,16 +39,7 @@ $shareImage = cardly_og_ensure($slug, $card)
 
 // ---- SEO / GEO / AIO: make this the definitive result for the person's name.
 $tagline = trim((string) ($card['tagline'] ?? ''));
-$roles = cardly_og_roles($tagline);                 // ["Founder @X", "Product Architect", …]
-$jobTitle = $roles ? trim((string) preg_replace('~\s*@.*$~u', '', $roles[0])) : $tagline;
-// Company: "@Acme" or "… at Acme" in the tagline.
-$company = '';
-if (preg_match('~@\s*([A-Za-z0-9][\w .&\'-]{1,40})~u', $tagline, $m)) {
-    $company = trim((string) $m[1]);
-} elseif (preg_match('~\bat\s+([A-Z][\w .&\'-]{1,40})~u', $tagline, $m)) {
-    $company = trim((string) $m[1]);
-}
-$company = trim((string) preg_replace('~\s*[|/,•·].*$~u', '', $company));
+[$jobTitle, $company] = cardly_role_company($tagline);
 $location = trim((string) ($card['contact']['address'] ?? ''));
 
 // One clean factual sentence — what AI Overviews and rich snippets quote.
@@ -74,7 +65,7 @@ $person['description'] = $summary;
 if ($card['photo'])   $person['image'] = ['@type' => 'ImageObject', 'url' => $card['photo']];
 // Note: email/telephone are deliberately NOT published in structured data —
 // they'd be exposed in search results and to scrapers. People still get them
-// via the one-tap contact buttons and the "Save contact (VCF)" download.
+// via the one-tap contact buttons and the "Save contact" preview page.
 if ($location)        $person['address'] = ['@type' => 'PostalAddress', 'streetAddress' => $location];
 if (!empty($card['skills']))             $person['knowsAbout'] = array_values($card['skills']);
 if ($sameAs)          $person['sameAs'] = array_values($sameAs);
@@ -219,6 +210,14 @@ require __DIR__ . '/includes/header.php';
           </a>
         <?php endforeach; ?>
 
+        <?php /* Always offered: even a card with no phone/email saves a name,
+                 photo, role, socials and a link back here. */ ?>
+        <a class="cx__link" href="<?= eattr(cardly_link($slug . '/contact')) ?>">
+          <span class="cx__link-ic"><?= cardly_icon_svg('addcontact') ?></span>
+          <span class="cx__link-tx"><b>Save contact</b><small>Add me to your phone in one tap</small></span>
+          <span class="cx__link-ch"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+
         <?php if (!empty($sec['links']) && !empty($card['links'])): foreach ($card['links'] as $lnk): ?>
           <a class="cx__link" href="<?= eattr($lnk['url']) ?>" target="_blank" rel="noopener">
             <span class="cx__link-ic cx__link-ic--soft"><?= cardly_icon_svg('link') ?></span>
@@ -258,7 +257,9 @@ require __DIR__ . '/includes/header.php';
   <nav class="cx__nav">
     <button class="cx__navbtn is-active" data-go="cxTop" aria-label="Profile"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></button>
     <button class="cx__navbtn" data-go="cxWork" aria-label="Work"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-    <button class="cx__navbtn" data-go="cxInfo" aria-label="Contact"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h6"/></svg></button>
+    <?php /* Third slot leaves the card: saving the contact is the one action
+             worth being a tap away from anywhere on the page. */ ?>
+    <a class="cx__navbtn" href="<?= eattr(cardly_link($slug . '/contact')) ?>" aria-label="Save contact"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></a>
   </nav>
 
   <!-- Menu sheet -->
@@ -266,7 +267,7 @@ require __DIR__ . '/includes/header.php';
     <div class="cx__sheet-in">
       <div class="cx__sheet-grab"></div>
       <button class="cx__sheet-item" id="cardlyStory">📸 <span>Share to Instagram Story</span></button>
-      <a class="cx__sheet-item" href="<?= eattr(url('api/cardly.php') . '?action=vcf&slug=' . $slug) ?>">💾 <span>Save contact (VCF)</span></a>
+      <a class="cx__sheet-item" href="<?= eattr(cardly_link($slug . '/contact')) ?>">💾 <span>Save contact</span></a>
       <button class="cx__sheet-item" id="cardlyCopy">🔗 <span>Copy card link</span></button>
       <button class="cx__sheet-item cx__sheet-close" id="cardlySheetClose">Close</button>
     </div>

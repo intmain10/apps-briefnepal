@@ -634,6 +634,25 @@ function cardly_cta(array $card): ?array
     return $url ? ['label' => $label, 'url' => $url, 'sub' => $sub, 'icon' => $icon] : null;
 }
 
+/**
+ * Split a tagline into [jobTitle, company] — understands both "Founder @Acme"
+ * and "Product Designer at Acme". Either half may come back empty.
+ */
+function cardly_role_company(string $tagline): array
+{
+    $tagline = trim($tagline);
+    $roles = cardly_og_roles($tagline);            // ["Founder @X", "Architect", …]
+    $jobTitle = $roles ? trim((string) preg_replace('~\s*@.*$~u', '', $roles[0])) : $tagline;
+    $company = '';
+    if (preg_match('~@\s*([A-Za-z0-9][\w .&\'-]{1,40})~u', $tagline, $m)) {
+        $company = trim((string) $m[1]);
+    } elseif (preg_match('~\bat\s+([A-Z][\w .&\'-]{1,40})~u', $tagline, $m)) {
+        $company = trim((string) $m[1]);
+    }
+    $company = trim((string) preg_replace('~\s*[|/,•·].*$~u', '', $company));
+    return [$jobTitle, $company];
+}
+
 /** Inline brand-ish social icon (monochrome, currentColor). */
 function cardly_social_svg(string $net): string
 {
@@ -668,6 +687,7 @@ function cardly_icon_svg(string $key): string
         'heart'     => '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>',
         'ticket'    => '<path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z"/>',
         'link'      => '<path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>',
+        'addcontact' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
     ];
     $inner = $p[$key] ?? $p['link'];
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">' . $inner . '</svg>';
@@ -734,6 +754,17 @@ function cardly_vcf(array $card): string
     $L[] = 'END:VCARD';
 
     return cardly_vcf_fold(implode("\r\n", $L));
+}
+
+/**
+ * Download filename for a card's vCard — the person's name, so it lands in the
+ * visitor's files as "Alex-Thompson.vcf" rather than "alex-a4f9.vcf".
+ */
+function cardly_vcf_filename(array $card, string $slug): string
+{
+    $base = preg_replace('/[^A-Za-z0-9]+/', '-', trim((string) ($card['name'] ?? ''))) ?? '';
+    $base = trim($base, '-');
+    return ($base !== '' ? substr($base, 0, 60) : $slug) . '.vcf';
 }
 
 /** Return an embedded (base64) PHOTO line, or a URI fallback, or null. */

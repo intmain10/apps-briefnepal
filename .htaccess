@@ -47,6 +47,9 @@ ErrorDocument 404 /404.php
     # Card edit
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
     RewriteRule ^([a-z0-9-]{1,40})/edit/?$ cardly-edit.php?slug=$1 [L,QSA]
+    # Contact preview — review a card's details before saving them to the phone
+    RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
+    RewriteRule ^([a-z0-9-]{1,40})/contact/?$ cardly-contact.php?slug=$1 [L,QSA]
     # Public people directory
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
     RewriteRule ^(discover|people|directory|explore)/?$ cardly-discover.php [L,QSA]
@@ -85,6 +88,8 @@ ErrorDocument 404 /404.php
     RewriteCond %{HTTP_HOST} ^apps\.briefnepal\.com$ [NC]
     RewriteRule ^cardly/(login|signup|logout|dashboard|verify|forgot|reset|resend|new)/?$ https://cardly.briefnepal.com/$1 [R=301,L,QSA]
     RewriteCond %{HTTP_HOST} ^apps\.briefnepal\.com$ [NC]
+    RewriteRule ^cardly/([a-z0-9-]{1,40})/contact/?$ https://cardly.briefnepal.com/$1/contact [R=301,L,QSA]
+    RewriteCond %{HTTP_HOST} ^apps\.briefnepal\.com$ [NC]
     RewriteRule ^cardly/([a-z0-9-]{1,40})/?$ https://cardly.briefnepal.com/$1 [R=301,L,QSA]
     RewriteCond %{HTTP_HOST} ^apps\.briefnepal\.com$ [NC]
     RewriteRule ^cardly/?$ https://cardly.briefnepal.com/ [R=301,L]
@@ -94,6 +99,7 @@ ErrorDocument 404 /404.php
     RewriteRule ^cardly/new/?$ cardly-edit.php [L,QSA]
     RewriteRule ^cardly/(login|signup|logout|dashboard|verify|forgot|reset|resend)/?$ cardly-account.php?do=$1 [L,QSA]
     RewriteRule ^cardly/([a-z0-9-]+)/edit/?$ cardly-edit.php?slug=$1 [L,QSA]
+    RewriteRule ^cardly/([a-z0-9-]+)/contact/?$ cardly-contact.php?slug=$1 [L,QSA]
     RewriteRule ^cardly/([a-z0-9-]+)/?$ cardly-view.php?slug=$1 [L,QSA]
 
     # User guide / documentation (aliases 301 to the canonical /docs)

@@ -20,8 +20,13 @@ if ($action === 'vcf') {
     if (!$card) {
         json_error('Card not found', 404);
     }
+    $card['slug'] = $slug;   // the URL + embedded photo are resolved from it
+    // `inline=1` (used by the contact-preview page on iOS) hands the vCard
+    // straight to the Contacts app instead of parking it in Downloads.
+    $inline = ($_GET['inline'] ?? '') === '1';
     header('Content-Type: text/vcard; charset=utf-8');
-    header('Content-Disposition: attachment; filename="' . $slug . '.vcf"');
+    header('Content-Disposition: ' . ($inline ? 'inline' : 'attachment')
+        . '; filename="' . cardly_vcf_filename($card, $slug) . '"');
     echo cardly_vcf($card);
     exit;
 }

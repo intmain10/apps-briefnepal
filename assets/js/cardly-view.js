@@ -45,8 +45,9 @@
     }
   })();
 
-  /* ---- Bottom nav (smooth scroll) ---- */
-  const navBtns = Array.from(document.querySelectorAll('.cx__navbtn'));
+  /* ---- Bottom nav (smooth scroll; the last slot is a real link, so only
+         the scroll-to-section buttons get wired) ---- */
+  const navBtns = Array.from(document.querySelectorAll('.cx__navbtn[data-go]'));
   navBtns.forEach(b => b.addEventListener('click', () => {
     const el = document.getElementById(b.dataset.go);
     if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); navBtns.forEach(x => x.classList.toggle('is-active', x === b)); }

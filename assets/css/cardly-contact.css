@@ -1,0 +1,147 @@
+/* =========================================================================
+   Cardly — contact preview page (.cxc)
+
+   Loaded only by cardly-contact.php. Shares the immersive dark shell of the
+   public card (.cx in cardly.css) so stepping from a card into "Save to
+   Contacts" feels like the same app, with the accent gradient carried by
+   --c1 / --c2 from the card's theme.
+   ========================================================================= */
+
+.cxc {
+  --bgc: #0b0b12;
+  max-width: 480px; margin: 0 auto; min-height: 100vh;
+  background: var(--bgc); color: #f6f6f8;
+  padding: 0 18px calc(120px + env(safe-area-inset-bottom));
+  position: relative;
+}
+
+/* ---- Top bar ---- */
+.cxc__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0 4px; }
+.cxc__back { display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,.72); font-size: 14px; font-weight: 600; }
+.cxc__back:hover { color: #fff; }
+.cxc__wm { font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: .18em; color: rgba(255,255,255,.42); }
+
+/* ---- The card ---- */
+.cxc__card {
+  margin-top: 14px; border-radius: 24px; overflow: hidden;
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+  box-shadow: 0 22px 50px -18px color-mix(in srgb, var(--c1) 55%, transparent);
+}
+.cxc__card-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 13px 18px; background: rgba(0,0,0,.16);
+  font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: rgba(255,255,255,.78);
+}
+.cxc__card-bar span:first-child { flex: none; white-space: nowrap; }
+.cxc__card-bar span:last-child { min-width: 0; letter-spacing: .02em; text-transform: none; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cxc__card-main { display: flex; align-items: flex-start; gap: 14px; padding: 20px 18px 22px; }
+
+.cxc__id { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
+.cxc__avatar {
+  width: 76px; height: 76px; border-radius: 22px; object-fit: cover; flex: none;
+  border: 2px solid rgba(255,255,255,.55); box-shadow: 0 8px 22px rgba(0,0,0,.28);
+}
+.cxc__avatar--mono {
+  display: grid; place-items: center; font-family: var(--font-display);
+  font-weight: 700; font-size: 34px; color: #fff; background: rgba(255,255,255,.18);
+}
+.cxc__id-tx { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+/* The name shares a tight row with the avatar and the QR, so it must be able
+   to break rather than run under the QR tile on small phones. */
+.cxc__id-name { font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 6vw, 27px); line-height: 1.1; letter-spacing: -.02em; min-width: 0; overflow-wrap: anywhere; }
+.cxc__id-role { color: rgba(255,255,255,.88); font-size: 13.5px; font-weight: 500; line-height: 1.35; }
+.cxc__id-org {
+  align-self: flex-start; margin-top: 3px; padding: 3px 10px; border-radius: 999px;
+  background: rgba(255,255,255,.2); font-size: 11.5px; font-weight: 700;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.cxc__qr { flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.cxc__qr-code { width: 76px; height: 76px; border-radius: 14px; background: #fff; padding: 6px; display: grid; place-items: center; }
+.cxc__qr-code canvas { width: 64px !important; height: 64px !important; display: block; }
+.cxc__qr small { font-size: 10px; font-weight: 600; letter-spacing: .02em; color: rgba(255,255,255,.82); }
+
+/* ---- Sections ---- */
+.cxc__sec { margin-top: 26px; }
+.cxc__sec h2 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: rgba(255,255,255,.45); margin: 0 0 12px 4px; }
+.cxc__about { color: rgba(255,255,255,.76); font-size: 14.5px; line-height: 1.6; margin: 0; }
+
+.cxc__rows { display: flex; flex-direction: column; gap: 10px; }
+.cxc__row {
+  display: flex; align-items: center; gap: 13px; padding: 13px 14px;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09);
+  border-radius: 16px; color: #fff; transition: background .2s, border-color .2s, transform .18s;
+}
+a.cxc__row:hover { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.2); transform: translateY(-1px); }
+.cxc__row-ic {
+  width: 42px; height: 42px; border-radius: 13px; flex: none; display: grid; place-items: center;
+  background: rgba(255,255,255,.1); color: #fff;
+}
+.cxc__row-ic svg { width: 20px; height: 20px; }
+.cxc__row-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cxc__row-tx small { color: rgba(255,255,255,.5); font-size: 11.5px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; }
+.cxc__row-tx b { font-size: 15px; font-weight: 600; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Placeholder shown until the script decodes a private value (phone / email). */
+.cxc__row-tx b.is-masked { color: rgba(255,255,255,.35); letter-spacing: .12em; }
+.cxc__row-ch { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(255,255,255,.16); display: grid; place-items: center; color: rgba(255,255,255,.7); }
+
+/* ---- Secondary actions ---- */
+.cxc__mini { display: flex; gap: 8px; margin-top: 26px; }
+.cxc__minibtn {
+  flex: 1; display: inline-flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 13px 6px; border-radius: 16px; background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.09); color: rgba(255,255,255,.86);
+  font-size: 12.5px; font-weight: 600; font-family: inherit; cursor: pointer;
+  transition: background .2s, border-color .2s;
+}
+.cxc__minibtn:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); color: #fff; }
+
+.cxc__note { color: rgba(255,255,255,.45); font-size: 12.5px; line-height: 1.55; text-align: center; margin: 18px 6px 0; }
+.cxc__foot { text-align: center; color: rgba(255,255,255,.4); font-size: 12.5px; padding: 20px 0 4px; }
+.cxc__foot b { color: rgba(255,255,255,.7); }
+
+/* ---- Sticky primary action ---- */
+.cxc__dock {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px; z-index: 30;
+  padding: 14px 18px calc(16px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--bgc) 30%, rgba(11,11,18,0));
+}
+.cxc__save {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 17px 24px; border-radius: 999px; color: #fff;
+  font-family: var(--font-display); font-weight: 700; font-size: 17px; letter-spacing: -.01em;
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--c1) 42%, transparent);
+  transition: transform .12s, filter .2s;
+}
+.cxc__save:hover { filter: brightness(1.07); transform: translateY(-1px); }
+.cxc__save:active { transform: scale(.985); }
+.cxc__save.is-busy { pointer-events: none; opacity: .75; }
+
+/* Small phones (iPhone SE, folded devices): three columns don't fit, so the QR
+   drops to its own row inside the card and the name gets the full width. */
+@media (max-width: 380px) {
+  .cxc { padding-left: 14px; padding-right: 14px; }
+  .cxc__card-main { flex-wrap: wrap; gap: 16px; padding: 18px 16px 18px; }
+  .cxc__id { flex: 1 1 100%; gap: 12px; }
+  .cxc__avatar { width: 64px; height: 64px; border-radius: 19px; }
+  .cxc__avatar--mono { font-size: 28px; }
+  .cxc__qr { flex: 1 1 100%; flex-direction: row; align-items: center; gap: 12px; padding-top: 4px; border-top: 1px solid rgba(255,255,255,.22); }
+  .cxc__qr-code { width: 58px; height: 58px; padding: 5px; }
+  .cxc__qr-code canvas { width: 48px !important; height: 48px !important; }
+  .cxc__qr small { font-size: 11.5px; }
+}
+
+/* Desktop: the shell becomes a floating panel, so the dock sticks to the
+   bottom of the panel instead of the viewport. */
+@media (min-width: 540px) {
+  .cxc {
+    margin: 30px auto; min-height: auto; padding-bottom: 0;
+    border-radius: 34px; border: 1px solid rgba(255,255,255,.06);
+    box-shadow: 0 40px 100px rgba(0,0,0,.6);
+  }
+  .cxc__dock { position: sticky; left: auto; transform: none; margin: 22px -18px 0; padding-bottom: 18px; border-radius: 0 0 34px 34px; }
+  .cxc__foot { padding-bottom: 0; }
+}
