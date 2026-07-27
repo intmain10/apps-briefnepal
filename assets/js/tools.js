@@ -2148,17 +2148,22 @@
   /* =====================================================================
      BOOTSTRAP
      ================================================================== */
+  // Mounts every [data-tool] on the page, not just the first: blog articles can
+  // embed several tools inline via the [tool:slug] shortcode, and each mount
+  // point gets its own independent engine instance.
   function boot() {
-    const root = document.querySelector('[data-tool]');
-    if (!root) return;
-    const slug = root.getAttribute('data-tool');
-    const fn = engines[slug];
-    if (fn) {
-      try { fn(root); root.classList.add('fade-in'); }
-      catch (e) { root.innerHTML = `<div class="notice notice--error">This tool hit an error: ${esc(e.message)}</div>`; }
-    } else {
-      root.innerHTML = `<div class="notice notice--info">This tool is being finalised and will be available shortly.</div>`;
-    }
+    document.querySelectorAll('[data-tool]').forEach(root => {
+      const slug = root.getAttribute('data-tool');
+      if (!slug || root._mounted) return;
+      root._mounted = true;
+      const fn = engines[slug];
+      if (fn) {
+        try { fn(root); root.classList.add('fade-in'); }
+        catch (e) { root.innerHTML = `<div class="notice notice--error">This tool hit an error: ${esc(e.message)}</div>`; }
+      } else {
+        root.innerHTML = `<div class="notice notice--info">This tool is being finalised and will be available shortly.</div>`;
+      }
+    });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

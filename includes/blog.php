@@ -67,7 +67,7 @@ function omnitools_static_posts(): array
             'author' => 'Toolzy Team',
             'excerpt' => 'Merge, split, compress and convert PDFs without installing software or paying a cent.',
             'related' => 'merge-pdf',
-            'body' => "## Everything you need for PDFs\n\nModern browsers and lightweight servers can handle almost every PDF task for free.\n\n## The essentials\n\n- **Merge PDF**, combine reports, invoices and scans\n- **Split PDF**, extract only the pages you need\n- **Compress PDF**, shrink big files for email\n- **JPG to PDF**, turn photos into a document\n\n## Privacy first\n\nWhere possible, choose tools that process files locally. Our image-to-PDF and text-to-PDF tools run entirely in your browser.",
+            'body' => "## Everything you need for PDFs\n\nModern browsers and lightweight servers can handle almost every PDF task for free.\n\n## The essentials\n\n- **Merge PDF**, combine reports, invoices and scans\n- **Split PDF**, extract only the pages you need\n- **Compress PDF**, shrink big files for email\n- **JPG to PDF**, turn photos into a document\n\n## Merge your PDFs without leaving this page\n\nThe merger below is the full tool, not a preview. Add your files, drag them into the order you want, and download the combined document. Nothing is uploaded.\n\n[tool:merge-pdf]\n\n## Privacy first\n\nWhere possible, choose tools that process files locally. Our image-to-PDF and text-to-PDF tools run entirely in your browser.",
         ],
         [
             'slug' => 'benefits-of-qr-codes-for-business',

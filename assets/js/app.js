@@ -262,6 +262,9 @@
 
   /* Record the current tool page into the "recently used" list. */
   (function recordRecent() {
+    // Tool pages only. Articles can embed a [data-tool] mount too, and a tool
+    // the reader merely scrolled past is not a tool they recently used.
+    if (!document.body.classList.contains('page-tool')) return;
     const ws = document.querySelector('[data-tool]');
     if (!ws) return;
     const slug = ws.getAttribute('data-tool');

@@ -229,6 +229,24 @@ function omnitools_tools(): array
     $t('number-to-words', 'converters', 'Number to Words', 'Convert numbers into written words.', [], 'spell number words');
     $t('roman-numerals', 'converters', 'Roman Numeral Converter', 'Convert between numbers and Roman numerals.', [], 'roman numeral convert');
 
+    /*
+     * Merge long-form page content (intro, faqs, processing) from includes/content/.
+     * Keeping it in separate files preserves the one-line-per-tool registry above
+     * while still exposing everything through get_tool(). Unknown slugs are
+     * ignored so a content file can never resurrect a retired tool.
+     */
+    foreach (['pdf'] as $pack) {
+        $file = __DIR__ . '/content/' . $pack . '.php';
+        if (!is_file($file)) {
+            continue;
+        }
+        foreach ((array) require $file as $slug => $extra) {
+            if (isset($raw[$slug])) {
+                $raw[$slug] = array_merge($raw[$slug], $extra);
+            }
+        }
+    }
+
     $tools = $raw;
     return $tools;
 }

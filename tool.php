@@ -115,30 +115,49 @@ $pack = $contentPacks[$tool['category']] ?? [
     'faqs'     => [],
 ];
 
+/*
+ * Where the work actually happens drives every privacy statement on this page.
+ * Most tools run fully in-browser; a handful of PDF conversions post to
+ * api/pdf.php because they need Ghostscript, qpdf, Imagick or LibreOffice,
+ * which no browser can provide. Stating "your file is uploaded" for all of them
+ * was both inaccurate and a needless giveaway of the platform's best property.
+ */
+$isServerTool  = (($tool['processing'] ?? 'client') === 'server');
+$privacyAnswer = $isServerTool
+    ? 'This conversion runs on our server because it needs software a browser cannot provide. Your file is sent over HTTPS, written to a temporary file with a randomly generated name, processed, and deleted the moment the result is returned to you. It is never retained, logged or used for anything else.'
+    : 'The ' . $tool['name'] . ' runs entirely inside your browser. Your file is never uploaded, so there is nothing for us to store, log or delete, your data stays on your device from start to finish.';
+
 // Build tool-specific, useful FAQ content (used on-page + as FAQ schema).
-$faqs = [
-    [
+$toolFaqs = $tool['faqs'] ?? [];
+$faqs     = $toolFaqs;
+
+if (!$toolFaqs) {
+    // Tools without hand-written content still need a usable baseline.
+    $faqs[] = [
         'How do I use the ' . $tool['name'] . '?',
         'Open the ' . $tool['name'] . ' above, add your input or upload your file, adjust any options, and get your result instantly, no sign-up required.',
-    ],
-    [
-        'Is the ' . $tool['name'] . ' free?',
-        'Yes, the ' . $tool['name'] . ' is 100% free with no watermarks, no limits and no account needed.',
-    ],
-    [
-        'Is my data private?',
-        (in_array($tool['category'], ['pdf'], true)
-            ? 'Files are uploaded securely over HTTPS, processed and then deleted immediately from the server.'
-            : 'This tool runs entirely in your browser. Your data never leaves your device, so it stays completely private.'),
-    ],
-    [
-        'Does it work on mobile?',
-        'Yes. The ' . $tool['name'] . ' works on any modern browser across desktop, tablet and mobile.',
-    ],
+    ];
+}
+$faqs[] = ['Is my data private?', $privacyAnswer];
+$faqs[] = [
+    'Is the ' . $tool['name'] . ' free?',
+    'Yes, the ' . $tool['name'] . ' is 100% free with no watermarks, no limits and no account needed.',
 ];
-// Append category-specific FAQs for depth + unique, quotable answers (GEO).
-foreach ($pack['faqs'] as $pf) {
-    $faqs[] = $pf;
+$faqs[] = [
+    'Does it work on mobile?',
+    'Yes. The ' . $tool['name'] . ' works on any modern browser across desktop, tablet and mobile.',
+];
+/*
+ * Category FAQs are a generic fallback. Skip them when the tool has its own,
+ * because the generic answers can flatly contradict the specific ones — the PDF
+ * pack promises quality is always preserved, which is untrue of the tools that
+ * rasterise pages (Compress, Redact). Contradictory FAQPage entities are worse
+ * than none at all.
+ */
+if (!$toolFaqs) {
+    foreach ($pack['faqs'] as $pf) {
+        $faqs[] = $pf;
+    }
 }
 
 $metaTitle = $tool['name'] . ' · Free Online Tool | ' . SITE_NAME;
@@ -147,7 +166,13 @@ $metaDesc  = $tool['desc'] . ' Free, fast and private. No signup required.';
 // Crawlable how-to steps (reused for visible text + HowTo JSON-LD → GEO/AI citations).
 $howtoSteps = [
     ['name' => 'Open the ' . $tool['name'], 'text' => 'Open the ' . $tool['name'] . ' on this page, there is nothing to install and no account needed.'],
-    ['name' => 'Add your input', 'text' => (in_array($tool['category'], ['pdf', 'image', 'video', 'audio'], true) ? 'Upload your file by clicking the upload area or dragging it in.' : 'Type or paste your input into the tool.')],
+    ['name' => 'Add your input', 'text' => (
+        !in_array($tool['category'], ['pdf', 'image', 'video', 'audio'], true)
+            ? 'Type or paste your input into the tool.'
+            : ($isServerTool
+                ? 'Upload your file by clicking the upload area or dragging it in.'
+                : 'Add your file by clicking the upload area or dragging it in. It is read on your device, not uploaded.')
+    )],
     ['name' => 'Adjust options', 'text' => 'Choose any options you need, the ' . $tool['name'] . ' updates instantly.'],
     ['name' => 'Get your result', 'text' => 'Click the action button to download or copy your result. It is 100% free.'],
 ];
@@ -249,10 +274,24 @@ require __DIR__ . '/includes/header.php';
         <div class="text-center" style="padding:40px"><div class="spinner" style="margin:0 auto"></div><p class="muted mt-4">Loading tool…</p></div>
       </div>
 
+      <!-- Where processing happens — stated up front, per tool, never generically. -->
+      <p class="notice notice--<?= $isServerTool ? 'info' : 'success' ?>" style="display:flex;gap:8px;align-items:flex-start">
+        <?= icon_svg($isServerTool ? 'upload' : 'check', 'icon icon-sm') ?>
+        <span><?php if ($isServerTool): ?>
+          <strong>Processed on our server.</strong> This conversion needs software a browser cannot provide. Your file is sent over HTTPS, given a random temporary name, and deleted immediately after your download, never retained or logged.
+        <?php else: ?>
+          <strong>Processed on your device.</strong> This tool runs entirely in your browser, your file is never uploaded, so nothing is stored, logged or transmitted.
+        <?php endif; ?></span>
+      </p>
+
       <!-- SEO content -->
       <article class="prose mt-8">
         <h2>About the <?= e($tool['name']) ?></h2>
+        <?php if (!empty($tool['intro'])): ?>
+          <?php foreach ($tool['intro'] as $para): ?><p><?= e($para) ?></p><?php endforeach; ?>
+        <?php else: ?>
         <p>The <strong><?= e($tool['name']) ?></strong> is a free online tool that lets you <?= e(lcfirst($tool['desc'])) ?> With it you can <?= e($pack['benefit']) ?>, there's nothing to install and no account to create. Just open the tool, do what you need, and you're done.</p>
+        <?php endif; ?>
         <p>It's part of the <?= e($cat['name']) ?> collection on <?= e(SITE_NAME) ?>, a growing platform of <?= tools_count() ?>+ free, privacy-first tools built for speed and a great experience on every device.</p>
         <?php if (!empty($tool['keywords'])): ?>
         <p class="muted">Also known as: <?= e(str_replace(' ', ', ', $tool['keywords'])) ?>.</p>
