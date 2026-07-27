@@ -88,39 +88,134 @@
      ==================================================================== */
   reg('merge-pdf', root => {
     root.innerHTML = `<div id="drop"></div>
-      <p class="muted mt-4" id="hint" style="display:none">Drag rows to reorder before merging.</p>
+      <div id="opts" class="mt-4" style="display:none">
+        <label class="field__label">How to combine</label>
+        <select id="mode" class="select">
+          <option value="append">Append, one file after another (drag rows to reorder)</option>
+          <option value="insert">Insert the other files into the first file, at a page you choose</option>
+        </select>
+      </div>
+      <p class="muted mt-4" id="hint" style="display:none"></p>
       <div id="list" class="mt-4"></div>
       <div class="btn-row mt-4" id="bar" style="display:none"><button class="btn btn--primary" id="go">Merge PDFs</button><button class="btn btn--ghost" id="clr">Clear</button></div>
       <div id="msg" class="mt-4"></div>`;
-    let files = [];
-    dropzone(q('#drop', root), { accept: 'application/pdf', multiple: true, onFiles: fl => { files = files.concat(fl.filter(f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name))); render(); } });
+
+    // Each item: { file, count, pages: '<range or blank for all>', at: '<page or blank for end>' }
+    let items = [];
+    const mode = () => q('#mode', root).value;
+
+    /** Selected 0-based page indices for an item, de-duplicated so a page is
+     *  never copied twice (pdf-lib page objects can only be added once). */
+    const selected = it => it.pages.trim()
+      ? [...new Set(parseRanges(it.pages, it.count))]
+      : Array.from({ length: it.count }, (_, k) => k);
+
+    dropzone(q('#drop', root), {
+      accept: 'application/pdf', multiple: true,
+      onFiles: async fl => {
+        const pdfs = fl.filter(f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name));
+        if (!pdfs.length) return;
+        q('#msg', root).innerHTML = spinner('Reading…');
+        for (const f of pdfs) {
+          let count = 0;
+          try { count = (await loadDoc(f)).getPageCount(); }
+          catch (e) { q('#msg', root).innerHTML = errBox(`Could not read ${esc(f.name)}: ${e.message}`); continue; }
+          items.push({ file: f, count, pages: '', at: '' });
+        }
+        q('#msg', root).innerHTML = '';
+        render();
+      }
+    });
+
     function render() {
-      q('#list', root).innerHTML = files.map((f, i) => `<div class="row" draggable="true" data-i="${i}" style="align-items:center;border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;cursor:grab">
-        <span style="min-width:0;overflow:hidden;text-overflow:ellipsis">☰ ${esc(f.name)}</span>
-        <span class="muted" style="text-align:right;flex:none">${fmtBytes(f.size)} <button class="btn btn--ghost btn--sm" data-del="${i}">✕</button></span></div>`).join('');
-      q('#bar', root).style.display = files.length ? '' : 'none';
-      q('#hint', root).style.display = files.length > 1 ? '' : 'none';
-      qa('[data-del]', root).forEach(b => b.addEventListener('click', e => { e.stopPropagation(); files.splice(+b.dataset.del, 1); render(); }));
+      const ins = mode() === 'insert';
+      q('#list', root).innerHTML = items.map((it, i) => {
+        const base = ins && i === 0;
+        return `<div class="row" draggable="${!ins}" data-i="${i}" style="flex-direction:column;align-items:stretch;gap:10px;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px${!ins ? ';cursor:grab' : ''}">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">${ins ? (base ? '📄' : '➕') : '☰'} ${esc(it.file.name)}${base ? ' <span class="muted">(base document)</span>' : ''}</span>
+            <span class="muted" style="flex:none;font-size:13px">${it.count} page${it.count === 1 ? '' : 's'} · ${fmtBytes(it.file.size)}</span>
+            <button class="btn btn--ghost btn--sm" data-del="${i}" style="flex:none">✕</button>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div style="flex:1;min-width:150px">
+              <label class="field__label" for="pg-${i}">Pages to take</label>
+              <input class="input" id="pg-${i}" data-pages="${i}" value="${esc(it.pages)}" placeholder="all (e.g. 1-3, 7)">
+            </div>
+            ${ins && !base ? `<div style="flex:1;min-width:150px">
+              <label class="field__label" for="at-${i}">Insert before page</label>
+              <input class="input" id="at-${i}" data-at="${i}" value="${esc(it.at)}" placeholder="end of document">
+            </div>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+
+      q('#opts', root).style.display = items.length ? '' : 'none';
+      q('#bar', root).style.display = items.length ? '' : 'none';
+      q('#hint', root).style.display = items.length > 1 ? '' : 'none';
+      q('#hint', root).textContent = ins
+        ? `Pages are inserted into "${items[0] ? items[0].file.name : ''}" before the page number you give, counted in that file's original numbering. Leave it blank to add at the end.`
+        : 'Drag rows to reorder. Leave "Pages to take" blank to include the whole file.';
+
+      // Inputs mutate state directly — re-rendering on each keystroke would steal focus.
+      qa('[data-pages]', root).forEach(inp => inp.addEventListener('input', () => { items[+inp.dataset.pages].pages = inp.value; }));
+      qa('[data-at]', root).forEach(inp => inp.addEventListener('input', () => { items[+inp.dataset.at].at = inp.value; }));
+      qa('[data-del]', root).forEach(b => b.addEventListener('click', e => { e.stopPropagation(); items.splice(+b.dataset.del, 1); render(); }));
+
       let dragI = null;
-      qa('.row[draggable]', root).forEach(rowEl => {
+      qa('.row[draggable="true"]', root).forEach(rowEl => {
         rowEl.addEventListener('dragstart', () => dragI = +rowEl.dataset.i);
         rowEl.addEventListener('dragover', e => e.preventDefault());
-        rowEl.addEventListener('drop', e => { e.preventDefault(); const to = +rowEl.dataset.i; const [m] = files.splice(dragI, 1); files.splice(to, 0, m); render(); });
+        rowEl.addEventListener('drop', e => { e.preventDefault(); const to = +rowEl.dataset.i; const [m] = items.splice(dragI, 1); items.splice(to, 0, m); render(); });
       });
     }
-    q('#clr', root)?.addEventListener('click', () => { files = []; render(); });
+
+    q('#mode', root).addEventListener('change', render);
+    q('#clr', root).addEventListener('click', () => { items = []; q('#msg', root).innerHTML = ''; render(); });
+
     q('#go', root).addEventListener('click', async () => {
-      if (files.length < 2) { q('#msg', root).innerHTML = errBox('Add at least two PDF files.'); return; }
+      if (items.length < 2) { q('#msg', root).innerHTML = errBox('Add at least two PDF files.'); return; }
+
+      // Resolve each file's page selection first so range typos surface by name.
+      const sel = [];
+      for (const it of items) {
+        const s = selected(it);
+        if (!s.length) { q('#msg', root).innerHTML = errBox(`"${esc(it.file.name)}" has 1–${it.count} pages, but "${esc(it.pages)}" selects none.`); return; }
+        sel.push(s);
+      }
+
+      // Build the page plan as [itemIndex, pageIndex] pairs, in final order.
+      const plan = [];
+      if (mode() === 'insert') {
+        const baseCount = items[0].count;
+        const at = items.map((it, i) => {
+          if (i === 0) return 0;
+          const n = parseInt(it.at, 10);
+          return (isNaN(n) ? baseCount + 1 : Math.min(Math.max(n, 1), baseCount + 1));
+        });
+        const baseSel = new Set(sel[0]);
+        for (let pos = 1; pos <= baseCount + 1; pos++) {
+          for (let i = 1; i < items.length; i++) {
+            if (at[i] === pos) sel[i].forEach(p => plan.push([i, p]));
+          }
+          if (pos <= baseCount && baseSel.has(pos - 1)) plan.push([0, pos - 1]);
+        }
+      } else {
+        items.forEach((_, i) => sel[i].forEach(p => plan.push([i, p])));
+      }
+
       q('#msg', root).innerHTML = spinner('Merging…');
       try {
         const out = await window.PDFLib.PDFDocument.create();
-        for (const f of files) {
-          const src = await loadDoc(f);
-          const pages = await out.copyPages(src, src.getPageIndices());
-          pages.forEach(p => out.addPage(p));
+        // Copy each source's pages once, then place them in the planned order.
+        const copied = [];
+        for (let i = 0; i < items.length; i++) {
+          const pages = await out.copyPages(await loadDoc(items[i].file), sel[i]);
+          copied.push(new Map(sel[i].map((p, k) => [p, pages[k]])));
         }
+        plan.forEach(([i, p]) => out.addPage(copied[i].get(p)));
         downloadPdf(await out.save(), 'merged.pdf');
-        q('#msg', root).innerHTML = okBox(`Merged ${files.length} files into one PDF.`);
+        q('#msg', root).innerHTML = okBox(`Merged ${items.length} files into one PDF of ${plan.length} page${plan.length === 1 ? '' : 's'}.`);
       } catch (e) { q('#msg', root).innerHTML = errBox('Merge failed: ' + e.message); }
     });
   });

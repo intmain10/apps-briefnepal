@@ -70,7 +70,7 @@ function omnitools_tools(): array
     };
 
     /* ---------------------------------------------------------------- PDF */
-    $t('merge-pdf', 'pdf', 'Merge PDF', 'Combine multiple PDF files into one document, in the order you choose.', ['popular'], 'combine pdf join pdf');
+    $t('merge-pdf', 'pdf', 'Merge PDF', 'Combine PDF files into one document, choosing which pages to take and where they go.', ['popular'], 'combine pdf join pdf insert pages into pdf');
     $t('split-pdf', 'pdf', 'Split PDF', 'Extract selected pages or split a PDF into separate files.', [], 'separate pdf extract pages');
     $t('rotate-pdf', 'pdf', 'Rotate PDF', 'Rotate all or selected pages of a PDF and download the result.', [], 'turn pdf orientation');
     $t('compress-pdf', 'pdf', 'Compress PDF', 'Reduce PDF file size while keeping quality high.', ['popular'], 'shrink pdf reduce size');
