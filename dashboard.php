@@ -114,6 +114,31 @@ header('X-Robots-Tag: noindex, nofollow');
       <div class="tile apps"><b><?= number_format($t['apps']) ?></b><span>Toolzy views</span></div>
       <div class="tile cardly"><b><?= number_format($t['cardly']) ?></b><span>Cardly views</span></div>
       <div class="tile"><b><?= number_format($t['today']) ?></b><span>Today</span></div>
+      <div class="tile"><b><?= number_format($t['events'] ?? 0) ?></b><span>Tool uses</span></div>
+    </div>
+
+    <?php
+    // Completed tool actions, split by where they happened. An article that
+    // drives usage is the whole point of embedding a tool in a guide, so the
+    // guide-vs-tool-page split is the number worth watching.
+    $events = $sum['events'] ?? [];
+    ?>
+    <div class="panel">
+      <h2>Tool usage <span class="muted" style="font-weight:400">· completed actions, not pageviews</span></h2>
+      <table>
+        <?php foreach (array_slice($events, 0, 15, true) as $ev => $data): $slug = substr($ev, 4); $tool = get_tool($slug); ?>
+          <tr>
+            <td>
+              <?= htmlspecialchars($tool['name'] ?? $slug) ?>
+              <?php foreach (array_slice($data['paths'], 0, 3, true) as $p => $pn): ?>
+                <div class="muted" style="font-size:12px"><?= htmlspecialchars($p) ?> — <?= number_format($pn) ?></div>
+              <?php endforeach; ?>
+            </td>
+            <td class="n"><?= number_format($data['total']) ?></td>
+          </tr>
+        <?php endforeach; ?>
+        <?php if (!$events): ?><tr><td class="muted">No tool uses recorded yet.</td><td></td></tr><?php endif; ?>
+      </table>
     </div>
 
     <div class="panel">

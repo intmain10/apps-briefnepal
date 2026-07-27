@@ -26,8 +26,15 @@ function analytics_dir(): string
     return $dir;
 }
 
-/** Low-level: append one pageview (host + path), skipping bots + internal paths. */
-function analytics_log(string $host, string $path): void
+/**
+ * Low-level: append one hit, skipping bots + internal paths.
+ *
+ * A blank $event means a pageview. A non-blank $event (e.g. "use:redact-pdf")
+ * means the visitor completed an action on $path, and is written as a fourth
+ * tab-separated field. Older three-field lines therefore still parse as
+ * pageviews, and events are kept out of the pageview counts by the summary.
+ */
+function analytics_log(string $host, string $path, string $event = ''): void
 {
     $path = strtok($path, '?') ?: '';
     if ($path === '' || $path[0] !== '/') {
@@ -41,8 +48,10 @@ function analytics_log(string $host, string $path): void
     if (preg_match('#^/(dashboard|admin|api|assets|uploads|analytics)\b#', $path)) {
         return;
     }
-    $host = strtolower($host);
-    $line = gmdate('H:i:s') . "\t" . $host . "\t" . mb_substr($path, 0, 200) . "\n";
+    $host  = strtolower($host);
+    $event = preg_replace('/[^a-z0-9:_-]/', '', strtolower($event)) ?? '';
+    $line  = gmdate('H:i:s') . "\t" . $host . "\t" . mb_substr($path, 0, 200)
+        . ($event !== '' ? "\t" . mb_substr($event, 0, 60) : '') . "\n";
     @file_put_contents(analytics_dir() . '/' . gmdate('Y-m-d') . '.log', $line, FILE_APPEND | LOCK_EX);
 }
 
@@ -63,23 +72,37 @@ function analytics_summary(int $days = 30): array
 {
     $dir = analytics_dir();
     $cardlyHost = defined('CARDLY_DOMAIN') ? CARDLY_DOMAIN : 'cardly.briefnepal.com';
-    $totals = ['all' => 0, 'apps' => 0, 'cardly' => 0, 'today' => 0];
+    $totals = ['all' => 0, 'apps' => 0, 'cardly' => 0, 'today' => 0, 'events' => 0];
     $perDay = [];
     $appsPaths = [];
     $cardlyPaths = [];
+    $events = [];
     $todayStr = gmdate('Y-m-d');
 
     for ($i = $days - 1; $i >= 0; $i--) {
         $date = gmdate('Y-m-d', time() - $i * 86400);
         $f = $dir . '/' . $date . '.log';
         $lines = is_file($f) ? (file($f, FILE_IGNORE_NEW_LINES) ?: []) : [];
-        $perDay[$date] = count($lines);
+        $perDay[$date] = 0;
         foreach ($lines as $ln) {
             $p = explode("\t", $ln);
             if (count($p) < 3) {
                 continue;
             }
             [$_, $host, $path] = $p;
+            // Fourth field = an action, not a pageview. Counted separately so
+            // usage never inflates traffic numbers.
+            $ev = $p[3] ?? '';
+            if ($ev !== '') {
+                $totals['events']++;
+                if (!isset($events[$ev])) {
+                    $events[$ev] = ['total' => 0, 'paths' => []];
+                }
+                $events[$ev]['total']++;
+                $events[$ev]['paths'][$path] = ($events[$ev]['paths'][$path] ?? 0) + 1;
+                continue;
+            }
+            $perDay[$date]++;
             $totals['all']++;
             if ($date === $todayStr) {
                 $totals['today']++;
@@ -95,11 +118,17 @@ function analytics_summary(int $days = 30): array
     }
     arsort($appsPaths);
     arsort($cardlyPaths);
+    uasort($events, fn($a, $b) => $b['total'] <=> $a['total']);
+    foreach ($events as &$e) {
+        arsort($e['paths']);
+    }
+    unset($e);
     return [
         'totals'  => $totals,
         'perDay'  => $perDay,
         'apps'    => $appsPaths,
         'cardly'  => $cardlyPaths,
+        'events'  => $events,
         'cardlyDomain' => $cardlyHost,
     ];
 }

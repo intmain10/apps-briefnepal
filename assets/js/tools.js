@@ -2148,6 +2148,29 @@
   /* =====================================================================
      BOOTSTRAP
      ================================================================== */
+  /* Report one "tool actually used" event per mount.
+     Every engine signals completion the same way — a .notice--success block —
+     so watching for one avoids instrumenting 134 engines by hand. No engine
+     renders that class in its mount template, so this cannot fire on load.
+     The path is sent too, which is what separates usage on a tool page from
+     usage inside an embedded article. Cookie-free, same beacon as pageviews. */
+  function watchUse(root, slug) {
+    if (typeof MutationObserver !== 'function') return;
+    let sent = false;
+    const obs = new MutationObserver(() => {
+      if (sent || !root.querySelector('.notice--success')) return;
+      sent = true;
+      obs.disconnect();
+      try {
+        const u = '/api/track.php?p=' + encodeURIComponent(location.pathname)
+          + '&e=' + encodeURIComponent('use:' + slug);
+        if (navigator.sendBeacon) navigator.sendBeacon(u);
+        else fetch(u, { method: 'POST', keepalive: true, cache: 'no-store' });
+      } catch (e) {}
+    });
+    obs.observe(root, { childList: true, subtree: true });
+  }
+
   // Mounts every [data-tool] on the page, not just the first: blog articles can
   // embed several tools inline via the [tool:slug] shortcode, and each mount
   // point gets its own independent engine instance.
@@ -2158,7 +2181,7 @@
       root._mounted = true;
       const fn = engines[slug];
       if (fn) {
-        try { fn(root); root.classList.add('fade-in'); }
+        try { fn(root); root.classList.add('fade-in'); watchUse(root, slug); }
         catch (e) { root.innerHTML = `<div class="notice notice--error">This tool hit an error: ${esc(e.message)}</div>`; }
       } else {
         root.innerHTML = `<div class="notice notice--info">This tool is being finalised and will be available shortly.</div>`;

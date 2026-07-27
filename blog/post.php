@@ -73,7 +73,7 @@ function md_to_html(string $src): string
 {
     $src = str_replace("\r\n", "\n", $src);
     $lines = explode("\n", $src);
-    $html = ''; $inList = false; $inCode = false; $para = [];
+    $html = ''; $inList = ''; $inCode = false; $para = [];
     $inline = function (string $t): string {
         $t = e($t);
         $t = preg_replace('/`([^`]+)`/', '<code>$1</code>', $t);
@@ -91,18 +91,18 @@ function md_to_html(string $src): string
         // [tool:slug] on its own line — a block embed, so it must close any open
         // paragraph or list rather than be inlined into one.
         if (preg_match('/^\s*\[tool:([a-z0-9-]+)\]\s*$/', $line, $m)) {
-            $flush(); if ($inList) { $html .= '</ul>'; $inList = false; }
+            $flush(); if ($inList) { $html .= "</$inList>"; $inList = ''; }
             $html .= tool_embed_html($m[1]);
             continue;
         }
-        if (preg_match('/^(#{2,4})\s+(.*)$/', $line, $m)) { $flush(); if ($inList) { $html .= '</ul>'; $inList = false; } $lvl = strlen($m[1]); $html .= "<h$lvl>" . $inline($m[2]) . "</h$lvl>"; continue; }
-        if (preg_match('/^\s*[-*]\s+(.*)$/', $line, $m)) { $flush(); if (!$inList) { $html .= '<ul>'; $inList = true; } $html .= '<li>' . $inline($m[1]) . '</li>'; continue; }
-        if (preg_match('/^\s*\d+\.\s+(.*)$/', $line, $m)) { $flush(); if (!$inList) { $html .= '<ul>'; $inList = true; } $html .= '<li>' . $inline($m[1]) . '</li>'; continue; }
-        if (preg_match('/^\s*>\s?(.*)$/', $line, $m)) { $flush(); if ($inList) { $html .= '</ul>'; $inList = false; } $html .= '<blockquote>' . $inline($m[1]) . '</blockquote>'; continue; }
-        if (trim($line) === '') { $flush(); if ($inList) { $html .= '</ul>'; $inList = false; } continue; }
+        if (preg_match('/^(#{2,4})\s+(.*)$/', $line, $m)) { $flush(); if ($inList) { $html .= "</$inList>"; $inList = ''; } $lvl = strlen($m[1]); $html .= "<h$lvl>" . $inline($m[2]) . "</h$lvl>"; continue; }
+        if (preg_match('/^\s*[-*]\s+(.*)$/', $line, $m)) { $flush(); if ($inList !== 'ul') { if ($inList) { $html .= "</$inList>"; } $html .= '<ul>'; $inList = 'ul'; } $html .= '<li>' . $inline($m[1]) . '</li>'; continue; }
+        if (preg_match('/^\s*\d+\.\s+(.*)$/', $line, $m)) { $flush(); if ($inList !== 'ol') { if ($inList) { $html .= "</$inList>"; } $html .= '<ol>'; $inList = 'ol'; } $html .= '<li>' . $inline($m[1]) . '</li>'; continue; }
+        if (preg_match('/^\s*>\s?(.*)$/', $line, $m)) { $flush(); if ($inList) { $html .= "</$inList>"; $inList = ''; } $html .= '<blockquote>' . $inline($m[1]) . '</blockquote>'; continue; }
+        if (trim($line) === '') { $flush(); if ($inList) { $html .= "</$inList>"; $inList = ''; } continue; }
         $para[] = trim($line);
     }
-    $flush(); if ($inList) $html .= '</ul>';
+    $flush(); if ($inList) { $html .= "</$inList>"; }
     return $html;
 }
 

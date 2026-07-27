@@ -13,7 +13,9 @@ require_once __DIR__ . '/../includes/analytics.php';
 header('Cache-Control: no-store, no-cache, must-revalidate');
 http_response_code(204);
 
-$path = (string) ($_GET['p'] ?? '');
+$path  = (string) ($_GET['p'] ?? '');
+// Optional action name, e.g. "use:redact-pdf". Blank = ordinary pageview.
+$event = (string) ($_GET['e'] ?? '');
 if ($path !== '') {
-    analytics_log($_SERVER['HTTP_HOST'] ?? '', $path);
+    analytics_log($_SERVER['HTTP_HOST'] ?? '', $path, $event);
 }
