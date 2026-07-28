@@ -421,8 +421,10 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.15; font-weigh
 .tool-embed > .notice { margin: 0 16px 16px; }
 .article__cover { height: 260px; border-radius: var(--radius-lg); background: var(--gradient-hero), var(--surface-2); display: grid; place-items: center; margin: 20px 0 30px; }
 .article__cover .icon { width: 64px; height: 64px; color: var(--accent); }
-.article__cover--photo { overflow: hidden; padding: 0; }
-.article__cover--photo img { width: 100%; height: 100%; object-fit: cover; }
+/* Photo cover: no fixed height, so a wide cover image is shown whole rather
+   than cropped to the icon-cover's 260px box. */
+.article__cover--photo { display: block; height: auto; overflow: hidden; }
+.article__cover--photo img { display: block; width: 100%; height: auto; }
 
 /* Page header (generic) */
 .page-head { padding: 44px 0 24px; text-align: center; }
