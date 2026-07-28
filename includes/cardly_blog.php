@@ -23,6 +23,10 @@ function cardly_posts(): array
             'tag'      => 'Founder Story',
             'date'     => '2026-07-28',
             'author'   => 'Shushant Kumar Singh',
+            // Cover = a real card's generated share image, so the article shows
+            // an actual Cardly card (and follows it when the card is edited).
+            // 'cover' is the fallback if that card or GD is unavailable.
+            'cover_card' => 'shushant-singh-twt6',
             'cover'    => 'assets/images/cardly-hero-card.jpg',
             'excerpt'  => 'I lost a good conversation because I was busy typing my GitHub handle into a stranger’s notes app. This is the story of the problem behind Cardly, how it is built, and where AI fits next.',
             'body'     => <<<'MD'
@@ -198,6 +202,29 @@ One link. One scan. The whole person.
 MD,
         ],
     ];
+}
+
+/**
+ * Cover image URL for a post, or null if it has none.
+ *
+ * A post may point at a live card via 'cover_card': that card's generated
+ * 1200×630 share image is used, so the article always shows the current version
+ * of a real card rather than a stale export. 'cover' is a static fallback for
+ * when the card is gone or GD/FreeType is unavailable.
+ */
+function cardly_post_cover(array $post): ?string
+{
+    $cardSlug = (string)($post['cover_card'] ?? '');
+    if ($cardSlug !== '' && function_exists('cardly_load')) {
+        $card = cardly_load($cardSlug);
+        if ($card) {
+            $og = cardly_og_ensure($cardSlug, $card);
+            if ($og) {
+                return $og;
+            }
+        }
+    }
+    return !empty($post['cover']) ? url($post['cover'] . '?v=' . OMNITOOLS_VERSION) : null;
 }
 
 /** @return array<string,mixed>|null */

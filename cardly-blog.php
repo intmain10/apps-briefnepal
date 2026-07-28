@@ -57,11 +57,11 @@ if ($slug === '') {
 
     <section class="section--tight container">
       <div class="post-grid">
-        <?php foreach ($posts as $p): ?>
+        <?php foreach ($posts as $p): $cover = cardly_post_cover($p); ?>
           <a class="post-card" href="<?= eattr(cardly_link('blog/' . $p['slug'])) ?>">
             <div class="post-card__cover">
-              <?php if (!empty($p['cover'])): ?>
-                <img src="<?= eattr(url($p['cover'] . '?v=' . OMNITOOLS_VERSION)) ?>" alt="<?= eattr($p['title']) ?>" loading="lazy" width="600" height="340">
+              <?php if ($cover): ?>
+                <img src="<?= eattr($cover) ?>" alt="<?= eattr($p['title']) ?>" loading="lazy" width="600" height="340">
               <?php else: ?>
                 <?= icon_svg('doc') ?>
               <?php endif; ?>
@@ -95,7 +95,8 @@ if (!$post) {
 
 $bodyHtml  = md_to_html((string)($post['body'] ?? ''));
 $morePosts = array_slice(array_filter($posts, fn($p) => $p['slug'] !== $slug), 0, 3);
-$ogImage   = !empty($post['cover']) ? url($post['cover']) : url('assets/images/cardly-og.png');
+$cover     = cardly_post_cover($post);
+$ogImage   = $cover ?: url('assets/images/cardly-og.png');
 
 $page = [
     'title'       => $post['title'] . ' | Cardly',
@@ -151,10 +152,13 @@ require __DIR__ . '/includes/header.php';
     <h1 style="font-size:clamp(30px,5vw,46px);margin-top:8px"><?= e($post['title']) ?></h1>
     <p class="muted mt-2"><?= e(date('F j, Y', strtotime($post['date']))) ?> · By <?= e($post['author']) ?>, founder of Cardly</p>
 
-    <?php if (!empty($post['cover'])): ?>
-    <div class="article__cover article__cover--photo">
-      <img src="<?= eattr(url($post['cover'] . '?v=' . OMNITOOLS_VERSION)) ?>" alt="<?= eattr($post['title']) ?>" width="1200" height="630">
-    </div>
+    <?php if ($cover): ?>
+    <figure class="article__cover article__cover--photo">
+      <img src="<?= eattr($cover) ?>" alt="A Cardly digital business card: name, role, social links and a QR code that opens the card" width="1200" height="630">
+      <?php if (!empty($post['cover_card'])): ?>
+      <figcaption class="article__caption">My own Cardly card, live at <a href="<?= eattr(cardly_link($post['cover_card'])) ?>"><?= e(CARDLY_DOMAIN . '/' . $post['cover_card']) ?></a></figcaption>
+      <?php endif; ?>
+    </figure>
     <?php endif; ?>
 
     <div class="prose"><?= $bodyHtml ?></div>
@@ -171,11 +175,11 @@ require __DIR__ . '/includes/header.php';
 <section class="section container">
   <div class="section__head"><div><h2 class="section__title">More from the blog</h2></div></div>
   <div class="post-grid">
-    <?php foreach ($morePosts as $p): ?>
+    <?php foreach ($morePosts as $p): $mc = cardly_post_cover($p); ?>
       <a class="post-card" href="<?= eattr(cardly_link('blog/' . $p['slug'])) ?>">
         <div class="post-card__cover">
-          <?php if (!empty($p['cover'])): ?>
-            <img src="<?= eattr(url($p['cover'] . '?v=' . OMNITOOLS_VERSION)) ?>" alt="<?= eattr($p['title']) ?>" loading="lazy" width="600" height="340">
+          <?php if ($mc): ?>
+            <img src="<?= eattr($mc) ?>" alt="<?= eattr($p['title']) ?>" loading="lazy" width="600" height="340">
           <?php else: ?>
             <?= icon_svg('doc') ?>
           <?php endif; ?>

@@ -423,8 +423,9 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.15; font-weigh
 .article__cover .icon { width: 64px; height: 64px; color: var(--accent); }
 /* Photo cover: no fixed height, so a wide cover image is shown whole rather
    than cropped to the icon-cover's 260px box. */
-.article__cover--photo { display: block; height: auto; overflow: hidden; }
-.article__cover--photo img { display: block; width: 100%; height: auto; }
+.article__cover--photo { display: block; height: auto; overflow: visible; background: none; }
+.article__cover--photo img { display: block; width: 100%; height: auto; border-radius: var(--radius-lg); }
+.article__caption { font-size: 13px; color: var(--text-3); text-align: center; margin-top: 10px; }
 
 /* Page header (generic) */
 .page-head { padding: 44px 0 24px; text-align: center; }
