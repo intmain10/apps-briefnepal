@@ -16,6 +16,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/includes/functions.php';
 require_once __DIR__ . '/includes/blog.php';
 require_once __DIR__ . '/includes/cardly.php'; // for cardly_published_cards()
+require_once __DIR__ . '/includes/cardly_blog.php';
 
 header('Content-Type: application/xml; charset=utf-8');
 header('X-Robots-Tag: noindex');
@@ -39,6 +40,10 @@ if (cardly_is_host()) {
     echo xml_url(cardly_link(), $today, 'weekly', '1.0');
     echo xml_url(cardly_link('discover'), $today, 'daily', '0.9');
     echo xml_url(cardly_link('about'), $today, 'monthly', '0.8');
+    echo xml_url(cardly_link('blog'), $today, 'weekly', '0.8');
+    foreach (cardly_posts() as $cp) {
+        echo xml_url(cardly_link('blog/' . $cp['slug']), $cp['date'], 'monthly', '0.7');
+    }
     // Published cards — so each person's card is discoverable as their internet
     // identity, with an image entry so the profile also wins image search.
     // (Unlisted cards opt out via discoverable=false.)

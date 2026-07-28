@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/blog.php';
+require_once __DIR__ . '/../includes/markdown.php';
 
 $slug = preg_replace('/[^a-z0-9-]/', '', (string)($_GET['slug'] ?? ''));
 $post = get_post($slug);
@@ -66,44 +67,6 @@ function tool_embed_html(string $slug): string
         . '</div>'
         . '<p class="notice notice--' . ($isServer ? 'info' : 'success') . '">' . $notice . '</p>'
         . '</div>';
-}
-
-/** Minimal, safe server-side Markdown → HTML for article bodies. */
-function md_to_html(string $src): string
-{
-    $src = str_replace("\r\n", "\n", $src);
-    $lines = explode("\n", $src);
-    $html = ''; $inList = ''; $inCode = false; $para = [];
-    $inline = function (string $t): string {
-        $t = e($t);
-        $t = preg_replace('/`([^`]+)`/', '<code>$1</code>', $t);
-        $t = preg_replace('/\*\*([^*]+)\*\*/', '<strong>$1</strong>', $t);
-        $t = preg_replace('/\*([^*]+)\*/', '<em>$1</em>', $t);
-        $t = preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" rel="noopener">$1</a>', $t);
-        return $t;
-    };
-    $flush = function () use (&$para, &$html, $inline) {
-        if ($para) { $html .= '<p>' . $inline(implode(' ', $para)) . '</p>'; $para = []; }
-    };
-    foreach ($lines as $line) {
-        if (preg_match('/^```/', $line)) { $flush(); if (!$inCode) { $html .= '<pre><code>'; $inCode = true; } else { $html .= '</code></pre>'; $inCode = false; } continue; }
-        if ($inCode) { $html .= e($line) . "\n"; continue; }
-        // [tool:slug] on its own line — a block embed, so it must close any open
-        // paragraph or list rather than be inlined into one.
-        if (preg_match('/^\s*\[tool:([a-z0-9-]+)\]\s*$/', $line, $m)) {
-            $flush(); if ($inList) { $html .= "</$inList>"; $inList = ''; }
-            $html .= tool_embed_html($m[1]);
-            continue;
-        }
-        if (preg_match('/^(#{2,4})\s+(.*)$/', $line, $m)) { $flush(); if ($inList) { $html .= "</$inList>"; $inList = ''; } $lvl = strlen($m[1]); $html .= "<h$lvl>" . $inline($m[2]) . "</h$lvl>"; continue; }
-        if (preg_match('/^\s*[-*]\s+(.*)$/', $line, $m)) { $flush(); if ($inList !== 'ul') { if ($inList) { $html .= "</$inList>"; } $html .= '<ul>'; $inList = 'ul'; } $html .= '<li>' . $inline($m[1]) . '</li>'; continue; }
-        if (preg_match('/^\s*\d+\.\s+(.*)$/', $line, $m)) { $flush(); if ($inList !== 'ol') { if ($inList) { $html .= "</$inList>"; } $html .= '<ol>'; $inList = 'ol'; } $html .= '<li>' . $inline($m[1]) . '</li>'; continue; }
-        if (preg_match('/^\s*>\s?(.*)$/', $line, $m)) { $flush(); if ($inList) { $html .= "</$inList>"; $inList = ''; } $html .= '<blockquote>' . $inline($m[1]) . '</blockquote>'; continue; }
-        if (trim($line) === '') { $flush(); if ($inList) { $html .= "</$inList>"; $inList = ''; } continue; }
-        $para[] = trim($line);
-    }
-    $flush(); if ($inList) { $html .= "</$inList>"; }
-    return $html;
 }
 
 $relatedTool = get_tool($post['related'] ?? '');

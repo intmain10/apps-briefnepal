@@ -26,6 +26,7 @@ echo SITE_NAME . ' is a free, privacy-first online tools platform with ' . count
 echo "## Key pages\n";
 echo '- [All tools](' . url('tools') . "): browse every tool on the platform\n";
 echo '- [Cardly, free digital business card](' . cardly_link() . "): build one shareable link with your contact, socials, portfolio and QR code\n";
+echo '- [Cardly blog](' . cardly_link('blog') . "): founder stories and guides on digital business cards and professional identity\n";
 echo '- [About](' . url('about') . "): what the platform is and who builds it\n";
 echo '- [Blog](' . url('blog') . "): guides and how-tos\n\n";
 

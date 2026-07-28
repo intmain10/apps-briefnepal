@@ -24,6 +24,7 @@ $bare = !empty($page['bare']);
       <nav class="cardly-foot__links" aria-label="Footer">
         <a href="<?= eattr(cardly_link('new')) ?>">Create a card</a>
         <a href="<?= eattr(cardly_link('discover')) ?>">Discover</a>
+        <a href="<?= eattr(cardly_link('blog')) ?>">Blog</a>
         <a href="<?= eattr(cardly_link('about')) ?>">About</a>
         <a href="https://apps.briefnepal.com/privacy" rel="noopener">Privacy</a>
         <a href="https://apps.briefnepal.com/terms" rel="noopener">Terms</a>

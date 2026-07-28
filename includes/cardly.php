@@ -94,7 +94,7 @@ function cardly_reserved(): array
         'templates', 'pricing', 'app', 'apps', 'www', 'cardly',
         'signup', 'signin', 'register', 'dashboard', 'verify', 'forgot',
         'reset', 'account', 'accounts', 'settings', 'me', 'profile',
-        'discover', 'people', 'directory', 'explore'];
+        'discover', 'people', 'directory', 'explore', 'blog'];
 }
 
 function cardly_slug_valid(string $slug): bool

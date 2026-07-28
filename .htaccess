@@ -31,13 +31,19 @@ ErrorDocument 404 /404.php
     # =====================================================================
     # OmniTools sections don't belong on the Cardly domain → send to main site
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
-    RewriteRule ^(tools|category|blog|privacy|terms|contact|changelog|feedback|sitemap|shushant-singh|founder|docs|guide|manual)(/.*)?$ https://apps.briefnepal.com/$1$2 [R=301,L]
+    RewriteRule ^(tools|category|privacy|terms|contact|changelog|feedback|sitemap|shushant-singh|founder|docs|guide|manual)(/.*)?$ https://apps.briefnepal.com/$1$2 [R=301,L]
     # Cardly landing
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
     RewriteRule ^$ cardly.php [L,QSA]
     # Cardly About
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
     RewriteRule ^about/?$ cardly-about.php [L,QSA]
+    # Cardly blog — its own section, distinct from the Toolzy blog. These must
+    # come before the OmniTools /blog rules below, which serve blog/index.php.
+    RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
+    RewriteRule ^blog/?$ cardly-blog.php [L,QSA]
+    RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
+    RewriteRule ^blog/([a-z0-9-]+)/?$ cardly-blog.php?slug=$1 [L,QSA]
     # Builder
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
     RewriteRule ^new/?$ cardly-edit.php [L,QSA]
