@@ -1328,6 +1328,256 @@
     q('#go', root).addEventListener('click', () => { if (!img) return; const type = q('#fmt', root).value; const ext = type.split('/')[1].replace('jpeg', 'jpg'); const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight; const ctx = c.getContext('2d'); if (type === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); } ctx.drawImage(img, 0, 0); showImageResult(root, c, 'converted.' + ext, type, +q('#q', root).value / 100); });
   });
 
+  /* ---------------------------------------------------------------------
+     Remove Background → transparent PNG.
+
+     No model and no upload: the background is keyed out by colour distance
+     from one or more sampled background colours. Two things make that hold up
+     in practice rather than only on ideal inputs:
+
+     - Flood mode walks inward from the image border and only clears pixels
+       connected to it, so white inside a logo, or the sky showing through a
+       gap, survives while the surrounding white goes. Global mode clears every
+       matching pixel wherever it sits.
+     - Pixels just outside the tolerance get partial alpha instead of a hard
+       edge, which is what stops JPG anti-aliasing from leaving a halo.
+
+     Honest about its limits: solid, near-solid and gradient-ish backgrounds
+     are its job. Busy photographic backgrounds need subject segmentation,
+     which is a different tool.
+     ------------------------------------------------------------------ */
+  const RB_PREVIEW_MAX = 900;   // px on the long edge for interactive preview
+
+  /** Euclidean RGB distance from a pixel to the nearest key colour. */
+  function rbNearest(px, p, keys) {
+    let best = Infinity;
+    for (let k = 0; k < keys.length; k++) {
+      const dr = px[p] - keys[k][0], dg = px[p + 1] - keys[k][1], db = px[p + 2] - keys[k][2];
+      const d = Math.sqrt(dr * dr + dg * dg + db * db);
+      if (d < best) best = d;
+    }
+    return best;
+  }
+
+  /**
+   * Clear the background in-place. `px` is RGBA from getImageData; `tol` and
+   * `soft` are distances in the same 0–441 space as rbNearest().
+   */
+  function rbApply(px, w, h, keys, tol, soft, edgesOnly) {
+    const n = w * h;
+    const dist = new Float32Array(n);
+    for (let i = 0; i < n; i++) dist[i] = rbNearest(px, i * 4, keys);
+
+    const fade = (i, d) => {
+      // Partial alpha across the soft band → anti-aliased cutout edge.
+      px[i * 4 + 3] = soft > 0 ? Math.round(px[i * 4 + 3] * Math.min(1, (d - tol) / soft)) : px[i * 4 + 3];
+    };
+
+    if (!edgesOnly) {
+      for (let i = 0; i < n; i++) {
+        const d = dist[i];
+        if (d <= tol) px[i * 4 + 3] = 0;
+        else if (d <= tol + soft) fade(i, d);
+      }
+      return;
+    }
+
+    // Flood from every border pixel. state: 0 untouched, 1 cleared, 2 soft edge.
+    const state = new Uint8Array(n);
+    const queue = new Int32Array(n);
+    let head = 0, tail = 0;
+    const visit = j => {
+      if (state[j]) return;
+      if (dist[j] <= tol) { state[j] = 1; queue[tail++] = j; }
+      else if (dist[j] <= tol + soft) { state[j] = 2; }  // edge: fades, does not spread
+    };
+    for (let x = 0; x < w; x++) { visit(x); visit((h - 1) * w + x); }
+    for (let y = 0; y < h; y++) { visit(y * w); visit(y * w + w - 1); }
+    while (head < tail) {
+      const i = queue[head++], x = i % w, y = (i - x) / w;
+      if (x > 0) visit(i - 1);
+      if (x < w - 1) visit(i + 1);
+      if (y > 0) visit(i - w);
+      if (y < h - 1) visit(i + w);
+    }
+    for (let i = 0; i < n; i++) {
+      if (state[i] === 1) px[i * 4 + 3] = 0;
+      else if (state[i] === 2) fade(i, dist[i]);
+    }
+  }
+
+  /** Most common border colour, averaged within its bucket. */
+  function rbDetectKey(px, w, h) {
+    const buckets = new Map();
+    const step = Math.max(1, Math.round(Math.min(w, h) / 120));
+    const sample = (x, y) => {
+      const p = (y * w + x) * 4;
+      if (px[p + 3] < 8) return;
+      const key = (px[p] >> 4) * 289 + (px[p + 1] >> 4) * 17 + (px[p + 2] >> 4);
+      const b = buckets.get(key) || (buckets.set(key, { n: 0, r: 0, g: 0, b: 0 }), buckets.get(key));
+      b.n++; b.r += px[p]; b.g += px[p + 1]; b.b += px[p + 2];
+    };
+    for (let x = 0; x < w; x += step) { sample(x, 0); sample(x, h - 1); }
+    for (let y = 0; y < h; y += step) { sample(0, y); sample(w - 1, y); }
+    let top = null;
+    buckets.forEach(b => { if (!top || b.n > top.n) top = b; });
+    return top ? [Math.round(top.r / top.n), Math.round(top.g / top.n), Math.round(top.b / top.n)] : [255, 255, 255];
+  }
+
+  /** Crop fully transparent margins. Returns a canvas (the input if nothing to trim). */
+  function rbTrim(canvas) {
+    const ctx = canvas.getContext('2d');
+    const { width: w, height: h } = canvas;
+    const px = ctx.getImageData(0, 0, w, h).data;
+    let top = h, left = w, right = -1, bottom = -1;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (px[(y * w + x) * 4 + 3] > 8) {
+          if (y < top) top = y;
+          if (y > bottom) bottom = y;
+          if (x < left) left = x;
+          if (x > right) right = x;
+        }
+      }
+    }
+    if (right < 0 || (top === 0 && left === 0 && right === w - 1 && bottom === h - 1)) return canvas;
+    const out = document.createElement('canvas');
+    out.width = right - left + 1; out.height = bottom - top + 1;
+    out.getContext('2d').drawImage(canvas, left, top, out.width, out.height, 0, 0, out.width, out.height);
+    return out;
+  }
+
+  const rbHex = c => '#' + c.map(v => v.toString(16).padStart(2, '0')).join('');
+
+  reg('remove-background', root => {
+    root.innerHTML = `<div id="drop"></div>
+      <div id="opts" class="hidden mt-4">
+        <div class="row">
+          <div><label class="field__label" for="tol">Tolerance: <b id="tv">18</b></label>
+            <input id="tol" type="range" min="1" max="60" value="18" style="width:100%">
+            <span class="muted" style="font-size:12px">How different from the background a pixel may be and still be removed.</span></div>
+          <div><label class="field__label" for="soft">Edge softness: <b id="sv">10</b></label>
+            <input id="soft" type="range" min="0" max="40" value="10" style="width:100%">
+            <span class="muted" style="font-size:12px">Fades the boundary so no halo is left behind.</span></div>
+        </div>
+        <div class="btn-row mt-4" style="flex-wrap:wrap;align-items:center">
+          <label class="chip" style="display:inline-flex;gap:7px;align-items:center"><input type="checkbox" id="edges" checked> Edges inward only</label>
+          <label class="chip" style="display:inline-flex;gap:7px;align-items:center"><input type="checkbox" id="trim"> Trim empty space</label>
+          <button class="btn btn--ghost btn--sm" id="auto" type="button">Re-detect background</button>
+        </div>
+        <div class="mt-4" style="font-size:13px">
+          <span class="muted">Background colours,</span> <span id="keys"></span>
+          <span class="muted">click the preview to add the colour under your cursor.</span>
+        </div>
+        <div class="alpha-grid mt-4"><canvas id="cv" style="cursor:crosshair"></canvas></div>
+        <div class="btn-row mt-4"><button class="btn btn--primary" id="dl">Download PNG</button>
+          <button class="btn btn--ghost" id="over" type="button">Start over</button></div>
+        <div id="meta" class="mt-4"></div>
+      </div>`;
+
+    const opts = q('#opts', root), cv = q('#cv', root), ctx = cv.getContext('2d');
+    let img = null, base = null, keys = [], raf = 0;
+
+    makeDropzone(q('#drop', root), {
+      accept: 'image/*', hint: 'JPG, PNG or WebP. Read on your device, never uploaded.',
+      onFiles: async f => {
+        img = await loadImageFile(f[0]);
+        const s = Math.min(1, RB_PREVIEW_MAX / Math.max(img.naturalWidth, img.naturalHeight));
+        cv.width = Math.max(1, Math.round(img.naturalWidth * s));
+        cv.height = Math.max(1, Math.round(img.naturalHeight * s));
+        ctx.clearRect(0, 0, cv.width, cv.height);
+        ctx.drawImage(img, 0, 0, cv.width, cv.height);
+        base = ctx.getImageData(0, 0, cv.width, cv.height);
+        keys = [rbDetectKey(base.data, cv.width, cv.height)];
+        opts.classList.remove('hidden');
+        render();
+      }
+    });
+
+    function chips() {
+      q('#keys', root).innerHTML = keys.map((c, i) =>
+        `<button type="button" class="chip" data-key="${i}" title="Remove this colour" style="padding:3px 9px;display:inline-flex;gap:6px;align-items:center">
+          <span style="width:12px;height:12px;border-radius:3px;border:1px solid var(--border-strong);background:${rbHex(c)}"></span>${rbHex(c)} ×</button>`).join(' ');
+      qa('[data-key]', root).forEach(b => b.addEventListener('click', () => {
+        if (keys.length > 1) { keys.splice(+b.dataset.key, 1); render(); }
+      }));
+    }
+
+    function params() {
+      return {
+        tol: +q('#tol', root).value / 100 * 441,
+        soft: +q('#soft', root).value / 100 * 441,
+        edgesOnly: q('#edges', root).checked
+      };
+    }
+
+    function render() {
+      if (!base) return;
+      q('#tv', root).textContent = q('#tol', root).value;
+      q('#sv', root).textContent = q('#soft', root).value;
+      chips();
+      const { tol, soft, edgesOnly } = params();
+      const frame = new ImageData(new Uint8ClampedArray(base.data), base.width, base.height);
+      rbApply(frame.data, frame.width, frame.height, keys, tol, soft, edgesOnly);
+      ctx.putImageData(frame, 0, 0);
+      let clear = 0;
+      for (let i = 3; i < frame.data.length; i += 4) if (frame.data[i] === 0) clear++;
+      q('#meta', root).innerHTML = grid(
+        stat('Output', 'PNG with transparency') +
+        stat('Full size', img.naturalWidth + '×' + img.naturalHeight) +
+        stat('Background removed', Math.round(clear / (frame.width * frame.height) * 100) + '%')
+      );
+    }
+    // Debounced on a timer rather than requestAnimationFrame: a slider drag
+    // still coalesces to one render, and it also fires when the tab is not
+    // painting, so a preview can never be left stale.
+    const queueRender = () => { clearTimeout(raf); raf = setTimeout(render, 20); };
+
+    ['#tol', '#soft'].forEach(sel => q(sel, root).addEventListener('input', queueRender));
+    ['#edges', '#trim'].forEach(sel => q(sel, root).addEventListener('change', render));
+    q('#auto', root).addEventListener('click', () => { keys = [rbDetectKey(base.data, base.width, base.height)]; render(); });
+    q('#over', root).addEventListener('click', () => { img = base = null; keys = []; opts.classList.add('hidden'); });
+
+    cv.addEventListener('click', e => {
+      if (!base) return;
+      const r = cv.getBoundingClientRect();
+      const x = Math.floor((e.clientX - r.left) / r.width * cv.width);
+      const y = Math.floor((e.clientY - r.top) / r.height * cv.height);
+      if (x < 0 || y < 0 || x >= cv.width || y >= cv.height) return;
+      const p = (y * cv.width + x) * 4;
+      const picked = [base.data[p], base.data[p + 1], base.data[p + 2]];
+      if (!keys.some(k => k[0] === picked[0] && k[1] === picked[1] && k[2] === picked[2])) keys.push(picked);
+      render();
+    });
+
+    q('#dl', root).addEventListener('click', async () => {
+      if (!img) return;
+      const btn = q('#dl', root);
+      btn.disabled = true; btn.textContent = 'Preparing…';
+      try {
+        // Re-run at full resolution: the preview is downscaled for speed.
+        let out = document.createElement('canvas');
+        out.width = img.naturalWidth; out.height = img.naturalHeight;
+        const octx = out.getContext('2d');
+        octx.drawImage(img, 0, 0);
+        const full = octx.getImageData(0, 0, out.width, out.height);
+        const { tol, soft, edgesOnly } = params();
+        rbApply(full.data, full.width, full.height, keys, tol, soft, edgesOnly);
+        octx.putImageData(full, 0, 0);
+        if (q('#trim', root).checked) out = rbTrim(out);
+        const blob = await canvasToBlob(out, 'image/png');
+        U.download('transparent.png', blob);
+        q('#meta', root).innerHTML = grid(
+          stat('Downloaded', fmtBytes(blob.size)) +
+          stat('Dimensions', out.width + '×' + out.height) +
+          stat('Format', 'PNG, 32-bit with alpha')
+        );
+      } finally {
+        btn.disabled = false; btn.textContent = 'Download PNG';
+      }
+    });
+  });
+
   reg('image-to-base64', root => {
     root.innerHTML = `<div id="drop"></div><div id="out" class="mt-4"></div>`;
     makeDropzone(q('#drop', root), { accept: 'image/*', onFiles: f => { const r = new FileReader(); r.onload = () => { const uri = r.result; q('#out', root).innerHTML = `<img src="${uri}" style="max-height:160px;border-radius:12px;border:1px solid var(--border)" class="mb-4"><label class="field__label mt-4">Data URI (${fmtBytes(uri.length)})</label><div class="output-box">${esc(uri)}</div><div class="btn-row mt-4"><button class="btn btn--primary" id="cp">Copy Data URI</button><button class="btn btn--ghost" id="cc">Copy as CSS</button></div>`; q('#cp', root).addEventListener('click', () => U.copy(uri)); q('#cc', root).addEventListener('click', () => U.copy('background-image: url("' + uri + '");')); }; r.readAsDataURL(f[0]); } });

@@ -113,6 +113,7 @@ function omnitools_tools(): array
     $t('convert-jpg', 'image', 'Convert to JPG', 'Convert any image to compressed JPG format.', [], 'to jpg jpeg convert');
     $t('convert-webp', 'image', 'Convert to WebP', 'Convert images to modern, lightweight WebP.', ['trending'], 'to webp modern convert');
     $t('image-converter', 'image', 'Image Converter', 'Convert between PNG, JPG, WebP and BMP in one place.', ['popular'], 'change format image');
+    $t('remove-background', 'image', 'Remove Background', 'Make an image background transparent and save it as a PNG, on device.', ['new', 'popular'], 'transparent png background remover remove white background image to transparent png cutout logo signature product photo png with transparency erase background');
     $t('image-to-gif', 'image', 'Image to GIF', 'Animate a single image (zoom, pan, pulse, fade) or combine multiple images (JPG, PNG, WebP) into an animated GIF, on device.', ['new'], 'jpg png webp to gif animated gif maker ken burns zoom pan photos slideshow');
     $t('image-to-base64', 'image', 'Image to Base64', 'Encode an image into a Base64 data URI for CSS/HTML.', [], 'data uri encode inline');
     $t('gif-animation-studio', 'image', 'GIF Animation Studio', 'Start from a ready-made template, compose images, icons, shapes and text on a canvas, animate each element independently (slide, fade, pop, spin, float, pulse) and export an animated GIF.', ['new'], 'motion graphics animation studio animated gif maker layers shapes templates logo intro title lower third youtube sale');
@@ -235,7 +236,7 @@ function omnitools_tools(): array
      * while still exposing everything through get_tool(). Unknown slugs are
      * ignored so a content file can never resurrect a retired tool.
      */
-    foreach (['pdf'] as $pack) {
+    foreach (['pdf', 'image'] as $pack) {
         $file = __DIR__ . '/content/' . $pack . '.php';
         if (!is_file($file)) {
             continue;
