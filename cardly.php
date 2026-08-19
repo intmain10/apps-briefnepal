@@ -63,6 +63,12 @@ require __DIR__ . '/includes/header.php';
     </div>
     <p class="muted mt-4" style="font-size:13px">Free forever · No credit card · Yours in 2 minutes</p>
 
+    <!-- Product Hunt -->
+    <a class="cardly-ph" href="https://www.producthunt.com/products/cardly-2?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-cardly-3" target="_blank" rel="noopener noreferrer">
+      <img class="cardly-ph__img cardly-ph__img--light" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1226773&amp;theme=light&amp;t=1787144244744" alt="Cardly - Your digital identity, one beautiful card | Product Hunt" width="250" height="54" loading="lazy">
+      <img class="cardly-ph__img cardly-ph__img--dark" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1226773&amp;theme=dark&amp;t=1787144244744" alt="Cardly - Your digital identity, one beautiful card | Product Hunt" width="250" height="54" loading="lazy">
+    </a>
+
     <!-- Product preview: a stack of theme cards that auto-cycles -->
     <div class="cardly-deck" id="cardlyDeck" role="img" aria-label="Example Cardly cards shown in six different themes">
       <?php for ($i = 1; $i <= 6; $i++): ?>
@@ -174,6 +180,20 @@ require __DIR__ . '/includes/header.php';
   </div>
   <div class="text-center mt-8">
     <a class="btn btn--primary" href="<?= eattr(cardly_link('new')) ?>" style="font-size:17px;padding:14px 28px">Create your card</a>
+  </div>
+</section>
+
+<section class="section container">
+  <!-- Product Hunt post embed -->
+  <div class="cardly-phcard">
+    <div class="cardly-phcard__head">
+      <img class="cardly-phcard__thumb" src="https://ph-files.imgix.net/1989dea8-5cb9-4361-8bdd-88a236b3b529.jpeg?auto=compress,format&amp;codec=mozjpeg&amp;cs=strip&amp;fit=crop&amp;h=80&amp;w=80" alt="Cardly" width="64" height="64" loading="lazy">
+      <div class="cardly-phcard__meta">
+        <h3>Cardly</h3>
+        <p>Your digital identity, one beautiful card</p>
+      </div>
+    </div>
+    <a class="cardly-phcard__cta" href="https://www.producthunt.com/products/cardly-2?embed=true&amp;utm_source=embed&amp;utm_medium=post_embed" target="_blank" rel="noopener noreferrer">Check it out on Product Hunt →</a>
   </div>
 </section>
 
