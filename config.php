@@ -24,7 +24,7 @@ if (is_file(__DIR__ . '/config.local.php')) {
 /* -------------------------------------------------------------------------
  * Environment
  * ---------------------------------------------------------------------- */
-define('OMNITOOLS_VERSION', '1.19.2');
+define('OMNITOOLS_VERSION', '1.19.3');
 
 // Toggle to false on production to hide detailed PHP errors.
 if (!defined('DEBUG_MODE')) define('DEBUG_MODE', false);
@@ -56,6 +56,12 @@ if (!defined('CARDLY_DOMAIN')) define('CARDLY_DOMAIN', getenv('CARDLY_DOMAIN') ?
 // IndexNow key for instant search-engine indexing (Bing, Yandex, DuckDuckGo,
 // Seznam). The verification file <key>.txt must exist at each host's web root.
 if (!defined('INDEXNOW_KEY')) define('INDEXNOW_KEY', getenv('INDEXNOW_KEY') ?: 'fcc23e938a1598e4719afb6f56e20afc');
+// Product Hunt API v2 (Client-Only Auth) — powers the live vote count on the
+// Cardly landing page. PH_API_KEY/PH_API_SECRET belong in config.local.php (or
+// the environment); without them the PH block simply renders its static badge.
+if (!defined('PH_POST_ID')) define('PH_POST_ID', getenv('PH_POST_ID') ?: '1226773');
+if (!defined('PH_API_KEY')) define('PH_API_KEY', getenv('PH_API_KEY') ?: '');
+if (!defined('PH_API_SECRET')) define('PH_API_SECRET', getenv('PH_API_SECRET') ?: '');
 define('SITE_EMAIL', 'hello@briefnepal.com');
 define('SITE_LOCALE', 'en_US');
 define('SITE_AUTHOR', 'Toolzy Team');

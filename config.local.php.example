@@ -30,3 +30,12 @@ define('DB_PASS', 'YOUR-DB-PASSWORD-HERE');  // your database password
 
 /* --- IndexNow key (only if you change it from the repo default) --- */
 // define('INDEXNOW_KEY', 'your-32-hex-key');
+
+/* --- Product Hunt API v2 (https://www.producthunt.com/v2/oauth/applications).
+ *     Enables the live upvote count on the Cardly landing page. Read-only,
+ *     server-side only, via Client-Only Authentication. Leave these unset and
+ *     the PH block falls back to its static badge — nothing breaks.
+ *     Treat the secret like a password: rotate it if it is ever exposed.     */
+// define('PH_API_KEY', 'your-product-hunt-api-key');
+// define('PH_API_SECRET', 'your-product-hunt-api-secret');
+// define('PH_POST_ID', '1226773');   // only if the Cardly post id ever changes

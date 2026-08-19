@@ -6,6 +6,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/includes/cardly_auth.php';
+require_once __DIR__ . '/includes/producthunt.php';
 
 $templates = cardly_templates();
 $cardlyUser = cardly_current_user();
@@ -17,6 +18,9 @@ $proofAvatars = array_slice(array_values(array_filter(
     $published,
     fn($c) => trim((string) ($c['photo'] ?? '')) !== ''
 )), 0, 5);
+
+// Live Product Hunt numbers (cached to disk; null = show the static badge only).
+$ph = ph_post_stats((string) PH_POST_ID);
 
 $page = [
     'title'       => 'Cardly, Create a Free Digital Business Card',
@@ -193,6 +197,14 @@ require __DIR__ . '/includes/header.php';
         <p>Your digital identity, one beautiful card</p>
       </div>
     </div>
+    <?php if ($ph): ?>
+    <div class="cardly-phcard__stats">
+      <span class="cardly-phcard__stat"><b>&#9650; <?= e(number_format((int) ($ph['votes'] ?? 0))) ?></b> upvotes</span>
+      <?php if ((int) ($ph['comments'] ?? 0) > 0): ?>
+      <span class="cardly-phcard__stat"><b><?= e(number_format((int) ($ph['comments'] ?? 0))) ?></b> comments</span>
+      <?php endif; ?>
+    </div>
+    <?php endif; ?>
     <a class="cardly-phcard__cta" href="https://www.producthunt.com/products/cardly-2?embed=true&amp;utm_source=embed&amp;utm_medium=post_embed" target="_blank" rel="noopener noreferrer">Check it out on Product Hunt →</a>
   </div>
 </section>
