@@ -3,7 +3,7 @@
 **Everything You Need. One Platform.**
 
 A modern, fast, privacy-first online tools platform — like TinyWow / SmallPDF /
-DevUtils — built with **plain PHP 8, MySQL, vanilla JS and CSS**. No Node, no
+DevUtils — built with **plain PHP 8 (8.0 – 8.5), MySQL, vanilla JS and CSS**. No Node, no
 build step, no Composer, no Docker. It runs on any normal Apache shared host the
 moment you upload it.
 

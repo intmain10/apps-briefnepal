@@ -598,7 +598,7 @@ function cardly_indexnow_submit(array $urls): void
         CURLOPT_CONNECTTIMEOUT => 3,
     ]);
     @curl_exec($ch);
-    @curl_close($ch);
+    // No curl_close(): a no-op since PHP 8.0 and deprecated in 8.5.
 }
 
 /**

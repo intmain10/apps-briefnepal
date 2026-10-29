@@ -255,7 +255,7 @@ function cardly_resize_save(string $src, string $dest, array $info, int $maxW): 
     $ok = str_ends_with($dest, '.png') ? imagepng($dst, $dest, 8)
         : (str_ends_with($dest, '.webp') && function_exists('imagewebp') ? imagewebp($dst, $dest, 82)
         : imagejpeg($dst, $dest, 85));
-    imagedestroy($img);
-    imagedestroy($dst);
+    // No imagedestroy(): GD images are objects freed automatically since PHP 8.0,
+    // and the call is deprecated in 8.5.
     return (bool) $ok;
 }
