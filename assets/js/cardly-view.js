@@ -167,8 +167,15 @@
   // Premium, cinematic 1080×1920 story — designed background, not a raw photo.
   function drawBadge(ctx, x, y, r) {
     ctx.save();
-    const g = ctx.createLinearGradient(x - r, y - r, x + r, y + r); g.addColorStop(0, '#f5b301'); g.addColorStop(1, '#f59e0b');
-    ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fillStyle = g; ctx.fill();
+    const g = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
+    g.addColorStop(0, '#38bdf8'); g.addColorStop(0.45, '#1d9bf0'); g.addColorStop(1, '#1d4ed8');
+    // 12-point scalloped verified seal, same shape as the page badge.
+    ctx.beginPath();
+    for (let i = 0; i < 24; i++) {
+      const a = (i / 24) * 6.2832 - 1.5708, rr = i % 2 ? r * 0.86 : r;
+      ctx[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+    }
+    ctx.closePath(); ctx.fillStyle = g; ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = r * 0.24; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.beginPath(); ctx.moveTo(x - r * 0.42, y + r * 0.02); ctx.lineTo(x - r * 0.05, y + r * 0.38); ctx.lineTo(x + r * 0.46, y - r * 0.36); ctx.stroke();
     ctx.restore();
