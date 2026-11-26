@@ -210,7 +210,13 @@ function cardly_claim_cards_by_email(array $user): int
     $claimed = 0;
     foreach ($db->select('SELECT slug, data FROM cardly_cards WHERE user_id IS NULL') as $row) {
         $d = json_decode((string) $row['data'], true);
-        if (is_array($d) && strtolower(trim((string) ($d['contact']['email'] ?? ''))) === $email
+        // Match the card's contact email, or a private owner email set for
+        // a card whose owner asked to claim it (never shown publicly).
+        $cardEmails = [
+            strtolower(trim((string) ($d['contact']['email'] ?? ''))),
+            strtolower(trim((string) ($d['ownerEmail'] ?? ''))),
+        ];
+        if (is_array($d) && in_array($email, $cardEmails, true)
             && cardly_claim((string) $row['slug'], (int) $user['id'])) {
             $claimed++;
         }

@@ -579,7 +579,7 @@ function cardly_hash_token(string $token): string
 /** Strip sensitive fields for public output. */
 function cardly_public(array $card): array
 {
-    unset($card['tokenHash']);
+    unset($card['tokenHash'], $card['ownerEmail']); // never sent to a browser
     return $card;
 }
 
