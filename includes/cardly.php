@@ -404,6 +404,38 @@ function cardly_claim(string $slug, int $userId): bool
     return cardly_save($slug, $card);
 }
 
+/**
+ * Copy every card that so far exists only as a JSON file into MySQL, so
+ * listings (Discover, sitemap, landing, dashboards) include every card, not
+ * just the ones opened since the database was connected. Insert-only: a card
+ * already in MySQL is never touched, so newer data is never replaced by an
+ * older file. Runs at most once per request and is cheap when nothing is new.
+ */
+function cardly_import_missing_cards(): void
+{
+    static $done = false;
+    $db = cardly_db();
+    if ($done || !$db) {
+        return;
+    }
+    $done = true;
+    try {
+        $known = array_flip(array_column($db->select('SELECT slug FROM cardly_cards'), 'slug'));
+        foreach (glob(UPLOADS_PATH . '/cardly/cards/*.json') ?: [] as $f) {
+            $slug = basename($f, '.json');
+            if (isset($known[$slug]) || !cardly_slug_valid($slug)) {
+                continue;
+            }
+            $data = json_decode((string) @file_get_contents($f), true);
+            if (is_array($data)) {
+                cardly_db_upsert($slug, $data);
+            }
+        }
+    } catch (Throwable $e) {
+        // Never break a page over the import; the next request retries.
+    }
+}
+
 /** All cards belonging to a user, newest first (metadata rows). */
 function cardly_cards_for_user(int $userId): array
 {
@@ -411,6 +443,7 @@ function cardly_cards_for_user(int $userId): array
     if (!$db || $userId <= 0) {
         return [];
     }
+    cardly_import_missing_cards();
     $rows = $db->select(
         'SELECT slug, name, template, published, data, updated_at
          FROM cardly_cards WHERE user_id = ? ORDER BY updated_at DESC',
@@ -435,6 +468,7 @@ function cardly_published_cards(int $limit = 5000): array
     $out = [];
     $db = cardly_db();
     if ($db) {
+        cardly_import_missing_cards();
         $rows = $db->select('SELECT slug, data, updated_at FROM cardly_cards WHERE published = 1 ORDER BY updated_at DESC LIMIT ' . (int) $limit);
         foreach ($rows as $r) {
             $d = json_decode((string) $r['data'], true);
