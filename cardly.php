@@ -40,25 +40,13 @@ $page = [
 
 require __DIR__ . '/includes/header.php';
 ?>
-<?php if (cardly_accounts_enabled()): ?>
-<div class="container">
-  <div class="cardly-acctbar">
-    <?php if ($cardlyUser): ?>
-      <a class="btn btn--ghost btn--sm" href="<?= eattr(cardly_link('dashboard')) ?>">My cards</a>
-      <a class="btn btn--ghost btn--sm" href="<?= eattr(cardly_link('logout')) ?>">Sign out</a>
-    <?php else: ?>
-      <a class="btn btn--ghost btn--sm" href="<?= eattr(cardly_link('login')) ?>">Sign in</a>
-    <?php endif; ?>
-  </div>
-</div>
-<?php endif; ?>
 <section class="cardly-hero">
   <div class="container">
     <div class="cardly-brand">
       <img class="cardly-logo cardly-logo--light" src="<?= eattr(url('assets/images/cardly-wordmark-light.png?v=' . OMNITOOLS_VERSION)) ?>" alt="Cardly" width="220" height="53">
       <img class="cardly-logo cardly-logo--dark" src="<?= eattr(url('assets/images/cardly-wordmark-dark.png?v=' . OMNITOOLS_VERSION)) ?>" alt="Cardly" width="220" height="53">
     </div>
-    <span class="hero__badge">✨ New on <?= e(SITE_NAME) ?></span>
+    <span class="hero__badge"><svg class="ico-spark" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9L12 2zm7 11l.9 2.6 2.6.9-2.6.9L19 20l-.9-2.6-2.6-.9 2.6-.9L19 13z"/></svg> New on <?= e(SITE_NAME) ?></span>
     <h1>Your whole world,<br><span class="grad">one smart link.</span></h1>
     <p class="cardly-hero__sub">Create a beautiful digital business card in minutes. Share one link everywhere, Instagram, LinkedIn, X, WhatsApp, resumes and email signatures.</p>
     <div class="btn-row" style="justify-content:center;margin-top:26px">
@@ -66,6 +54,15 @@ require __DIR__ . '/includes/header.php';
       <a class="btn btn--ghost" href="<?= eattr($liveUrl) ?>">See a live card →</a>
     </div>
     <p class="muted mt-4" style="font-size:13px">Free forever · No credit card · Yours in 2 minutes</p>
+    <?php if (cardly_accounts_enabled()): ?>
+      <p class="cardly-hero__acct">
+        <?php if ($cardlyUser): ?>
+          Signed in as <strong><?= e($cardlyUser['name'] ?: $cardlyUser['email']) ?></strong> · <a href="<?= eattr(cardly_link('dashboard')) ?>">My cards</a>
+        <?php else: ?>
+          Already have a card? <a href="<?= eattr(cardly_link('login')) ?>">Sign in</a> to edit it
+        <?php endif; ?>
+      </p>
+    <?php endif; ?>
 
     <!-- Product Hunt -->
     <a class="cardly-ph" href="https://www.producthunt.com/products/cardly-2?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-cardly-3" target="_blank" rel="noopener noreferrer">

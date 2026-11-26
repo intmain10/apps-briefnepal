@@ -145,7 +145,7 @@ require __DIR__ . '/includes/header.php';
 ?>
 <style>body.cardly-page{--c1:<?= eattr($a1) ?>;--c2:<?= eattr($a2) ?>}</style>
 <?php if ($isPrivate): ?>
-<div class="cx__private" role="status">🔒 Private: only you can see this card. <a href="<?= eattr(cardly_link($slug . '/edit')) ?>">Share it</a></div>
+<div class="cx__private" role="status"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Private: only you can see this card. <a href="<?= eattr(cardly_link($slug . '/edit')) ?>">Share it</a></div>
 <?php endif; ?>
 <div class="cx" style="--c1:<?= eattr($a1) ?>;--c2:<?= eattr($a2) ?>"
      data-card-url="<?= eattr($cardUrl) ?>" data-template="<?= eattr($card['template'] ?? 'default') ?>"
@@ -157,7 +157,7 @@ require __DIR__ . '/includes/header.php';
     <header class="cx__top">
       <div class="cx__brand">
         <?php if ($card['photo']): ?><img class="cx__brandimg" src="<?= eattr($card['photo']) ?>" alt=""><?php else: ?><span class="cx__brandmono"><?= e(mb_strtoupper(mb_substr($name, 0, 1))) ?></span><?php endif; ?>
-        <span>✨ <?= e(explode(' ', $name)[0]) ?>’s Card</span>
+        <span><svg class="ico-spark" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9L12 2zm7 11l.9 2.6 2.6.9-2.6.9L19 20l-.9-2.6-2.6-.9 2.6-.9L19 13z"/></svg> <?= e(explode(' ', $name)[0]) ?>’s Card</span>
       </div>
       <div class="cx__topbtns">
         <button class="cx__pill" id="cardlyShare" type="button">

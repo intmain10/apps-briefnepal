@@ -21,6 +21,10 @@ $ogImage         = $page['image']       ?? url('assets/images/og-default.png');
 // Cardly is its own brand — its shares read "Cardly", not the platform name.
 $siteName        = $page['site_name']   ?? (!empty($page['is_cardly']) ? 'Cardly' : SITE_NAME);
 $bodyClass       = $page['body_class']  ?? '';
+// Cardly pages share one premium glass skin (scoped so Toolzy is untouched).
+if (!empty($page['is_cardly'])) {
+    $bodyClass = trim($bodyClass . ' is-cardly');
+}
 $breadcrumb      = $page['breadcrumb']  ?? [];
 $noindex         = $page['noindex']     ?? false;
 
@@ -121,6 +125,9 @@ if (!empty($breadcrumb)) {
 <link rel="preload" href="<?= eattr(url('assets/fonts/clash-700.woff2')) ?>" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="<?= eattr(url('assets/css/style.css?v=' . OMNITOOLS_VERSION)) ?>">
 <?php if (!empty($page['is_cardly'])): ?>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="<?= eattr(url('assets/css/cardly.css?v=' . OMNITOOLS_VERSION)) ?>">
 <?php endif; ?>
 

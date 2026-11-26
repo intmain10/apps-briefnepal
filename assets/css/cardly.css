@@ -271,8 +271,20 @@ body.cardly-page { background: #050509; }
 .cardly-dash__card-actions { display: flex; gap: 8px; margin-top: 18px; }
 
 /* Account chip on the Cardly landing hero */
-.cardly-acctbar { display: flex; justify-content: flex-end; gap: 10px; align-items: center; padding: 14px 0 0; }
-.cardly-acctbar a { font-size: 14px; }
+.cardly-hero__acct { margin-top: 10px; font-size: 15px; color: var(--text-2); }
+.cardly-hero__acct a { color: var(--accent); font-weight: 600; }
+
+/* Cardly top bar on phones: keep Sign in + Create card on one line. */
+.navbar--cardly .navbar__link { white-space: nowrap; }
+@media (max-width: 600px) {
+  .navbar--cardly .navbar__link--extra { display: none; }
+  .navbar--cardly .navbar__actions { gap: 2px; }
+  .navbar--cardly .navbar__link { padding-left: 10px; padding-right: 10px; }
+  .navbar--cardly .btn--sm { padding-left: 12px; padding-right: 12px; }
+}
+@media (max-width: 360px) {
+  .navbar--cardly .brand__name { display: none; }
+}
 @media (max-width: 520px) { .cardly-auth__card { padding: 26px 20px; } }
 
 /* Cardly brand logo on the landing hero (theme-swapped wordmark) */
@@ -461,4 +473,236 @@ body.cardly-page {
   .cx { background: #0b0b12; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .cx__link, .cx__qr, .cx__chip, .cx__soc, .cx__nav, .cx__sheet-in, .cx__private { background: #1a1a24; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .cardly__sheet, .cardly__sheet--preview, .cardly__row, .cardly__social, .cardly__btn { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+
+/* =========================================================================
+   Cardly — premium "liquid glass" skin for the platform pages
+   (landing, sign-in, dashboard, builder, discover, about, blog).
+   Scoped to body.is-cardly; the public card (.cardly-page) keeps its own
+   dark glass above.
+   Built for trust: deep ink navy + steady trust blue on a cool, clean
+   background, Plus Jakarta Sans throughout (legible, professional).
+   Every text/background pair meets WCAG AA contrast.
+   ========================================================================= */
+body.is-cardly {
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --ink: #0f172a;            /* primary: navy ink */
+  --ink-2: #1e293b;
+  --trust: #0369a1;          /* accent: trust blue, 5.9:1 on white */
+  --trust-2: #1d4ed8;
+  --trust-3: #38bdf8;        /* light tint for glows only */
+
+  --accent: var(--trust);
+  --accent-hover: #075985;
+  --text: #0b1220;
+  --text-2: #475569;         /* 7:1 on white */
+  --text-3: #64748b;         /* hints/captions, 4.8:1 (was #9ca3af, 2.5:1) */
+  --bg: #f8fafc;
+  --border: #e2e8f0;
+  --ring: var(--trust-2);
+
+  --btn-bg: linear-gradient(135deg, var(--ink-2), var(--ink));
+  --btn-ink: #ffffff;        /* white on navy: 17:1 */
+  --btn-glow: rgba(15,23,42,.40);
+  --headline-grad: linear-gradient(120deg, var(--ink) 10%, var(--trust-2) 60%, var(--trust));
+
+  --glass-bg: color-mix(in srgb, var(--surface) 74%, transparent);
+  --glass-bg-strong: color-mix(in srgb, var(--surface) 88%, transparent);
+  --glass-edge: color-mix(in srgb, #fff 60%, var(--border));
+  --glass-hi: inset 0 1px 0 rgba(255,255,255,.8);
+  --glass-shadow: 0 1px 2px rgba(15,23,42,.05), 0 12px 32px -14px rgba(15,23,42,.16), 0 24px 60px -32px rgba(3,105,161,.20);
+  --glass-shadow-hover: 0 2px 4px rgba(15,23,42,.06), 0 18px 40px -16px rgba(15,23,42,.22), 0 30px 70px -30px rgba(3,105,161,.28);
+  --ease-out: cubic-bezier(.22,1,.36,1);
+
+  font-family: var(--font-sans);
+}
+[data-theme="dark"] body.is-cardly {
+  --accent: var(--trust-3);
+  --accent-hover: #7dd3fc;
+  --text: #f8fafc;
+  --text-2: #cbd5e1;
+  --text-3: #94a3b8;
+  --bg: #0b1220;
+  --border: #1e293b;
+  --ring: var(--trust-3);
+  --btn-bg: linear-gradient(135deg, #2563eb, var(--trust-2));
+  --btn-ink: #ffffff;        /* white on blue-700: 6.7:1 */
+  --btn-glow: rgba(37,99,235,.45);
+  --headline-grad: linear-gradient(120deg, #f8fafc 10%, #93c5fd 60%, var(--trust-3));
+  --glass-bg: color-mix(in srgb, var(--surface) 62%, transparent);
+  --glass-bg-strong: color-mix(in srgb, var(--surface) 82%, transparent);
+  --glass-edge: rgba(255,255,255,.10);
+  --glass-hi: inset 0 1px 0 rgba(255,255,255,.08);
+  --glass-shadow: 0 1px 2px rgba(0,0,0,.3), 0 18px 44px -18px rgba(0,0,0,.6);
+  --glass-shadow-hover: 0 2px 4px rgba(0,0,0,.35), 0 24px 56px -18px rgba(0,0,0,.7), 0 0 0 1px rgba(56,189,248,.22);
+}
+
+/* Calm ambient light behind every platform page: what the glass refracts. */
+body.is-cardly:not(.cardly-page)::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(42rem 30rem at 10% -8%, color-mix(in srgb, var(--trust-3) 18%, transparent), transparent 70%),
+    radial-gradient(40rem 30rem at 94% 6%, color-mix(in srgb, var(--trust-2) 11%, transparent), transparent 70%),
+    radial-gradient(48rem 32rem at 50% 110%, color-mix(in srgb, #64748b 12%, transparent), transparent 70%);
+}
+[data-theme="dark"] body.is-cardly:not(.cardly-page)::before { opacity: .7; }
+
+/* Type: confident headings, calm and highly legible body. */
+body.is-cardly h1, body.is-cardly h2, body.is-cardly h3,
+body.is-cardly .section__title { font-family: var(--font-display); letter-spacing: -.025em; color: var(--text); }
+body.is-cardly h1 { font-weight: 800; line-height: 1.06; }
+body.is-cardly h2, body.is-cardly .section__title { font-weight: 800; }
+body.is-cardly h3 { font-weight: 700; letter-spacing: -.01em; }
+body.is-cardly p, body.is-cardly li { line-height: 1.6; }
+body.is-cardly .navbar__link { font-weight: 600; }
+
+/* Top bar: frosted, floats over the content. */
+body.is-cardly .navbar {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  border-bottom: 1px solid var(--glass-edge);
+}
+
+/* One glass surface, shared by every panel on the platform. */
+body.is-cardly .cardly-feature,
+body.is-cardly .cardly-trust__item,
+body.is-cardly .cardly-steps li,
+body.is-cardly .cardly-tpl,
+body.is-cardly .cardly-phcard,
+body.is-cardly .cardly-claim,
+body.is-cardly .cardly-grp,
+body.is-cardly .cardly-auth__card,
+body.is-cardly .cardly-dash__card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-edge);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+  backdrop-filter: blur(20px) saturate(170%);
+  box-shadow: var(--glass-hi), var(--glass-shadow);
+}
+body.is-cardly .cardly-auth__card,
+body.is-cardly .cardly-claim { background: var(--glass-bg-strong); border-radius: 24px; }
+body.is-cardly .cardly-dash__empty {
+  background: var(--glass-bg);
+  border: 1.5px dashed color-mix(in srgb, var(--trust) 30%, var(--border));
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+}
+
+/* Readable secondary text (the old #9ca3af on white was ~2.5:1). */
+body.is-cardly .cardly-feature p { color: var(--text-2); }
+
+/* Trust strip: numbers in the navy→blue headline gradient. */
+body.is-cardly .cardly-trust__item b {
+  background: var(--headline-grad); -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent; font-weight: 800;
+}
+
+/* Interactive panels lift on hover; only transform/shadow animate. */
+body.is-cardly .cardly-tpl,
+body.is-cardly .cardly-dash__card,
+body.is-cardly .cardly-feature,
+body.is-cardly .cardly-trust__item,
+body.is-cardly .cardly-steps li {
+  transition: transform .28s var(--ease-out), box-shadow .28s var(--ease-out), border-color .28s var(--ease-out);
+}
+body.is-cardly .cardly-tpl:hover,
+body.is-cardly .cardly-dash__card:hover,
+body.is-cardly .cardly-feature:hover,
+body.is-cardly .cardly-trust__item:hover,
+body.is-cardly .cardly-steps li:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--glass-hi), var(--glass-shadow-hover);
+  border-color: color-mix(in srgb, var(--trust) 30%, var(--glass-edge));
+}
+body.is-cardly .cardly-tpl { overflow: hidden; }
+body.is-cardly .cardly-tpl__img { transition: transform .6s var(--ease-out); }
+body.is-cardly .cardly-tpl:hover .cardly-tpl__img { transform: scale(1.06); }
+
+/* Buttons: solid navy (calm, dependable) with a soft glow; glass ghosts. */
+body.is-cardly .btn--primary {
+  background: var(--btn-bg); color: var(--btn-ink); border: 0; font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 8px 22px -8px var(--btn-glow);
+  transition: transform .2s var(--ease-out), box-shadow .2s var(--ease-out), filter .2s;
+}
+body.is-cardly .btn--primary:hover {
+  filter: brightness(1.12); transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 14px 30px -10px var(--btn-glow), 0 0 0 3px color-mix(in srgb, var(--trust) 22%, transparent);
+}
+body.is-cardly .btn--primary:active { transform: translateY(0) scale(.98); }
+body.is-cardly .btn--ghost {
+  background: var(--glass-bg); border: 1px solid var(--glass-edge); color: var(--text);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  box-shadow: var(--glass-hi);
+}
+body.is-cardly .btn--ghost:hover { background: var(--glass-bg-strong); }
+
+/* Hero details. */
+body.is-cardly .hero__badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--glass-bg); border: 1px solid var(--glass-edge);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  box-shadow: var(--glass-hi), 0 6px 18px -10px rgba(3,105,161,.35);
+}
+body.is-cardly .ico-spark { color: var(--trust); flex: none; }
+body.is-cardly .cardly-hero .grad {
+  background: var(--headline-grad);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+}
+body.is-cardly .cardly-steps__n { background: var(--btn-bg); color: var(--btn-ink); box-shadow: 0 6px 16px -6px var(--btn-glow); }
+
+/* Forms: glass fields with a clear focus ring. */
+body.is-cardly .cardly-auth__card input,
+body.is-cardly .cardly-claim .input,
+body.is-cardly .cardly-grp .input {
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  border-color: var(--glass-edge);
+}
+body.is-cardly .cardly-auth__card input:focus,
+body.is-cardly .cardly-claim .input:focus,
+body.is-cardly .cardly-grp .input:focus {
+  border-color: var(--trust);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--trust) 18%, transparent);
+}
+body.is-cardly .cardly-google-btn { background: var(--glass-bg-strong); border-color: var(--glass-edge); box-shadow: var(--glass-hi), 0 4px 14px -8px rgba(15,23,42,.25); min-height: 48px; }
+body.is-cardly .cardly-chip.is-active { border-color: transparent; box-shadow: 0 0 0 2px var(--trust); }
+
+/* Keyboard focus is always visible. */
+body.is-cardly a:focus-visible,
+body.is-cardly button:focus-visible,
+body.is-cardly .btn:focus-visible,
+body.is-cardly input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--ring); outline-offset: 3px; border-radius: 10px;
+}
+
+/* Comfortable touch targets in the Cardly top bar. */
+body.is-cardly .navbar__link,
+body.is-cardly .navbar .btn--sm { min-height: 40px; display: inline-flex; align-items: center; }
+
+/* Entrance: panels settle in once, softly. */
+@keyframes cardly-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+body.is-cardly .cardly-hero > .container > *,
+body.is-cardly .cardly-auth__card,
+body.is-cardly .cardly-claim,
+body.is-cardly .cardly-dash__head { animation: cardly-rise .6s var(--ease-out) both; }
+body.is-cardly .cardly-hero > .container > *:nth-child(2) { animation-delay: .05s; }
+body.is-cardly .cardly-hero > .container > *:nth-child(3) { animation-delay: .1s; }
+body.is-cardly .cardly-hero > .container > *:nth-child(4) { animation-delay: .15s; }
+body.is-cardly .cardly-hero > .container > *:nth-child(n+5) { animation-delay: .2s; }
+
+/* Respect reduced motion / transparency and browsers without blur. */
+@media (prefers-reduced-motion: reduce) {
+  body.is-cardly *, body.is-cardly *::before, body.is-cardly *::after { animation: none !important; transition: none !important; }
+  body.is-cardly .cardly-tpl:hover, body.is-cardly .cardly-dash__card:hover, body.is-cardly .cardly-feature:hover,
+  body.is-cardly .cardly-trust__item:hover, body.is-cardly .cardly-steps li:hover, body.is-cardly .btn--primary:hover { transform: none; }
+  body.is-cardly .cardly-tpl:hover .cardly-tpl__img { transform: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  body.is-cardly { --glass-bg: var(--surface); --glass-bg-strong: var(--surface); }
+  body.is-cardly:not(.cardly-page)::before { display: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  body.is-cardly { --glass-bg: var(--surface); --glass-bg-strong: var(--surface); }
 }
