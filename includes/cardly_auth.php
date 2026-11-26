@@ -158,6 +158,64 @@ function cardly_login_user(array $user): void
 {
     session_regenerate_id(true);
     $_SESSION['cardly_uid'] = (int) $user['id'];
+    try {
+        cardly_claim_cards_by_email($user);
+    } catch (Throwable $e) {
+        // Best effort: attaching old cards must never block a sign-in.
+    }
+}
+
+/* ------------------------------------------------- existing (guest) cards */
+
+/**
+ * Bring cards that still live only as JSON files into the database, so they
+ * can be attached to accounts. Insert-only: a card already in the database is
+ * never touched, so newer data is never replaced by an older file copy.
+ */
+function cardly_import_missing_files(): void
+{
+    static $done = false;
+    $db = cardly_db();
+    if ($done || !$db) {
+        return;
+    }
+    $done = true;
+    $known = array_flip(array_column($db->select('SELECT slug FROM cardly_cards'), 'slug'));
+    foreach (glob(UPLOADS_PATH . '/cardly/cards/*.json') ?: [] as $f) {
+        $slug = basename($f, '.json');
+        if (isset($known[$slug]) || !cardly_slug_valid($slug)) {
+            continue;
+        }
+        $data = json_decode((string) @file_get_contents($f), true);
+        if (is_array($data)) {
+            cardly_db_upsert($slug, $data);
+        }
+    }
+}
+
+/**
+ * Attach a signed-in user's existing cards to their account: every card that
+ * has no owner yet and whose contact email is the user's own email. Only for
+ * verified emails (Google sign-ins always are), so nobody can collect cards by
+ * signing up with an address they don't control. Returns how many were added.
+ */
+function cardly_claim_cards_by_email(array $user): int
+{
+    $db = cardly_db();
+    $email = strtolower(trim((string) ($user['email'] ?? '')));
+    if (!$db || (int) ($user['email_verified'] ?? 0) !== 1 || $email === '') {
+        return 0;
+    }
+    cardly_import_missing_files();
+    $claimed = 0;
+    foreach ($db->select('SELECT slug, data FROM cardly_cards WHERE user_id IS NULL') as $row) {
+        $d = json_decode((string) $row['data'], true);
+        if (is_array($d) && strtolower(trim((string) ($d['contact']['email'] ?? ''))) === $email
+            && cardly_claim((string) $row['slug'], (int) $user['id'])) {
+            $claimed++;
+        }
+    }
+    return $claimed;
 }
 
 function cardly_logout(): void
@@ -187,6 +245,13 @@ function cardly_verify_email_token(string $rawToken): bool
         'UPDATE cardly_users SET email_verified = 1, verify_hash = NULL, verify_expires = NULL WHERE id = ?',
         [(int) $user['id']]
     );
+    try {
+        if ($verified = cardly_user_by_id((int) $user['id'])) {
+            cardly_claim_cards_by_email($verified);
+        }
+    } catch (Throwable $e) {
+        // Best effort, as on sign-in.
+    }
     return true;
 }
 

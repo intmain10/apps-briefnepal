@@ -251,6 +251,7 @@ require __DIR__ . '/includes/header.php';
     <?php if (!$cards): ?>
       <div class="cardly-dash__empty">
         <p>You don’t have any cards yet.</p>
+        <p class="muted" style="font-size:14px">Made a card before accounts existed? Cards with your email are added here automatically. For any other card, open its secret edit link while signed in and it joins your account.</p>
         <a class="btn btn--primary" href="<?= eattr(cardly_link('new')) ?>">Create your first card</a>
       </div>
     <?php else: ?>

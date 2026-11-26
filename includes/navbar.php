@@ -12,15 +12,15 @@ if (cardly_is_host()):
     $cUser = function_exists('cardly_current_user') ? cardly_current_user() : null;
     $cAccounts = function_exists('cardly_accounts_enabled') && cardly_accounts_enabled();
 ?>
-<header class="navbar" id="navbar">
+<header class="navbar navbar--cardly" id="navbar">
   <div class="container navbar__inner">
     <a href="<?= eattr(cardly_link()) ?>" class="brand" aria-label="Cardly home">
       <img class="brand__logo" src="<?= eattr(url('assets/images/cardly-icon.png?v=' . OMNITOOLS_VERSION)) ?>" width="32" height="32" alt="Cardly logo">
       <span class="brand__name">Cardly</span>
     </a>
     <div class="navbar__actions">
-      <a href="<?= eattr(cardly_link('blog')) ?>" class="navbar__link">Blog</a>
-      <a href="<?= eattr(cardly_link('about')) ?>" class="navbar__link">About</a>
+      <a href="<?= eattr(cardly_link('blog')) ?>" class="navbar__link navbar__link--extra">Blog</a>
+      <a href="<?= eattr(cardly_link('about')) ?>" class="navbar__link navbar__link--extra">About</a>
       <?php if ($cAccounts && $cUser): ?>
         <a href="<?= eattr(cardly_link('dashboard')) ?>" class="navbar__link">My cards</a>
         <a href="<?= eattr(cardly_link('logout')) ?>" class="navbar__link">Sign out</a>
