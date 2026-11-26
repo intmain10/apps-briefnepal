@@ -5,11 +5,13 @@
  */
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/cardly.php';
+require_once __DIR__ . '/includes/cardly_auth.php';
 
 $slug = preg_replace('/[^a-z0-9-]/', '', (string)($_GET['slug'] ?? ''));
 $card = cardly_load($slug);
-if (!$card) {
+// Private cards answer exactly like missing ones, so a private card's
+// existence can't be probed either.
+if (!$card || !cardly_can_view($card, (string) ($_GET['k'] ?? ''))) {
     http_response_code(404);
     require __DIR__ . '/404.php';
     exit;
@@ -34,7 +36,11 @@ $cta = cardly_cta($card);
 // Rich share preview: a rendered 1200×630 image of the card (avatar + name +
 // tagline + link) so WhatsApp/LinkedIn/Slack/Teams/Facebook show the whole
 // card, not a stray banner crop. Falls back to cover/photo if GD is missing.
-$shareImage = cardly_og_ensure($slug, $card)
+$isPrivate = !cardly_is_shared($card);
+if ($isPrivate) {
+    header('Cache-Control: private, no-store');
+}
+$shareImage = ($isPrivate ? null : cardly_og_ensure($slug, $card))
     ?: ($card['cover'] ?: ($card['photo'] ?: url('assets/images/og-default.png')));
 
 // ---- SEO / GEO / AIO: make this the definitive result for the person's name.
@@ -88,8 +94,7 @@ $page = [
     'is_cardly'   => true,
     'load_lib'    => true,
     // Keep drafts, and cards the owner has unlisted, out of search.
-    'noindex'     => (array_key_exists('published', $card) && $card['published'] === false)
-        || (array_key_exists('discoverable', $card) && $card['discoverable'] === false),
+    'noindex'     => !cardly_card_discoverable($card),
     'cardly_js'   => 'cardly-view.js',
     'body_class'  => 'cardly-page',
     'jsonld'      => [
@@ -138,6 +143,10 @@ if (!function_exists('cx_link_attrs')) {
 
 require __DIR__ . '/includes/header.php';
 ?>
+<style>body.cardly-page{--c1:<?= eattr($a1) ?>;--c2:<?= eattr($a2) ?>}</style>
+<?php if ($isPrivate): ?>
+<div class="cx__private" role="status">🔒 Private: only you can see this card. <a href="<?= eattr(cardly_link($slug . '/edit')) ?>">Share it</a></div>
+<?php endif; ?>
 <div class="cx" style="--c1:<?= eattr($a1) ?>;--c2:<?= eattr($a2) ?>"
      data-card-url="<?= eattr($cardUrl) ?>" data-template="<?= eattr($card['template'] ?? 'default') ?>"
      data-name="<?= eattr($name) ?>" data-tagline="<?= eattr($card['tagline'] ?? '') ?>"

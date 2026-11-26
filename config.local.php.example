@@ -39,3 +39,12 @@ define('DB_PASS', 'YOUR-DB-PASSWORD-HERE');  // your database password
 // define('PH_API_KEY', 'your-product-hunt-api-key');
 // define('PH_API_SECRET', 'your-product-hunt-api-secret');
 // define('PH_POST_ID', '1226773');   // only if the Cardly post id ever changes
+
+/* --- Google sign-in for Cardly ("Continue with Google"). Create an OAuth
+ *     client at https://console.cloud.google.com/apis/credentials
+ *     (type: Web application) with this Authorized redirect URI:
+ *       https://cardly.briefnepal.com/google
+ *     Leave these unset and the Google button simply doesn't appear.
+ *     Treat the secret like a password.                                       */
+// define('GOOGLE_CLIENT_ID', 'xxxxxxxx.apps.googleusercontent.com');
+// define('GOOGLE_CLIENT_SECRET', 'GOCSPX-xxxxxxxx');

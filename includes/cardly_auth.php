@@ -54,6 +54,23 @@ function cardly_is_logged_in(): bool
     return cardly_current_user() !== null;
 }
 
+/**
+ * May the current visitor see this card? Shared cards: anyone. Private cards:
+ * only the signed-in owner, or whoever holds the card's secret edit link
+ * (guest cards made before accounts existed).
+ */
+function cardly_can_view(array $card, string $token = ''): bool
+{
+    if (cardly_is_shared($card)) {
+        return true;
+    }
+    $user = cardly_current_user();
+    if ($user && cardly_user_owns($card, (int) $user['id'])) {
+        return true;
+    }
+    return $token !== '' && cardly_verify_token($card, $token);
+}
+
 /* ------------------------------------------------------------- validation */
 
 /** Returns an error string, or '' when the password is acceptable. */
@@ -122,7 +139,11 @@ function cardly_signup(string $name, string $email, string $password): array
 function cardly_login(string $email, string $password): array
 {
     $user = cardly_user_by_email($email);
-    if (!$user || !password_verify($password, $user['password_hash'])) {
+    if ($user && ($user['password_hash'] ?? null) === null) {
+        // Google-only account: it has no password to check.
+        return ['ok' => false, 'error' => 'This account signs in with Google. Use “Continue with Google”, or reset your password to add one.'];
+    }
+    if (!$user || !password_verify($password, (string) $user['password_hash'])) {
         return ['ok' => false, 'error' => 'Incorrect email or password.'];
     }
     cardly_login_user($user);

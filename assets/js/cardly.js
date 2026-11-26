@@ -121,7 +121,9 @@
       const msg = root.querySelector('#cSaveMsg');
       msg.innerHTML = '<div class="row"><div class="spinner"></div><span>Saving…</span></div>';
       const r = await post({ action: 'save', slug: BOOT.slug, token: BOOT.token, card: JSON.stringify(state) });
-      msg.innerHTML = r.ok ? ok('Saved! Your card is updated.') : err(r.error || 'Save failed.');
+      msg.innerHTML = !r.ok ? err(r.error || 'Save failed.')
+        : r.shared ? ok('Saved! Your card is shared: anyone with the link can see it.')
+        : ok('Saved privately. Only you can see your card. Turn on “Share my card” when you’re ready.');
       if (r.ok) U.toast('Card saved');
     });
   }
@@ -187,8 +189,10 @@
       </div>
 
       <div class="cardly-grp"><h3>Privacy</h3>
-        <label class="cardly-toggle"><input type="checkbox" data-pref="discoverable" ${s.discoverable !== false ? 'checked' : ''}> List my card in search (Google &amp; AI)</label>
-        <p class="muted" style="font-size:13px;margin-top:8px">On: your card can appear in search results as your public profile. Off: it's only reachable by the exact link you share (unlisted).</p>
+        <label class="cardly-toggle"><input type="checkbox" data-pref="shared" ${s.shared ? 'checked' : ''}> Share my card</label>
+        <p class="muted" style="font-size:13px;margin:8px 0 14px">Off: your card is private and only you can see it. On: anyone with your card's link can view it.</p>
+        <label class="cardly-toggle" data-needs-share ${s.shared ? '' : 'style="opacity:.5"'}><input type="checkbox" data-pref="discoverable" ${s.discoverable ? 'checked' : ''} ${s.shared ? '' : 'disabled'}> List my card in search (Google &amp; AI)</label>
+        <p class="muted" style="font-size:13px;margin-top:8px">Off: only people you give the link to can find it. On: your shared card can show up in search results.</p>
       </div>`;
   }
 
@@ -208,7 +212,17 @@
     // section toggles
     form.querySelectorAll('[data-sec]').forEach(t => t.addEventListener('change', () => { s.sections[t.dataset.sec] = t.checked; renderPreview(s); }));
     // preference toggles (e.g. discoverable in search)
-    form.querySelectorAll('[data-pref]').forEach(t => t.addEventListener('change', () => { s[t.dataset.pref] = t.checked; }));
+    form.querySelectorAll('[data-pref]').forEach(t => t.addEventListener('change', () => {
+      s[t.dataset.pref] = t.checked;
+      if (t.dataset.pref === 'shared') {
+        // Search listing only applies to a shared card.
+        const row = form.querySelector('[data-needs-share]');
+        const box = row.querySelector('input');
+        box.disabled = !t.checked;
+        row.style.opacity = t.checked ? '' : '.5';
+        if (!t.checked) { box.checked = false; s.discoverable = false; }
+      }
+    }));
     // uploads
     form.querySelectorAll('[data-up]').forEach(u => u.addEventListener('click', () => pickImage(u.dataset.up, s)));
     // remove photo / cover
@@ -325,7 +339,10 @@
       links: Array.isArray(c.links) ? c.links.map(l => ({ label: l.label || '', url: l.url || '' })) : [],
       gallery: Array.isArray(c.gallery) ? c.gallery.slice() : [],
       sections: Object.assign(b.sections, c.sections || {}),
-      discoverable: c.discoverable !== false, // default: listed in search
+      // Missing flags = a card from before these switches existed: it was
+      // public and listed, so it stays that way. New cards arrive with both off.
+      shared: c.shared !== false,
+      discoverable: c.discoverable !== false,
     };
   }
   function setPath(o, path, v) { const p = path.split('.'); let x = o; while (p.length > 1) x = x[p.shift()]; x[p[0]] = v; }

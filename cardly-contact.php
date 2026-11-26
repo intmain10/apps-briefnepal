@@ -12,11 +12,13 @@
  */
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/cardly.php';
+require_once __DIR__ . '/includes/cardly_auth.php';
 
 $slug = preg_replace('/[^a-z0-9-]/', '', (string)($_GET['slug'] ?? ''));
 $card = cardly_load($slug);
-if (!$card) {
+// Private cards answer exactly like missing ones, so a private card's
+// existence can't be probed either.
+if (!$card || !cardly_can_view($card, (string) ($_GET['k'] ?? ''))) {
     http_response_code(404);
     require __DIR__ . '/404.php';
     exit;

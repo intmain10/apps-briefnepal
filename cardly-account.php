@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-require_once __DIR__ . '/includes/cardly_auth.php';
+require_once __DIR__ . '/includes/cardly_google.php';
 
 $do = preg_replace('/[^a-z]/', '', (string) ($_GET['do'] ?? 'login'));
 $isPost = ($_SERVER['REQUEST_METHOD'] === 'POST');
@@ -47,7 +47,7 @@ if ($do === 'logout') {
 }
 
 /* --------------------------------------------------------- accounts down */
-if (!$accounts && in_array($do, ['login', 'signup', 'dashboard', 'forgot', 'reset', 'verify', 'resend'], true)) {
+if (!$accounts && in_array($do, ['login', 'signup', 'dashboard', 'forgot', 'reset', 'verify', 'resend', 'google'], true)) {
     // Graceful: DB/accounts not configured yet.
     $page = ['title' => 'Accounts, Cardly | ' . SITE_NAME, 'noindex' => true, 'is_cardly' => true];
     require __DIR__ . '/includes/header.php';
@@ -56,6 +56,26 @@ if (!$accounts && in_array($do, ['login', 'signup', 'dashboard', 'forgot', 'rese
         . '<a class="btn btn--primary cardly-auth__btn" href="' . eattr(cardly_link('new')) . '">Create a card</a></div></div>';
     require __DIR__ . '/includes/footer.php';
     exit;
+}
+
+/* ------------------------------------------------- Continue with Google */
+if ($do === 'google') {
+    if (!cardly_google_enabled()) {
+        cardly_flash('Google sign-in isn’t available yet. Please use your email instead.');
+        cardly_redirect('cardly/login');
+    }
+    if (isset($_GET['code']) || isset($_GET['error'])) {
+        $r = cardly_google_callback($_GET);
+        if ($r['ok']) {
+            cardly_redirect($r['next'] ?: 'cardly/dashboard');
+        }
+        cardly_flash($r['error']);
+        cardly_redirect('cardly/login' . ($r['next'] ? '?next=' . rawurlencode($r['next']) : ''));
+    }
+    if (cardly_is_logged_in()) {
+        cardly_redirect($next ?: 'cardly/dashboard');
+    }
+    cardly_google_start($next);
 }
 
 /* -------------------------------------------------- POST: process actions */
@@ -135,6 +155,7 @@ require __DIR__ . '/includes/header.php';
   <form class="cardly-auth__card" method="post" action="<?= eattr(cardly_link('login') . ($next ? '?next=' . rawurlencode($next) : '')) ?>">
     <h1>Welcome back</h1>
     <p class="muted">Sign in to manage your cards.</p>
+    <?= cardly_google_button($next) ?>
     <?= csrf_field() ?>
     <?php if ($next): ?><input type="hidden" name="next" value="<?= eattr($next) ?>"><?php endif; ?>
     <label>Email<input type="email" name="email" required autocomplete="email" autofocus></label>
@@ -150,6 +171,7 @@ require __DIR__ . '/includes/header.php';
   <form class="cardly-auth__card" method="post" action="<?= eattr(cardly_link('signup') . ($next ? '?next=' . rawurlencode($next) : '')) ?>">
     <h1>Create your account</h1>
     <p class="muted">Own your cards and manage them from one place.</p>
+    <?= cardly_google_button($next, 'Sign up with Google') ?>
     <?= csrf_field() ?>
     <?php if ($next): ?><input type="hidden" name="next" value="<?= eattr($next) ?>"><?php endif; ?>
     <label>Name<input type="text" name="name" required autocomplete="name" maxlength="100" autofocus></label>
@@ -238,8 +260,9 @@ require __DIR__ . '/includes/header.php';
             <div class="cardly-dash__card-body">
               <h3><?= e($c['name'] ?: $c['slug']) ?></h3>
               <p class="muted">/cardly/<?= e($c['slug']) ?>
-                <?php if ((int) $c['published'] === 1): ?><span class="cardly-badge cardly-badge--ok">Live</span>
-                <?php else: ?><span class="cardly-badge cardly-badge--warn">Draft</span><?php endif; ?>
+                <?php if ((int) $c['published'] !== 1): ?><span class="cardly-badge cardly-badge--warn">Draft</span>
+                <?php elseif ($c['shared']): ?><span class="cardly-badge cardly-badge--ok">Shared</span>
+                <?php else: ?><span class="cardly-badge cardly-badge--private">Private</span><?php endif; ?>
               </p>
             </div>
             <div class="cardly-dash__card-actions">

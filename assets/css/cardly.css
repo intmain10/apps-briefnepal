@@ -222,6 +222,19 @@ body.cardly-page { background: #050509; }
 .cardly-auth__card input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
 .cardly-auth__hint { font-size: 12px; color: var(--text-2); margin: -6px 0 16px; }
 .cardly-auth__btn { width: 100%; justify-content: center; margin-top: 4px; }
+.cardly-google-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+  padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface); color: var(--text); font-size: 15px; font-weight: 600;
+  text-decoration: none; transition: background .15s, border-color .15s;
+}
+.cardly-google-btn:hover { background: var(--surface-2); border-color: color-mix(in srgb, var(--text) 25%, var(--border)); }
+.cardly-google-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.cardly-auth__or {
+  display: flex; align-items: center; gap: 12px; margin: 18px 0;
+  font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2);
+}
+.cardly-auth__or::before, .cardly-auth__or::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .cardly-auth__links {
   display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
   margin-top: 18px; font-size: 14px;
@@ -351,3 +364,101 @@ body.cardly-page { background: #050509; }
 .cardly-steps h3 { font-size: 17px; margin: 0 0 4px; }
 .cardly-steps p { color: var(--text-2); font-size: 14px; margin: 0; line-height: 1.5; }
 @media (max-width: 640px) { .cardly-steps { grid-template-columns: 1fr; } }
+
+/* =========================================================================
+   Cardly — glass. The public card and the builder preview are frosted,
+   translucent panes over soft light in the card's own accent colours, so
+   every theme gets its own tinted glass.
+   ========================================================================= */
+body.cardly-page {
+  background:
+    radial-gradient(60vmax 60vmax at 12% 8%, color-mix(in srgb, var(--c1, #6366f1) 38%, transparent), transparent 60%),
+    radial-gradient(55vmax 55vmax at 92% 88%, color-mix(in srgb, var(--c2, #ec4899) 32%, transparent), transparent 62%),
+    #050509;
+  background-attachment: fixed;
+}
+/* The card itself: light shows through it instead of sitting on solid black. */
+.cx {
+  --glass: rgba(255,255,255,.07);
+  --glass-hi: rgba(255,255,255,.14);
+  --glass-edge: rgba(255,255,255,.16);
+  background:
+    radial-gradient(120% 50% at 0% 55%, color-mix(in srgb, var(--c1) 26%, transparent), transparent 70%),
+    radial-gradient(110% 45% at 100% 85%, color-mix(in srgb, var(--c2) 24%, transparent), transparent 70%),
+    rgba(11,11,18,.72);
+  /* No backdrop-filter here: it would make .cx the containing block for the
+     position:fixed nav, menu sheet and private notice, pinning them to the
+     card instead of the screen. */
+}
+.cx__link, .cx__qr, .cx__chip, .cx__soc, .cx__link-ch, .cx__link-ic--soft {
+  background: linear-gradient(135deg, var(--glass-hi), var(--glass) 55%);
+  border: 1px solid var(--glass-edge);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  backdrop-filter: blur(18px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(255,255,255,.04), 0 8px 28px rgba(0,0,0,.28);
+}
+.cx__link, .cx__qr { position: relative; overflow: hidden; }
+/* A faint diagonal sheen across each pane, like light on glass. */
+.cx__link::before, .cx__qr::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(115deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 38%);
+}
+.cx__link:hover { background: linear-gradient(135deg, rgba(255,255,255,.2), rgba(255,255,255,.09) 55%); border-color: rgba(255,255,255,.28); }
+.cx__link--primary { box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 12px 36px color-mix(in srgb, var(--c1) 30%, transparent); }
+.cx__nav, .cx__sheet-in {
+  background: rgba(20,20,30,.55);
+  border: 1px solid var(--glass-edge, rgba(255,255,255,.16));
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  backdrop-filter: blur(24px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 16px 48px rgba(0,0,0,.45);
+}
+@media (min-width: 540px) {
+  .cx { border: 1px solid rgba(255,255,255,.14); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 40px 100px rgba(0,0,0,.55); }
+}
+
+/* Builder preview: the same glass on the light sheet. */
+.cardly__sheet {
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
+  border: 1px solid color-mix(in srgb, #fff 45%, var(--border));
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), var(--shadow-lg);
+}
+.cardly__sheet--preview {
+  background:
+    radial-gradient(90% 40% at 0% 30%, color-mix(in srgb, var(--c1) 20%, transparent), transparent 70%),
+    radial-gradient(90% 40% at 100% 80%, color-mix(in srgb, var(--c2) 18%, transparent), transparent 70%),
+    color-mix(in srgb, var(--surface) 70%, transparent);
+}
+.cardly__row, .cardly__social, .cardly__btn {
+  background: color-mix(in srgb, var(--surface) 45%, transparent);
+  border-color: color-mix(in srgb, #fff 40%, var(--border));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+/* Owner-only notice on a private card. */
+.cx__private {
+  position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 30;
+  display: flex; align-items: center; gap: 8px; max-width: calc(100% - 32px);
+  padding: 10px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #fff;
+  background: rgba(20,20,30,.55); border: 1px solid rgba(255,255,255,.18);
+  -webkit-backdrop-filter: blur(20px) saturate(170%); backdrop-filter: blur(20px) saturate(170%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 10px 30px rgba(0,0,0,.4);
+}
+.cx__private a { color: #fff; text-decoration: underline; }
+.cardly-badge--private { background: rgba(100,116,139,.16); color: #475569; }
+
+/* No glass where the browser can't blur, or the viewer asked for less transparency. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .cx { background: #0b0b12; }
+  .cx__link, .cx__qr, .cx__chip { background: rgba(255,255,255,.09); }
+  .cx__nav, .cx__sheet-in, .cx__private { background: rgba(20,20,30,.95); }
+  .cardly__sheet, .cardly__sheet--preview { background: var(--surface); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .cx { background: #0b0b12; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .cx__link, .cx__qr, .cx__chip, .cx__soc, .cx__nav, .cx__sheet-in, .cx__private { background: #1a1a24; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .cardly__sheet, .cardly__sheet--preview, .cardly__row, .cardly__social, .cardly__btn { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}

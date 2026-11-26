@@ -46,7 +46,8 @@ CREATE TABLE IF NOT EXISTS cardly_users (
   id             INT UNSIGNED NOT NULL AUTO_INCREMENT,
   name           VARCHAR(100) NOT NULL,
   email          VARCHAR(190) NOT NULL,
-  password_hash  VARCHAR(255) NOT NULL,
+  password_hash  VARCHAR(255) NULL,
+  google_id      VARCHAR(64)  NULL,
   email_verified TINYINT(1)   NOT NULL DEFAULT 0,
   verify_hash    CHAR(64)     NULL,
   verify_expires DATETIME     NULL,
@@ -55,7 +56,8 @@ CREATE TABLE IF NOT EXISTS cardly_users (
   created_at     DATETIME     NOT NULL,
   last_login     DATETIME     NULL,
   PRIMARY KEY (id),
-  UNIQUE KEY uniq_email (email)
+  UNIQUE KEY uniq_email (email),
+  UNIQUE KEY uniq_google (google_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL;
 
@@ -195,6 +197,13 @@ function cardly_db(): ?Database
                 $pdo->query('SELECT user_id FROM cardly_cards LIMIT 1');
             } catch (Throwable $e) {
                 $pdo->exec('ALTER TABLE cardly_cards ADD COLUMN user_id INT UNSIGNED NULL AFTER slug, ADD KEY idx_user (user_id)');
+            }
+            // Auto-add Google sign-in to a pre-existing users table: a google_id
+            // column, and password_hash made optional for Google-only accounts.
+            try {
+                $pdo->query('SELECT google_id FROM cardly_users LIMIT 1');
+            } catch (Throwable $e) {
+                $pdo->exec('ALTER TABLE cardly_users MODIFY password_hash VARCHAR(255) NULL, ADD COLUMN google_id VARCHAR(64) NULL AFTER password_hash, ADD UNIQUE KEY uniq_google (google_id)');
             }
             $ready = true;
         } catch (Throwable $e) {
@@ -402,11 +411,18 @@ function cardly_cards_for_user(int $userId): array
     if (!$db || $userId <= 0) {
         return [];
     }
-    return $db->select(
-        'SELECT slug, name, template, published, updated_at
+    $rows = $db->select(
+        'SELECT slug, name, template, published, data, updated_at
          FROM cardly_cards WHERE user_id = ? ORDER BY updated_at DESC',
         [$userId]
     );
+    foreach ($rows as &$r) {
+        $d = json_decode((string) $r['data'], true);
+        $r['shared'] = is_array($d) && cardly_is_shared($d);
+        unset($r['data']); // card contents stay out of the listing
+    }
+    unset($r);
+    return $rows;
 }
 
 /**
@@ -458,6 +474,9 @@ function cardly_published_cards(int $limit = 5000): array
  */
 function cardly_card_discoverable(array $d): bool
 {
+    if (!cardly_is_shared($d)) {
+        return false; // private cards are never listed anywhere
+    }
     if (array_key_exists('discoverable', $d) && $d['discoverable'] === false) {
         return false;
     }
@@ -475,6 +494,19 @@ function cardly_card_discoverable(array $d): bool
     }
     $c = $d['contact'] ?? [];
     return !empty($c['email']) || !empty($c['phone']) || !empty($c['website']);
+}
+
+/**
+ * Has the owner shared this card? A card is private until it is saved AND its
+ * "Share my card" switch is on. Cards from before the switch existed (no
+ * `shared` key) stay shared so links already handed out keep working.
+ */
+function cardly_is_shared(array $card): bool
+{
+    if (array_key_exists('published', $card) && $card['published'] === false) {
+        return false;
+    }
+    return !(array_key_exists('shared', $card) && $card['shared'] === false);
 }
 
 /** Permanently delete a card: DB row, JSON file, and media folder. */
@@ -548,7 +580,10 @@ function cardly_blank(string $template = 'default'): array
     return [
         'template' => $template,
         'published' => false,
-        'discoverable' => true,
+        // Private by default: nothing is visible until the owner shares it,
+        // and search listing is a separate opt-in on top of that.
+        'shared' => false,
+        'discoverable' => false,
         'name' => '', 'tagline' => '', 'about' => '',
         'photo' => '', 'cover' => '',
         'contact' => ['phone' => '', 'email' => '', 'whatsapp' => '', 'website' => '', 'address' => ''],
@@ -698,7 +733,11 @@ function cardly_icon_svg(string $key): string
 function cardly_vcf(array $card): string
 {
     $name = trim($card['name'] ?? '') ?: 'Contact';
-    $c = $card['contact'] ?? [];
+    // Only export what the owner shows on the card: a hidden section must not
+    // leak through the downloaded contact file.
+    $sec = $card['sections'] ?? [];
+    $shows = static fn (string $k): bool => !array_key_exists($k, $sec) || !empty($sec[$k]);
+    $c = $shows('contact') ? ($card['contact'] ?? []) : [];
     $cardUrl = cardly_link($card['slug'] ?? '');
 
     // Split the display name into given/family for a proper N field.
@@ -731,7 +770,7 @@ function cardly_vcf(array $card): string
     // Social profiles (iOS/macOS recognise X-SOCIALPROFILE).
     $socialType = ['x' => 'twitter', 'instagram' => 'instagram', 'linkedin' => 'linkedin',
         'facebook' => 'facebook', 'github' => 'github', 'youtube' => 'youtube', 'spotify' => 'spotify'];
-    foreach (($card['socials'] ?? []) as $net => $val) {
+    foreach (($shows('socials') ? ($card['socials'] ?? []) : []) as $net => $val) {
         if (!$val) continue;
         $L[] = 'X-SOCIALPROFILE;TYPE=' . ($socialType[$net] ?? $net) . ':' . $val;
     }
@@ -742,7 +781,7 @@ function cardly_vcf(array $card): string
     }
 
     // Note: bio + card link.
-    $about = trim($card['about'] ?? '');
+    $about = $shows('about') ? trim($card['about'] ?? '') : '';
     $note  = $about !== '' ? $about . "\n\n" . $cardUrl : 'Digital card: ' . $cardUrl;
     $L[] = 'NOTE:' . cardly_vcf_esc($note);
 

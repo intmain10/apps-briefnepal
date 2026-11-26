@@ -49,7 +49,7 @@ ErrorDocument 404 /404.php
     RewriteRule ^new/?$ cardly-edit.php [L,QSA]
     # Accounts
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
-    RewriteRule ^(login|signup|logout|dashboard|verify|forgot|reset|resend)/?$ cardly-account.php?do=$1 [L,QSA]
+    RewriteRule ^(login|signup|logout|dashboard|verify|forgot|reset|resend|google)/?$ cardly-account.php?do=$1 [L,QSA]
     # Card edit
     RewriteCond %{HTTP_HOST} ^cardly\.briefnepal\.com$ [NC]
     RewriteRule ^([a-z0-9-]{1,40})/edit/?$ cardly-edit.php?slug=$1 [L,QSA]
@@ -92,7 +92,7 @@ ErrorDocument 404 /404.php
     RewriteCond %{HTTP_HOST} ^apps\.briefnepal\.com$ [NC]
     RewriteRule ^cardly/([a-z0-9-]{1,40})/edit/?$ https://cardly.briefnepal.com/$1/edit [R=301,L,QSA]
     RewriteCond %{HTTP_HOST} ^apps\.briefnepal\.com$ [NC]
-    RewriteRule ^cardly/(login|signup|logout|dashboard|verify|forgot|reset|resend|new)/?$ https://cardly.briefnepal.com/$1 [R=301,L,QSA]
+    RewriteRule ^cardly/(login|signup|logout|dashboard|verify|forgot|reset|resend|google|new)/?$ https://cardly.briefnepal.com/$1 [R=301,L,QSA]
     RewriteCond %{HTTP_HOST} ^apps\.briefnepal\.com$ [NC]
     RewriteRule ^cardly/([a-z0-9-]{1,40})/contact/?$ https://cardly.briefnepal.com/$1/contact [R=301,L,QSA]
     RewriteCond %{HTTP_HOST} ^apps\.briefnepal\.com$ [NC]
@@ -103,7 +103,7 @@ ErrorDocument 404 /404.php
     # ---- Fallback for any other host (local dev): legacy /cardly/* paths ----
     RewriteRule ^cardly/?$ cardly.php [L,QSA]
     RewriteRule ^cardly/new/?$ cardly-edit.php [L,QSA]
-    RewriteRule ^cardly/(login|signup|logout|dashboard|verify|forgot|reset|resend)/?$ cardly-account.php?do=$1 [L,QSA]
+    RewriteRule ^cardly/(login|signup|logout|dashboard|verify|forgot|reset|resend|google)/?$ cardly-account.php?do=$1 [L,QSA]
     RewriteRule ^cardly/([a-z0-9-]+)/edit/?$ cardly-edit.php?slug=$1 [L,QSA]
     RewriteRule ^cardly/([a-z0-9-]+)/contact/?$ cardly-contact.php?slug=$1 [L,QSA]
     RewriteRule ^cardly/([a-z0-9-]+)/?$ cardly-view.php?slug=$1 [L,QSA]

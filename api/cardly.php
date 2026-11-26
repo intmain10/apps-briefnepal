@@ -17,7 +17,7 @@ $action = $_GET['action'] ?? $_POST['action'] ?? '';
 if ($action === 'vcf') {
     $slug = preg_replace('/[^a-z0-9-]/', '', (string)($_GET['slug'] ?? ''));
     $card = cardly_load($slug);
-    if (!$card) {
+    if (!$card || !cardly_can_view($card, (string) ($_GET['k'] ?? ''))) {
         json_error('Card not found', 404);
     }
     $card['slug'] = $slug;   // the URL + embedded photo are resolved from it
@@ -173,9 +173,13 @@ if ($action === 'save') {
         $card['sections'][$k] = !empty($inSec[$k]);
     }
 
-    // Discoverability: whether the card is listed in search (default on).
+    // Sharing: a card is private until its owner turns sharing on. Cards
+    // from before the switch existed keep their (shared) state.
+    $card['shared'] = array_key_exists('shared', $incoming)
+        ? (bool) $incoming['shared'] : ($card['shared'] ?? true);
+    // Search listing: opt-in, and only ever applies to a shared card.
     $card['discoverable'] = array_key_exists('discoverable', $incoming)
-        ? (bool) $incoming['discoverable'] : true;
+        ? (bool) $incoming['discoverable'] : ($card['discoverable'] ?? false);
 
     // A real save publishes the card — from now on it holds its username.
     $card['published'] = true;
@@ -186,13 +190,18 @@ if ($action === 'save') {
     // Refresh the social share image so a freshly-saved card previews correctly
     // the moment it is shared (best-effort; never blocks the save response).
     $card['slug'] = $slug;
-    @cardly_og_render($slug, $card, cardly_og_path($slug));
-    // Ping IndexNow so search engines crawl the (published, discoverable) card
-    // within minutes. Skip drafts and opted-out cards.
-    if (!empty($card['published']) && ($card['discoverable'] ?? true)) {
+    if (cardly_is_shared($card)) {
+        @cardly_og_render($slug, $card, cardly_og_path($slug));
+    } else {
+        // The share image shows name, photo and tagline: a private card has none.
+        @unlink(cardly_og_path($slug));
+    }
+    // Ping IndexNow so search engines crawl a shared, listed card within
+    // minutes. Private and unlisted cards are never sent.
+    if (cardly_card_discoverable($card)) {
         cardly_indexnow_submit([cardly_link($slug)]);
     }
-    json_response(['ok' => true, 'viewUrl' => cardly_link($slug)]);
+    json_response(['ok' => true, 'viewUrl' => cardly_link($slug), 'shared' => cardly_is_shared($card)]);
 }
 
 /* --------------------------------------------------------------------- upload */
