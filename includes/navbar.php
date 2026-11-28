@@ -68,8 +68,10 @@ $cats = omnitools_categories();
     </nav>
 
     <div class="navbar__actions">
-      <button class="icon-btn" id="searchTrigger" aria-label="Search tools" title="Search (press /)">
-        <?= icon_svg('search', 'icon') ?>
+      <button class="nav-search-pill" id="searchTrigger" aria-label="Search tools" title="Search tools (press / or ⌘K)">
+        <?= icon_svg('search', 'icon icon-sm') ?>
+        <span class="nav-search-pill__text">Search tools…</span>
+        <kbd class="nav-search-pill__kbd">⌘K</kbd>
       </button>
       <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle theme">
         <?= icon_svg('sun', 'icon icon-sun') ?>

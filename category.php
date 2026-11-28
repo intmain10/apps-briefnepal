@@ -83,17 +83,24 @@ require __DIR__ . '/includes/header.php';
   </nav>
 </div>
 
-<section class="page-head">
+<section class="page-head page-head--bento">
   <div class="container">
-    <span class="tool-hero__icon" style="background:<?= eattr($cat['color']) ?>;margin:0 auto 18px"><?= icon_svg($cat['icon']) ?></span>
-    <h1><?= e($cat['name']) ?> Tools</h1>
-    <p><?= e($cat['desc']) ?></p>
+    <div class="cat-hero-card" style="--cat-color:<?= eattr($cat['color']) ?>">
+      <span class="tool-hero__icon" style="background:<?= eattr($cat['color']) ?>"><?= icon_svg($cat['icon']) ?></span>
+      <div class="cat-hero-card__body">
+        <span class="section__eyebrow"><?= count($tools) ?> Free Online Tools · Instant Browser Execution</span>
+        <h1><?= e($cat['name']) ?> Tools</h1>
+        <p><?= e($cat['desc']) ?></p>
+      </div>
+    </div>
   </div>
 </section>
 
 <section class="section--tight container">
-  <div class="cards">
-    <?php foreach ($tools as $tool) echo render_tool_card($tool); ?>
+  <div class="cards cards--bento">
+    <?php foreach ($tools as $idx => $tool): ?>
+      <?= render_tool_card($tool, ($idx === 0 && count($tools) >= 5) ? 'tool-card--wide' : '') ?>
+    <?php endforeach; ?>
   </div>
 </section>
 

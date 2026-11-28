@@ -326,10 +326,10 @@ function record_recent_tool(string $slug): void
  * Reusable render helpers (cards)
  * ====================================================================== */
 
-/** Render a single tool card. */
-function render_tool_card(array $tool): string
+/** Render a single tool card (supports Bento span modifiers via $extraClass). */
+function render_tool_card(array $tool, string $extraClass = ''): string
 {
-    $cat = omnitools_categories()[$tool['category']] ?? ['color' => 'var(--accent)', 'icon' => 'grid'];
+    $cat = omnitools_categories()[$tool['category']] ?? ['name' => 'Tool', 'color' => 'var(--accent)', 'icon' => 'grid'];
     $badge = '';
     foreach (['popular' => 'Popular', 'trending' => 'Trending', 'new' => 'New'] as $flag => $label) {
         if (in_array($flag, $tool['flags'], true)) {
@@ -337,11 +337,20 @@ function render_tool_card(array $tool): string
             break;
         }
     }
-    return '<a class="tool-card" href="' . eattr(url($tool['slug'])) . '">'
-        . $badge
+    $cls = trim('tool-card ' . $extraClass);
+    return '<a class="' . eattr($cls) . '" href="' . eattr(url($tool['slug'])) . '" style="--cat-color:' . eattr($cat['color']) . '">'
+        . '<div class="tool-card__top">'
         . '<span class="tool-card__icon" style="background:' . eattr($cat['color']) . '">' . icon_svg($cat['icon']) . '</span>'
+        . $badge
+        . '</div>'
+        . '<div class="tool-card__body">'
         . '<div class="tool-card__title">' . e($tool['name']) . '</div>'
         . '<div class="tool-card__desc">' . e($tool['desc']) . '</div>'
+        . '</div>'
+        . '<div class="tool-card__foot">'
+        . '<span class="tool-card__cat">' . e($cat['name']) . '</span>'
+        . '<span class="tool-card__arrow" aria-hidden="true">' . icon_svg('arrow', 'icon icon-sm') . '</span>'
+        . '</div>'
         . '</a>';
 }
 
@@ -355,7 +364,7 @@ function omnitools_client_index(): array
 {
     $cats = [];
     foreach (omnitools_categories() as $slug => $c) {
-        $cats[$slug] = ['color' => $c['color'], 'icon' => icon_svg($c['icon'])];
+        $cats[$slug] = ['name' => $c['name'], 'color' => $c['color'], 'icon' => icon_svg($c['icon'])];
     }
     $tools = [];
     foreach (omnitools_tools() as $t) {
@@ -364,14 +373,20 @@ function omnitools_client_index(): array
     return ['cats' => $cats, 'tools' => $tools];
 }
 
-/** Render a category card. */
-function render_category_card(string $slug, array $cat): string
+/** Render a category card (supports Bento span modifiers via $extraClass). */
+function render_category_card(string $slug, array $cat, string $extraClass = ''): string
 {
     $count = count(tools_in_category($slug));
-    return '<a class="cat-card" href="' . eattr(url('category/' . $slug)) . '">'
+    $cls = trim('cat-card ' . $extraClass);
+    return '<a class="' . eattr($cls) . '" href="' . eattr(url('category/' . $slug)) . '" style="--cat-color:' . eattr($cat['color']) . '">'
+        . '<div class="cat-card__top">'
         . '<span class="cat-card__icon" style="background:' . eattr($cat['color']) . '">' . icon_svg($cat['icon']) . '</span>'
-        . '<div><div class="cat-card__name">' . e($cat['name']) . '</div>'
-        . '<div class="cat-card__count">' . $count . ' tools</div></div>'
+        . '<span class="cat-card__pill">' . $count . ' tools</span>'
+        . '</div>'
+        . '<div class="cat-card__body">'
+        . '<div class="cat-card__name">' . e($cat['name']) . '</div>'
+        . '<div class="cat-card__desc">' . e($cat['desc'] ?? '') . '</div>'
+        . '</div>'
         . '</a>';
 }
 

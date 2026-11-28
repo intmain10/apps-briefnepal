@@ -253,10 +253,19 @@ require __DIR__ . '/includes/header.php';
   </nav>
 
   <!-- Tool hero -->
-  <header class="tool-hero">
+  <header class="tool-hero" style="--cat-color:<?= eattr($cat['color']) ?>">
     <div class="tool-hero__top">
       <span class="tool-hero__icon" style="background:<?= eattr($cat['color']) ?>"><?= icon_svg($cat['icon']) ?></span>
-      <div>
+      <div class="tool-hero__meta">
+        <div class="tool-hero__badges">
+          <a href="<?= eattr(url('category/' . $cat['slug'])) ?>" class="tool-hero__cat-pill" style="--cat-color:<?= eattr($cat['color']) ?>">
+            <?= e($cat['name']) ?>
+          </a>
+          <span class="tool-hero__privacy-pill <?= $isServerTool ? 'is-server' : 'is-local' ?>">
+            <?= icon_svg($isServerTool ? 'upload' : 'check', 'icon icon-sm') ?>
+            <?= $isServerTool ? 'Encrypted Server Processing' : '100% On-Device · Private' ?>
+          </span>
+        </div>
         <h1><?= e($tool['name']) ?></h1>
         <p class="tool-hero__desc"><?= e($tool['desc']) ?></p>
       </div>
@@ -269,13 +278,15 @@ require __DIR__ . '/includes/header.php';
   <!-- Layout: workspace + sidebar -->
   <div class="tool-layout">
     <div class="tool-main">
-      <!-- The JS engine mounts here -->
-      <div class="tool-workspace" data-tool="<?= eattr($slug) ?>">
-        <div class="text-center" style="padding:40px"><div class="spinner" style="margin:0 auto"></div><p class="muted mt-4">Loading tool…</p></div>
+      <!-- Minimalist Workspace Frame -->
+      <div class="tool-workspace-frame" style="--cat-color:<?= eattr($cat['color']) ?>">
+        <div class="tool-workspace" data-tool="<?= eattr($slug) ?>">
+          <div class="text-center" style="padding:40px"><div class="spinner" style="margin:0 auto"></div><p class="muted mt-4">Loading tool…</p></div>
+        </div>
       </div>
 
       <!-- Where processing happens — stated up front, per tool, never generically. -->
-      <p class="notice notice--<?= $isServerTool ? 'info' : 'success' ?>" style="display:flex;gap:8px;align-items:flex-start">
+      <p class="notice notice--<?= $isServerTool ? 'info' : 'success' ?>" style="display:flex;gap:10px;align-items:flex-start">
         <?= icon_svg($isServerTool ? 'upload' : 'check', 'icon icon-sm') ?>
         <span><?php if ($isServerTool): ?>
           <strong>Processed on our server.</strong> This conversion needs software a browser cannot provide. Your file is sent over HTTPS, given a random temporary name, and deleted immediately after your download, never retained or logged.
@@ -284,37 +295,46 @@ require __DIR__ . '/includes/header.php';
         <?php endif; ?></span>
       </p>
 
-      <!-- SEO content -->
+      <!-- SEO content in Bento Info Grid + Prose -->
       <article class="prose mt-8">
-        <h2>About the <?= e($tool['name']) ?></h2>
-        <?php if (!empty($tool['intro'])): ?>
-          <?php foreach ($tool['intro'] as $para): ?><p><?= e($para) ?></p><?php endforeach; ?>
-        <?php else: ?>
-        <p>The <strong><?= e($tool['name']) ?></strong> is a free online tool that lets you <?= e(lcfirst($tool['desc'])) ?> With it you can <?= e($pack['benefit']) ?>, there's nothing to install and no account to create. Just open the tool, do what you need, and you're done.</p>
-        <?php endif; ?>
-        <p>It's part of the <?= e($cat['name']) ?> collection on <?= e(SITE_NAME) ?>, a growing platform of <?= tools_count() ?>+ free, privacy-first tools built for speed and a great experience on every device.</p>
-        <?php if (!empty($tool['keywords'])): ?>
-        <p class="muted">Also known as: <?= e(str_replace(' ', ', ', $tool['keywords'])) ?>.</p>
-        <?php endif; ?>
+        <div class="tool-bento-info">
+          <div class="tool-bento-card tool-bento-card--wide">
+            <h2>About the <?= e($tool['name']) ?></h2>
+            <?php if (!empty($tool['intro'])): ?>
+              <?php foreach ($tool['intro'] as $para): ?><p><?= e($para) ?></p><?php endforeach; ?>
+            <?php else: ?>
+            <p>The <strong><?= e($tool['name']) ?></strong> is a free online tool that lets you <?= e(lcfirst($tool['desc'])) ?> With it you can <?= e($pack['benefit']) ?>, there's nothing to install and no account to create. Just open the tool, do what you need, and you're done.</p>
+            <?php endif; ?>
+            <p>It's part of the <?= e($cat['name']) ?> collection on <?= e(SITE_NAME) ?>, a growing platform of <?= tools_count() ?>+ free, privacy-first tools built for speed and a great experience on every device.</p>
+            <?php if (!empty($tool['keywords'])): ?>
+            <p class="muted">Also known as: <?= e(str_replace(' ', ', ', $tool['keywords'])) ?>.</p>
+            <?php endif; ?>
+          </div>
 
-        <h2>Why use the <?= e($tool['name']) ?>?</h2>
-        <ul>
-          <?php foreach ($pack['features'] as $feat): ?><li><?= e($feat) ?></li><?php endforeach; ?>
-        </ul>
+          <div class="tool-bento-card">
+            <h2>Why use the <?= e($tool['name']) ?>?</h2>
+            <ul>
+              <?php foreach ($pack['features'] as $feat): ?><li><?= e($feat) ?></li><?php endforeach; ?>
+            </ul>
+          </div>
 
-        <h2>When to use it</h2>
-        <ul>
-          <?php foreach ($pack['useCases'] as $uc): ?><li><?= e($uc) ?></li><?php endforeach; ?>
-        </ul>
+          <div class="tool-bento-card">
+            <h2>When to use it</h2>
+            <ul>
+              <?php foreach ($pack['useCases'] as $uc): ?><li><?= e($uc) ?></li><?php endforeach; ?>
+            </ul>
+          </div>
 
-        <h2 id="how-to">How to use the <?= e($tool['name']) ?></h2>
-        <ol>
-          <?php foreach ($howtoSteps as $s): ?>
-            <li><strong><?= e($s['name']) ?>.</strong> <?= e($s['text']) ?></li>
-          <?php endforeach; ?>
-        </ol>
+          <div class="tool-bento-card tool-bento-card--wide">
+            <h2 id="how-to">How to use the <?= e($tool['name']) ?></h2>
+            <ol>
+              <?php foreach ($howtoSteps as $s): ?>
+                <li><strong><?= e($s['name']) ?>.</strong> <?= e($s['text']) ?></li>
+              <?php endforeach; ?>
+            </ol>
+          </div>
+        </div>
 
-        
         <h3>Frequently Asked Questions</h3>
       </article>
 

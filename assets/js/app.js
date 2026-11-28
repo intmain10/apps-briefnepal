@@ -234,11 +234,19 @@
     function card(slug) {
       const t = idx.tools[slug];
       if (!t) return '';
-      const c = idx.cats[t.cat] || { color: 'var(--accent)', icon: '' };
-      return `<a class="tool-card" href="${BASE}/${slug}">
-        <span class="tool-card__icon" style="background:${c.color}">${c.icon}</span>
-        <div class="tool-card__title">${OmniUtil.escape(t.name)}</div>
-        <div class="tool-card__desc">${OmniUtil.escape(t.desc)}</div></a>`;
+      const c = idx.cats[t.cat] || { name: 'Tool', color: 'var(--accent)', icon: '' };
+      return `<a class="tool-card" href="${BASE}/${slug}" style="--cat-color:${c.color}">
+        <div class="tool-card__top">
+          <span class="tool-card__icon" style="background:${c.color}">${c.icon}</span>
+        </div>
+        <div class="tool-card__body">
+          <div class="tool-card__title">${OmniUtil.escape(t.name)}</div>
+          <div class="tool-card__desc">${OmniUtil.escape(t.desc)}</div>
+        </div>
+        <div class="tool-card__foot">
+          <span class="tool-card__cat">${OmniUtil.escape(c.name || t.cat)}</span>
+        </div>
+      </a>`;
     }
     function read(key) {
       try { return (JSON.parse(localStorage.getItem(key) || '[]') || []).filter(s => idx.tools[s]); }
