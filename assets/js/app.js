@@ -268,6 +268,67 @@
     if (hasRecent || hasFavs) section.classList.remove('hidden');
   })();
 
+  /* ------------------------------------------ Interactive Tabbed Explorer */
+  $$('.explorer-tab[data-tab]').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      $$('.explorer-tab[data-tab]').forEach(t => {
+        const on = t === tab;
+        t.classList.toggle('is-active', on);
+        t.setAttribute('aria-selected', String(on));
+      });
+      $$('.explorer-pane[data-pane]').forEach(pane => {
+        const match = pane.dataset.pane === target;
+        pane.hidden = !match;
+        pane.classList.toggle('is-active', match);
+        if (match) {
+          $$('.tool-card', pane).forEach((card, i) => {
+            card.style.animationDelay = (i * 35) + 'ms';
+            card.classList.remove('is-visible');
+            void card.offsetWidth;
+            card.classList.add('is-visible');
+          });
+        }
+      });
+    });
+  });
+
+  /* ------------------------------------ Scroll Reveal & Cursor Spotlight */
+  (function initMotion() {
+    const items = $$('.reveal-item');
+    if ('IntersectionObserver' in window && items.length) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(ent => {
+          if (ent.isIntersecting) {
+            ent.target.classList.add('is-visible');
+            io.unobserve(ent.target);
+          }
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -24px 0px' });
+      items.forEach((el, idx) => {
+        el.style.transitionDelay = ((idx % 6) * 40) + 'ms';
+        io.observe(el);
+      });
+    } else {
+      items.forEach(el => el.classList.add('is-visible'));
+    }
+
+    // Hardware-accelerated cursor spotlight on Bento & Tool cards
+    if (window.matchMedia('(pointer: fine)').matches) {
+      let rafId = 0;
+      document.addEventListener('mousemove', (e) => {
+        const card = e.target.closest('.bento-cell, .tool-card, .cat-card');
+        if (!card || rafId) return;
+        rafId = requestAnimationFrame(() => {
+          const r = card.getBoundingClientRect();
+          card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+          card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+          rafId = 0;
+        });
+      }, { passive: true });
+    }
+  })();
+
   /* Record the current tool page into the "recently used" list. */
   (function recordRecent() {
     // Tool pages only. Articles can embed a [data-tool] mount too, and a tool

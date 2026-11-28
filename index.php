@@ -121,192 +121,174 @@ require __DIR__ . '/includes/header.php';
 ?>
 
 <section class="hero">
+  <div class="hero__orb hero__orb--1" aria-hidden="true"></div>
+  <div class="hero__orb hero__orb--2" aria-hidden="true"></div>
   <div class="container">
-    <span class="hero__badge">
+    <span class="hero__badge reveal-item">
       <span class="hero__badge-dot" aria-hidden="true"></span>
-      <b><?= $total ?>+</b> free tools · 100% browser-first · Zero signup
+      <b><?= $total ?>+</b> Free Tools · 100% Private · Zero Signup
     </span>
-    <h1>Every Tool You Need.<br><span class="grad">One Minimalist Workspace.</span></h1>
-    <p class="hero__sub"><?= $total ?>+ fast, privacy-first utilities for PDF, images, audio, video, text, developers, SEO and finance — engineered to run right in your browser.</p>
+    <h1 class="reveal-item">Every Tool You Need.<br><span class="grad">Fast, Private &amp; Effortless.</span></h1>
+    <p class="hero__sub reveal-item">Instant browser utilities for PDF, images, developers, SEO and finance — no uploads, no accounts, zero friction.</p>
 
-    <form class="hero-search" id="heroSearchForm" role="search">
+    <form class="hero-search reveal-item" id="heroSearchForm" role="search">
       <div class="hero-search__box">
         <?= icon_svg('search', 'icon') ?>
-        <input type="text" id="heroSearchInput" placeholder="Search <?= $total ?>+ tools (e.g. merge pdf, remove bg, json)…" aria-label="Search tools" autocomplete="off">
+        <input type="text" id="heroSearchInput" placeholder="Search <?= $total ?>+ tools (merge pdf, remove bg, json)…" aria-label="Search tools" autocomplete="off">
         <kbd class="hero-search__kbd" aria-hidden="true">/</kbd>
         <button type="submit" class="hero-search__btn">Search</button>
       </div>
     </form>
 
-    <div class="hero-suggest">
-      <?php foreach (['merge-pdf' => 'Merge PDF', 'remove-background' => 'Remove Background', 'compress-image' => 'Compress Image', 'json-formatter' => 'JSON Formatter', 'video-to-gif' => 'Video to GIF', 'qr-code-generator' => 'QR Code'] as $slug => $label): ?>
+    <div class="hero-suggest reveal-item">
+      <?php foreach (['merge-pdf' => 'Merge PDF', 'remove-background' => 'Remove Background', 'compress-image' => 'Compress Image', 'pdf-to-word' => 'PDF to Word', 'json-formatter' => 'JSON Formatter', 'sign-pdf' => 'Sign PDF'] as $slug => $label): ?>
         <a href="<?= eattr(url($slug)) ?>"><?= e($label) ?></a>
       <?php endforeach; ?>
-    </div>
-
-    <div class="hero-stats">
-      <div class="hero-stat"><b><?= $total ?>+</b><span>Active Tools</span></div>
-      <div class="hero-stat"><b><?= count($cats) ?></b><span>Categories</span></div>
-      <div class="hero-stat"><b>100%</b><span>Free &amp; Private</span></div>
-      <div class="hero-stat"><b>0</b><span>Sign-ups</span></div>
     </div>
   </div>
 </section>
 
-<!-- Architectural Bento Showcase -->
-<section class="section--tight container" aria-label="Platform highlights">
+<!-- Streamlined 4-Cell Interactive Bento Showcase -->
+<section class="section--tight container" aria-label="Platform spotlights">
   <div class="bento-showcase">
-    <!-- Cell 1: Large Flagship PDF Suite (7 cols) -->
-    <div class="bento-cell bento-cell--hero" style="--cell-accent:#ef4444">
+    <!-- Cell 1: PDF Studio (7 cols) -->
+    <div class="bento-cell bento-cell--hero reveal-item" style="--cell-accent:#ef4444">
       <div class="bento-cell__head">
         <span class="bento-tag" style="color:#ef4444;background:color-mix(in srgb,#ef4444 12%,transparent)">
-          <?= icon_svg('file', 'icon icon-sm') ?> PDF Suite · <?= count(tools_in_category('pdf')) ?> Tools
+          <?= icon_svg('file', 'icon icon-sm') ?> PDF Studio · <?= count(tools_in_category('pdf')) ?> Tools
         </span>
-        <a href="<?= eattr(url('category/pdf')) ?>" class="bento-cell__more">Explore PDF <?= icon_svg('arrow', 'icon icon-sm') ?></a>
+        <a href="<?= eattr(url('category/pdf')) ?>" class="bento-cell__more">All PDF <?= icon_svg('arrow', 'icon icon-sm') ?></a>
       </div>
-      <h2 class="bento-cell__title">Complete PDF Studio, Zero Watermarks</h2>
-      <p class="bento-cell__desc">Merge, split, compress, sign, redact, OCR and convert PDFs to Word, Excel or JPG without installing heavy desktop software.</p>
+      <h2 class="bento-cell__title">Complete In-Browser PDF Suite</h2>
+      <p class="bento-cell__desc">Merge, split, organize, compress, sign, redact and convert Office ↔ PDF with zero watermarks.</p>
       <div class="bento-pills">
         <a href="<?= eattr(url('merge-pdf')) ?>" class="bento-pill">Merge PDF</a>
-        <a href="<?= eattr(url('compress-pdf')) ?>" class="bento-pill">Compress PDF</a>
-        <a href="<?= eattr(url('pdf-to-word')) ?>" class="bento-pill">PDF to Word</a>
+        <a href="<?= eattr(url('split-pdf')) ?>" class="bento-pill">Split PDF</a>
+        <a href="<?= eattr(url('compress-pdf')) ?>" class="bento-pill">Compress</a>
+        <a href="<?= eattr(url('pdf-to-word')) ?>" class="bento-pill">PDF → Word</a>
+        <a href="<?= eattr(url('pdf-to-excel')) ?>" class="bento-pill">PDF → Excel</a>
+        <a href="<?= eattr(url('organize-pdf')) ?>" class="bento-pill">Organize</a>
         <a href="<?= eattr(url('sign-pdf')) ?>" class="bento-pill">Sign PDF</a>
-        <a href="<?= eattr(url('edit-pdf')) ?>" class="bento-pill">Edit PDF</a>
-        <a href="<?= eattr(url('jpg-to-pdf')) ?>" class="bento-pill">JPG to PDF</a>
       </div>
     </div>
 
-    <!-- Cell 2: Image & AI Motion Studio (5 cols) -->
-    <div class="bento-cell bento-cell--side" style="--cell-accent:#f59e0b">
+    <!-- Cell 2: Image & AI Cutout Studio (5 cols) -->
+    <div class="bento-cell bento-cell--side reveal-item" style="--cell-accent:#f59e0b">
       <div class="bento-cell__head">
         <span class="bento-tag" style="color:#f59e0b;background:color-mix(in srgb,#f59e0b 14%,transparent)">
-          <?= icon_svg('image', 'icon icon-sm') ?> On-Device Image &amp; GIF
+          <?= icon_svg('image', 'icon icon-sm') ?> Image &amp; Motion
         </span>
         <a href="<?= eattr(url('category/image')) ?>" class="bento-cell__more">All Image <?= icon_svg('arrow', 'icon icon-sm') ?></a>
       </div>
-      <h2 class="bento-cell__title">Instant Cutouts &amp; Compression</h2>
-      <p class="bento-cell__desc">Remove backgrounds, shrink JPG/PNG/WebP up to 80%, or animate multi-layer GIFs privately on your device.</p>
+      <h2 class="bento-cell__title">Instant Cutouts &amp; Batch Compression</h2>
+      <p class="bento-cell__desc">Remove backgrounds, crop visually, convert to WebP, or animate multi-layer GIFs on device.</p>
       <div class="bento-pills">
-        <a href="<?= eattr(url('remove-background')) ?>" class="bento-pill">Remove Background</a>
-        <a href="<?= eattr(url('compress-image')) ?>" class="bento-pill">Compress Image</a>
+        <a href="<?= eattr(url('remove-background')) ?>" class="bento-pill">Remove BG</a>
+        <a href="<?= eattr(url('compress-image')) ?>" class="bento-pill">Compress</a>
+        <a href="<?= eattr(url('crop-image')) ?>" class="bento-pill">Visual Crop</a>
         <a href="<?= eattr(url('gif-animation-studio')) ?>" class="bento-pill">GIF Studio</a>
-        <a href="<?= eattr(url('convert-webp')) ?>" class="bento-pill">To WebP</a>
       </div>
     </div>
 
-    <!-- Cell 3: Developer & SEO Workbench (4 cols) -->
-    <div class="bento-cell bento-cell--third" style="--cell-accent:#3b82f6">
+    <!-- Cell 3: Dev, Text & SEO Workbench (7 cols) -->
+    <div class="bento-cell bento-cell--hero reveal-item" style="--cell-accent:#3b82f6">
       <div class="bento-cell__head">
         <span class="bento-tag" style="color:#3b82f6;background:color-mix(in srgb,#3b82f6 12%,transparent)">
-          <?= icon_svg('code', 'icon icon-sm') ?> Dev &amp; SEO
+          <?= icon_svg('code', 'icon icon-sm') ?> Dev, SEO &amp; Finance
         </span>
-        <a href="<?= eattr(url('category/developer')) ?>" class="bento-cell__more">Open <?= icon_svg('arrow', 'icon icon-sm') ?></a>
+        <a href="<?= eattr(url('category/developer')) ?>" class="bento-cell__more">Explore <?= icon_svg('arrow', 'icon icon-sm') ?></a>
       </div>
-      <h3 class="bento-cell__title">Developer Workbench</h3>
-      <p class="bento-cell__desc">Format JSON/SQL, inspect JWTs, test Regex, generate UUIDs &amp; Schema markup locally.</p>
+      <h3 class="bento-cell__title">Developer &amp; Creator Workbench</h3>
+      <p class="bento-cell__desc">Format JSON &amp; SQL, decode JWTs, test Regex, generate QR codes, or run EMI &amp; SIP schedules.</p>
       <div class="bento-pills">
         <a href="<?= eattr(url('json-formatter')) ?>" class="bento-pill">JSON Formatter</a>
         <a href="<?= eattr(url('jwt-decoder')) ?>" class="bento-pill">JWT Decoder</a>
-        <a href="<?= eattr(url('regex-tester')) ?>" class="bento-pill">Regex</a>
+        <a href="<?= eattr(url('qr-code-generator')) ?>" class="bento-pill">QR Generator</a>
+        <a href="<?= eattr(url('word-counter')) ?>" class="bento-pill">Word Counter</a>
+        <a href="<?= eattr(url('emi-calculator')) ?>" class="bento-pill">EMI Schedule</a>
       </div>
     </div>
 
-    <!-- Cell 4: Privacy Architecture (4 cols) -->
-    <div class="bento-cell bento-cell--third" style="--cell-accent:#10b981">
-      <div class="bento-cell__head">
-        <span class="bento-tag" style="color:#10b981;background:color-mix(in srgb,#10b981 13%,transparent)">
-          <?= icon_svg('check', 'icon icon-sm') ?> Privacy Architecture
-        </span>
-      </div>
-      <h3 class="bento-cell__title">Files Stay on Your Device</h3>
-      <p class="bento-cell__desc">WebAssembly &amp; Canvas engines run inside your browser tab — zero cloud queues, zero data retention.</p>
-      <div class="bento-stat-row">
-        <div><b>0 MB</b><span>Uploaded for client tools</span></div>
-        <div><b>&lt;50ms</b><span>Instant execution</span></div>
-      </div>
-    </div>
-
-    <!-- Cell 5: Cardly Smart Link Integration (4 cols) -->
-    <a href="<?= eattr(cardly_link()) ?>" class="bento-cell bento-cell--third bento-cell--cardly">
+    <!-- Cell 4: Cardly Smart Link Integration (5 cols) -->
+    <a href="<?= eattr(cardly_link()) ?>" class="bento-cell bento-cell--side bento-cell--cardly reveal-item">
       <div class="bento-cell__head">
         <span class="bento-tag bento-tag--glass">✨ Cardly by <?= e(SITE_NAME) ?></span>
         <span class="bento-cell__more" style="color:#fff">Launch <?= icon_svg('arrow', 'icon icon-sm') ?></span>
       </div>
-      <h3 class="bento-cell__title">Digital Business Cards</h3>
-      <p class="bento-cell__desc">One verified smart link &amp; QR code for your socials, vCard contact save, and portfolio. Free forever.</p>
-      <span class="bento-cta">Create your free card →</span>
+      <h3 class="bento-cell__title">Your Digital Business Card</h3>
+      <p class="bento-cell__desc">One verified smart link &amp; QR code for your socials, vCard contact save, and portfolio.</p>
+      <span class="bento-cta">Create free card →</span>
     </a>
   </div>
 </section>
 
-<!-- Personalised: Recently used + Favourites (filled from localStorage by JS) -->
-<section class="section container hidden" id="personalSection">
+<!-- Personalised: Recently used + Favourites (shown automatically when user has history) -->
+<section class="section--tight container hidden" id="personalSection">
   <div id="recentBlock" class="hidden">
     <div class="section__head">
-      <div><h2 class="section__title"><?= icon_svg('clock') ?> Recently Used</h2>
-      <p class="section__desc">Jump right back into your last-used workspaces.</p></div>
+      <div><h2 class="section__title"><?= icon_svg('clock') ?> Jump Back In</h2></div>
     </div>
     <div class="cards" id="recentCards"></div>
   </div>
-  <div id="favBlock" class="hidden" style="margin-top:44px">
+  <div id="favBlock" class="hidden" style="margin-top:28px">
     <div class="section__head">
-      <div><h2 class="section__title" style="color:var(--danger)"><?= icon_svg('heart') ?> Your Favourites</h2>
-      <p class="section__desc">Tools you've pinned with the ♥ button.</p></div>
+      <div><h2 class="section__title" style="color:var(--danger)"><?= icon_svg('heart') ?> Saved Tools</h2></div>
     </div>
     <div class="cards" id="favCards"></div>
   </div>
 </section>
 
-<!-- Popular tools (Bento Grid layout) -->
-<section class="section container">
+<!-- Single Interactive Tabbed Tool Explorer (replaces 3 stacked redundant grids) -->
+<section class="section container" id="explorerSection">
   <div class="section__head">
     <div>
-      <span class="section__eyebrow">Most Used</span>
-      <h2 class="section__title"><span class="flame"><?= icon_svg('flame') ?></span> Popular Tools</h2>
-      <p class="section__desc">Flagship utilities our community reaches for every day.</p>
+      <span class="section__eyebrow">Interactive Directory</span>
+      <h2 class="section__title">Featured Tools</h2>
     </div>
-    <a class="section__link" href="<?= eattr(url('tools')) ?>">View all <?= $total ?>+ tools <?= icon_svg('arrow') ?></a>
+    <div class="explorer-tabs" role="tablist" aria-label="Tool collections">
+      <button type="button" class="explorer-tab is-active" role="tab" aria-selected="true" data-tab="popular">🔥 Popular</button>
+      <button type="button" class="explorer-tab" role="tab" aria-selected="false" data-tab="trending">⚡ Trending</button>
+      <button type="button" class="explorer-tab" role="tab" aria-selected="false" data-tab="new">✨ New</button>
+      <a class="explorer-tab explorer-tab--all" href="<?= eattr(url('tools')) ?>">All <?= $total ?>+ →</a>
+    </div>
   </div>
-  <div class="cards cards--bento">
-    <?php foreach ($popular as $idx => $tool): ?>
-      <?= render_tool_card($tool, ($idx === 0 || $idx === 3) ? 'tool-card--wide' : '') ?>
-    <?php endforeach; ?>
+
+  <div class="explorer-pane is-active" data-pane="popular">
+    <div class="cards cards--bento">
+      <?php foreach ($popular as $idx => $tool): ?>
+        <?= render_tool_card($tool, ($idx === 0 || $idx === 3) ? 'tool-card--wide' : '') ?>
+      <?php endforeach; ?>
+    </div>
+  </div>
+
+  <div class="explorer-pane" data-pane="trending" hidden>
+    <div class="cards cards--bento">
+      <?php foreach ($trending as $idx => $tool): ?>
+        <?= render_tool_card($tool, ($idx === 0 || $idx === 3) ? 'tool-card--wide' : '') ?>
+      <?php endforeach; ?>
+    </div>
+  </div>
+
+  <div class="explorer-pane" data-pane="new" hidden>
+    <div class="cards cards--bento">
+      <?php $idx = 0; foreach ($recent as $tool): ?>
+        <?= render_tool_card($tool, ($idx === 0 || $idx === 3) ? 'tool-card--wide' : '') ?>
+      <?php $idx++; endforeach; ?>
+    </div>
   </div>
 </section>
 
-<!-- Categories (Bento Category Grid) -->
-<section class="section section--tight container">
+<!-- Sleek Scannable Category Grid -->
+<section class="section--tight container">
   <div class="section__head">
     <div>
-      <span class="section__eyebrow">Directory</span>
+      <span class="section__eyebrow"><?= count($cats) ?> Collections</span>
       <h2 class="section__title">Browse by Category</h2>
-      <p class="section__desc">Explore <?= $total ?>+ tools organised across <?= count($cats) ?> specialised collections.</p>
     </div>
-    <a class="section__link" href="<?= eattr(url('tools')) ?>">Filter directory <?= icon_svg('arrow') ?></a>
+    <a class="section__link" href="<?= eattr(url('tools')) ?>">Full directory <?= icon_svg('arrow') ?></a>
   </div>
-  <div class="cards cards--cat-bento">
-    <?php
-    $wideCats = ['pdf', 'image', 'developer'];
-    foreach ($cats as $slug => $cat) {
-        echo render_category_card($slug, $cat, in_array($slug, $wideCats, true) ? 'cat-card--wide' : '');
-    }
-    ?>
-  </div>
-</section>
-
-<!-- Trending -->
-<section class="section container">
-  <div class="section__head">
-    <div>
-      <span class="section__eyebrow">Momentum</span>
-      <h2 class="section__title">Trending This Week</h2>
-      <p class="section__desc">Fast-rising tools across image, developer, finance and SEO workflows.</p>
-    </div>
-  </div>
-  <div class="cards cards--bento">
-    <?php foreach ($trending as $idx => $tool): ?>
-      <?= render_tool_card($tool, ($idx === 0 || $idx === 5) ? 'tool-card--wide' : '') ?>
-    <?php endforeach; ?>
+  <div class="cards cards--cat">
+    <?php foreach ($cats as $slug => $cat) echo render_category_card($slug, $cat); ?>
   </div>
 </section>
 
@@ -315,48 +297,17 @@ require __DIR__ . '/includes/header.php';
 <div class="container"><div class="ad-slot">Advertisement</div></div>
 <?php endif; ?>
 
-<!-- Recently added -->
+<!-- FAQ (Clean & Compact) -->
 <section class="section container">
   <div class="section__head">
     <div>
-      <span class="section__eyebrow">Changelog</span>
-      <h2 class="section__title">Recently Added</h2>
-      <p class="section__desc">Fresh tools and on-device engines, just shipped.</p>
+      <span class="section__eyebrow">Answers</span>
+      <h2 class="section__title">Frequently Asked Questions</h2>
     </div>
   </div>
-  <div class="cards">
-    <?php foreach ($recent as $tool) echo render_tool_card($tool); ?>
-  </div>
-</section>
-
-<!-- Latest blog -->
-<section class="section container">
-  <div class="section__head">
-    <div><h2 class="section__title">From the Blog</h2>
-    <p class="section__desc">Guides, tips and deep-dives.</p></div>
-    <a class="section__link" href="<?= eattr(url('blog')) ?>">All articles <?= icon_svg('arrow') ?></a>
-  </div>
-  <div class="post-grid">
-    <?php foreach ($posts as $p): ?>
-      <a class="post-card" href="<?= eattr(url('blog/' . $p['slug'])) ?>">
-        <div class="post-card__cover"><?= icon_svg($p['icon'] ?? 'doc') ?></div>
-        <div class="post-card__body">
-          <span class="post-card__tag"><?= e($p['tag']) ?></span>
-          <h3 class="post-card__title"><?= e($p['title']) ?></h3>
-          <p class="post-card__excerpt"><?= e($p['excerpt']) ?></p>
-          <div class="post-card__meta"><?= e(date('M j, Y', strtotime($p['date']))) ?></div>
-        </div>
-      </a>
-    <?php endforeach; ?>
-  </div>
-</section>
-
-<!-- FAQ -->
-<section class="section container">
-  <div class="section__head"><div><h2 class="section__title">Frequently Asked Questions</h2></div></div>
   <div class="faq">
     <?php foreach ($faqs as $f): ?>
-      <details class="faq__item">
+      <details class="faq__item reveal-item">
         <summary class="faq__q"><?= e($f[0]) ?> <?= icon_svg('plus', 'icon icon-sm') ?></summary>
         <div class="faq__a"><?= e($f[1]) ?></div>
       </details>

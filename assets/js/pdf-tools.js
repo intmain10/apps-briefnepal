@@ -2382,4 +2382,31 @@
       } catch (e) { q('#msg', root).innerHTML = errBox(/password/i.test(e.message) ? 'Incorrect password for this PDF.' : ('Failed: ' + e.message)); }
     });
   });
+
+  /* Self-mount PDF tools immediately without waiting for tools.js (saves 220 KB on PDF pages) */
+  function watchPdfUse(root, slug) {
+    if (typeof MutationObserver !== 'function') return;
+    let sent = false;
+    const obs = new MutationObserver(() => {
+      if (sent || !root.querySelector('.notice--success')) return;
+      sent = true; obs.disconnect();
+      try {
+        const u = '/api/track.php?p=' + encodeURIComponent(location.pathname) + '&e=' + encodeURIComponent('use:' + slug);
+        if (navigator.sendBeacon) navigator.sendBeacon(u);
+        else fetch(u, { method: 'POST', keepalive: true, cache: 'no-store' });
+      } catch (_) {}
+    });
+    obs.observe(root, { childList: true, subtree: true });
+  }
+  function bootPdf() {
+    document.querySelectorAll('[data-tool]').forEach(root => {
+      const slug = root.getAttribute('data-tool');
+      if (!slug || root._mounted || !engines[slug]) return;
+      root._mounted = true;
+      try { engines[slug](root); root.classList.add('fade-in'); watchPdfUse(root, slug); }
+      catch (e) { root.innerHTML = errBox('This tool hit an error: ' + e.message); }
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootPdf);
+  else bootPdf();
 })();

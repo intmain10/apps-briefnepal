@@ -242,8 +242,8 @@ $page = [
 require __DIR__ . '/includes/header.php';
 ?>
 
-<div class="container">
-  <!-- Breadcrumb -->
+<div class="container tool-studio">
+  <!-- Compact Breadcrumb -->
   <nav class="breadcrumb" aria-label="Breadcrumb">
     <a href="<?= eattr(url()) ?>">Home</a>
     <span class="breadcrumb__sep">/</span>
@@ -252,8 +252,8 @@ require __DIR__ . '/includes/header.php';
     <span aria-current="page"><?= e($tool['name']) ?></span>
   </nav>
 
-  <!-- Tool hero -->
-  <header class="tool-hero" style="--cat-color:<?= eattr($cat['color']) ?>">
+  <!-- Focused Tool Header -->
+  <header class="tool-hero reveal-item" style="--cat-color:<?= eattr($cat['color']) ?>">
     <div class="tool-hero__top">
       <span class="tool-hero__icon" style="background:<?= eattr($cat['color']) ?>"><?= icon_svg($cat['icon']) ?></span>
       <div class="tool-hero__meta">
@@ -275,128 +275,81 @@ require __DIR__ . '/includes/header.php';
     </div>
   </header>
 
-  <!-- Layout: workspace + sidebar -->
-  <div class="tool-layout">
-    <div class="tool-main">
-      <!-- Minimalist Workspace Frame -->
-      <div class="tool-workspace-frame" style="--cat-color:<?= eattr($cat['color']) ?>">
-        <div class="tool-workspace" data-tool="<?= eattr($slug) ?>">
-          <div class="text-center" style="padding:40px"><div class="spinner" style="margin:0 auto"></div><p class="muted mt-4">Loading tool…</p></div>
+  <!-- Primary Interactive Workspace (Full-Width, Zero Distractions) -->
+  <div class="tool-workspace-frame reveal-item" style="--cat-color:<?= eattr($cat['color']) ?>">
+    <div class="tool-workspace" data-tool="<?= eattr($slug) ?>">
+      <div class="text-center" style="padding:40px"><div class="spinner" style="margin:0 auto"></div><p class="muted mt-4">Loading tool…</p></div>
+    </div>
+  </div>
+
+  <!-- Sleek 3-Step Visual Flow Strip -->
+  <div class="tool-steps-strip reveal-item" id="how-to">
+    <?php foreach (array_slice($howtoSteps, 0, 3) as $i => $s): ?>
+      <div class="tool-step-pill">
+        <span class="tool-step-pill__num"><?= $i + 1 ?></span>
+        <div>
+          <strong><?= e($s['name']) ?></strong>
+          <span><?= e($s['text']) ?></span>
         </div>
       </div>
+    <?php endforeach; ?>
+  </div>
 
-      <!-- Where processing happens — stated up front, per tool, never generically. -->
-      <p class="notice notice--<?= $isServerTool ? 'info' : 'success' ?>" style="display:flex;gap:10px;align-items:flex-start">
-        <?= icon_svg($isServerTool ? 'upload' : 'check', 'icon icon-sm') ?>
-        <span><?php if ($isServerTool): ?>
-          <strong>Processed on our server.</strong> This conversion needs software a browser cannot provide. Your file is sent over HTTPS, given a random temporary name, and deleted immediately after your download, never retained or logged.
-        <?php else: ?>
-          <strong>Processed on your device.</strong> This tool runs entirely in your browser, your file is never uploaded, so nothing is stored, logged or transmitted.
-        <?php endif; ?></span>
-      </p>
+  <?php if ($related): ?>
+  <!-- Related Tools (Single Clean 4-Card Row) -->
+  <section class="section--tight">
+    <div class="section__head">
+      <div>
+        <span class="section__eyebrow">Next Up</span>
+        <h2 class="section__title">More <?= e($cat['name']) ?> Tools</h2>
+      </div>
+      <a class="section__link" href="<?= eattr(url('category/' . $cat['slug'])) ?>">All <?= e($cat['name']) ?> <?= icon_svg('arrow') ?></a>
+    </div>
+    <div class="cards">
+      <?php foreach (array_slice($related, 0, 4) as $r) echo render_tool_card($r); ?>
+    </div>
+  </section>
+  <?php endif; ?>
 
-      <!-- SEO content in Bento Info Grid + Prose -->
-      <article class="prose mt-8">
-        <div class="tool-bento-info">
-          <div class="tool-bento-card tool-bento-card--wide">
-            <h2>About the <?= e($tool['name']) ?></h2>
-            <?php if (!empty($tool['intro'])): ?>
-              <?php foreach ($tool['intro'] as $para): ?><p><?= e($para) ?></p><?php endforeach; ?>
-            <?php else: ?>
-            <p>The <strong><?= e($tool['name']) ?></strong> is a free online tool that lets you <?= e(lcfirst($tool['desc'])) ?> With it you can <?= e($pack['benefit']) ?>, there's nothing to install and no account to create. Just open the tool, do what you need, and you're done.</p>
-            <?php endif; ?>
-            <p>It's part of the <?= e($cat['name']) ?> collection on <?= e(SITE_NAME) ?>, a growing platform of <?= tools_count() ?>+ free, privacy-first tools built for speed and a great experience on every device.</p>
-            <?php if (!empty($tool['keywords'])): ?>
-            <p class="muted">Also known as: <?= e(str_replace(' ', ', ', $tool['keywords'])) ?>.</p>
-            <?php endif; ?>
-          </div>
-
-          <div class="tool-bento-card">
-            <h2>Why use the <?= e($tool['name']) ?>?</h2>
-            <ul>
-              <?php foreach ($pack['features'] as $feat): ?><li><?= e($feat) ?></li><?php endforeach; ?>
-            </ul>
-          </div>
-
-          <div class="tool-bento-card">
-            <h2>When to use it</h2>
-            <ul>
-              <?php foreach ($pack['useCases'] as $uc): ?><li><?= e($uc) ?></li><?php endforeach; ?>
-            </ul>
-          </div>
-
-          <div class="tool-bento-card tool-bento-card--wide">
-            <h2 id="how-to">How to use the <?= e($tool['name']) ?></h2>
-            <ol>
-              <?php foreach ($howtoSteps as $s): ?>
-                <li><strong><?= e($s['name']) ?>.</strong> <?= e($s['text']) ?></li>
-              <?php endforeach; ?>
-            </ol>
-          </div>
-        </div>
-
-        <h3>Frequently Asked Questions</h3>
-      </article>
-
-      <div class="faq mt-4">
-        <?php foreach ($faqs as $f): ?>
-          <details class="faq__item">
-            <summary class="faq__q"><?= e($f[0]) ?> <?= icon_svg('plus', 'icon icon-sm') ?></summary>
-            <div class="faq__a"><?= e($f[1]) ?></div>
-          </details>
-        <?php endforeach; ?>
+  <!-- FAQ + Collapsible Deep-Dive Guide (Keeps 100% SEO value without visual bloat) -->
+  <section class="section--tight">
+    <div class="section__head">
+      <div>
+        <span class="section__eyebrow">Help &amp; Details</span>
+        <h2 class="section__title">Questions &amp; Guide</h2>
       </div>
     </div>
+    <div class="faq">
+      <?php foreach ($faqs as $f): ?>
+        <details class="faq__item reveal-item">
+          <summary class="faq__q"><?= e($f[0]) ?> <?= icon_svg('plus', 'icon icon-sm') ?></summary>
+          <div class="faq__a"><?= e($f[1]) ?></div>
+        </details>
+      <?php endforeach; ?>
 
-    <!-- Sidebar -->
-    <aside class="tool-sidebar">
-      <?php if (ADSENSE_ENABLED): ?><div class="ad-slot">Advertisement</div><?php endif; ?>
-
-      <div class="widget">
-        <h3 class="widget__title">Related Tools</h3>
-        <div class="widget__list">
-          <?php foreach ($related as $r): ?>
-            <a href="<?= eattr(url($r['slug'])) ?>"><span class="dot" style="background:<?= eattr($cat['color']) ?>"></span><?= e($r['name']) ?></a>
-          <?php endforeach; ?>
+      <details class="faq__item reveal-item">
+        <summary class="faq__q">About the <?= e($tool['name']) ?> &amp; Technical Overview <?= icon_svg('plus', 'icon icon-sm') ?></summary>
+        <div class="faq__a prose">
+          <?php if (!empty($tool['intro'])): ?>
+            <?php foreach ($tool['intro'] as $para): ?><p><?= e($para) ?></p><?php endforeach; ?>
+          <?php else: ?>
+            <p>The <strong><?= e($tool['name']) ?></strong> is a free online tool that lets you <?= e(lcfirst($tool['desc'])) ?> With it you can <?= e($pack['benefit']) ?>, with nothing to install and no account required.</p>
+          <?php endif; ?>
+          <div class="grid-2 mt-4">
+            <div>
+              <h3>Key Features</h3>
+              <ul><?php foreach ($pack['features'] as $feat): ?><li><?= e($feat) ?></li><?php endforeach; ?></ul>
+            </div>
+            <div>
+              <h3>Common Use Cases</h3>
+              <ul><?php foreach ($pack['useCases'] as $uc): ?><li><?= e($uc) ?></li><?php endforeach; ?></ul>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <?php
-      // Link a related blog article if one references this tool.
-      $relatedPost = null;
-      foreach (get_posts() as $p) {
-          if (($p['related'] ?? '') === $slug) { $relatedPost = $p; break; }
-      }
-      if ($relatedPost): ?>
-      <div class="widget">
-        <h3 class="widget__title">Read More</h3>
-        <div class="widget__list">
-          <a href="<?= eattr(url('blog/' . $relatedPost['slug'])) ?>"><?= icon_svg('doc', 'icon icon-sm') ?><?= e($relatedPost['title']) ?></a>
-        </div>
-      </div>
-      <?php endif; ?>
-
-      <div class="widget">
-        <h3 class="widget__title">More in <?= e($cat['name']) ?></h3>
-        <a class="btn btn--ghost btn--block" href="<?= eattr(url('category/' . $cat['slug'])) ?>">Browse <?= e($cat['name']) ?> tools</a>
-      </div>
-    </aside>
-  </div>
+      </details>
+    </div>
+  </section>
 </div>
-
-<?php if ($related): ?>
-<!-- You might also like -->
-<section class="section container">
-  <div class="section__head">
-    <div><h2 class="section__title">You might also like</h2>
-    <p class="section__desc">Popular <?= e($cat['name']) ?> tools people use next.</p></div>
-    <a class="section__link" href="<?= eattr(url('category/' . $cat['slug'])) ?>">See all <?= icon_svg('arrow') ?></a>
-  </div>
-  <div class="cards">
-    <?php foreach ($related as $r) echo render_tool_card($r); ?>
-  </div>
-</section>
-<?php endif; ?>
 
 <script>
 // Favourites (localStorage — no login needed).
