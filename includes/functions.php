@@ -168,8 +168,12 @@ function get_setting(string $key, ?string $default = null): ?string
         $cache = [];
         $db = Database::getInstance();
         if ($db->isConnected()) {
-            foreach ($db->select('SELECT setting_key, setting_value FROM settings') as $row) {
-                $cache[$row['setting_key']] = $row['setting_value'];
+            try {
+                foreach ($db->select('SELECT setting_key, setting_value FROM settings') as $row) {
+                    $cache[$row['setting_key']] = $row['setting_value'];
+                }
+            } catch (Throwable $e) {
+                // Table `settings` may not exist yet; fall back to defaults.
             }
         }
     }

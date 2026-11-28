@@ -111,12 +111,17 @@ function get_posts(): array
     $posts = [];
     $db = Database::getInstance();
     if ($db->isConnected()) {
-        foreach ($db->select('SELECT * FROM blogs WHERE status = "published" ORDER BY created_at DESC') as $r) {
-            $posts[$r['slug']] = [
-                'slug' => $r['slug'], 'title' => $r['title'], 'tag' => $r['category'] ?? 'Blog',
-                'icon' => 'doc', 'date' => substr((string)$r['created_at'], 0, 10), 'author' => $r['author'] ?? SITE_AUTHOR,
-                'excerpt' => $r['excerpt'] ?? '', 'body' => $r['body'] ?? '', 'related' => $r['related_tool'] ?? '',
-            ];
+        try {
+            foreach ($db->select('SELECT * FROM blogs WHERE status = "published" ORDER BY created_at DESC') as $r) {
+                $posts[$r['slug']] = [
+                    'slug' => $r['slug'], 'title' => $r['title'], 'tag' => $r['category'] ?? 'Blog',
+                    'icon' => 'doc', 'date' => substr((string)$r['created_at'], 0, 10), 'author' => $r['author'] ?? SITE_AUTHOR,
+                    'excerpt' => $r['excerpt'] ?? '', 'body' => $r['body'] ?? '', 'related' => $r['related_tool'] ?? '',
+                ];
+            }
+        } catch (Throwable $e) {
+            // Table `blogs` may not exist yet when DB is only provisioned for Cardly;
+            // fall back cleanly to the static blog store.
         }
     }
     foreach (omnitools_static_posts() as $p) {
