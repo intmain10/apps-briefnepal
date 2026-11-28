@@ -375,21 +375,62 @@
      ================================================================== */
   reg('json-formatter', root => {
     root.innerHTML = `
-      <textarea id="in" class="textarea textarea--tall" placeholder='{"hello":"world"}'></textarea>
-      <div class="row mt-4">
-        <div><label class="field__label">Indent</label><select id="ind" class="select"><option>2</option><option>4</option><option value="\t">Tab</option></select></div>
+      <textarea id="in" class="textarea textarea--tall" placeholder='{"hello":"world","items":[1,2,3]}'></textarea>
+      <div class="row mt-4" style="align-items:end">
+        <div><label class="field__label">Indent</label><select id="ind" class="select"><option value="2">2 Spaces</option><option value="4">4 Spaces</option><option value="\t">Tab</option></select></div>
+        <label class="chip" style="display:inline-flex;height:42px;align-items:center"><input type="checkbox" id="sortK"> Sort keys A → Z</label>
       </div>
       <div class="btn-row mt-4">
         <button class="btn btn--primary" id="fmt">Beautify</button>
         <button class="btn btn--ghost" id="min">Minify</button>
         <button class="btn btn--ghost" id="cp">Copy</button>
+        <button class="btn btn--ghost" id="dl">Download .json</button>
+        <button class="btn btn--ghost" id="sample">Load Sample</button>
       </div>
-      <div id="msg"></div>
+      <div id="msg" class="mt-4"></div>
       <label class="field__label mt-4">Output</label><div class="output-box" id="out"></div>`;
-    const parse = () => { try { return JSON.parse(q('#in', root).value); } catch (e) { q('#msg', root).innerHTML = `<div class="notice notice--error">Invalid JSON: ${esc(e.message)}</div>`; return undefined; } };
-    q('#fmt', root).addEventListener('click', () => { const d = parse(); if (d === undefined) return; q('#msg', root).innerHTML = '<div class="notice notice--success">Valid JSON ✓</div>'; const ind = q('#ind', root).value; q('#out', root).textContent = JSON.stringify(d, null, ind === '\t' ? '\t' : +ind); });
-    q('#min', root).addEventListener('click', () => { const d = parse(); if (d === undefined) return; q('#out', root).textContent = JSON.stringify(d); });
+
+    const sortObj = v => {
+      if (Array.isArray(v)) return v.map(sortObj);
+      if (v && typeof v === 'object') {
+        return Object.keys(v).sort().reduce((acc, k) => { acc[k] = sortObj(v[k]); return acc; }, {});
+      }
+      return v;
+    };
+    const countNodes = v => {
+      if (Array.isArray(v)) return v.reduce((s, x) => s + countNodes(x), 1);
+      if (v && typeof v === 'object') return Object.values(v).reduce((s, x) => s + countNodes(x), Object.keys(v).length);
+      return 1;
+    };
+    const parse = () => {
+      try {
+        let d = JSON.parse(q('#in', root).value);
+        if (q('#sortK', root).checked) d = sortObj(d);
+        return d;
+      } catch (e) {
+        q('#msg', root).innerHTML = `<div class="notice notice--error">Invalid JSON: ${esc(e.message)}</div>`;
+        return undefined;
+      }
+    };
+    q('#fmt', root).addEventListener('click', () => {
+      const d = parse(); if (d === undefined) return;
+      const ind = q('#ind', root).value;
+      const str = JSON.stringify(d, null, ind === '\t' ? '\t' : +ind);
+      q('#out', root).textContent = str;
+      q('#msg', root).innerHTML = `<div class="notice notice--success">Valid JSON ✓ · ${countNodes(d)} nodes · ${fmtBytes(str.length)}</div>`;
+    });
+    q('#min', root).addEventListener('click', () => {
+      const d = parse(); if (d === undefined) return;
+      const str = JSON.stringify(d);
+      q('#out', root).textContent = str;
+      q('#msg', root).innerHTML = `<div class="notice notice--success">Minified JSON ✓ · ${fmtBytes(str.length)}</div>`;
+    });
     q('#cp', root).addEventListener('click', () => U.copy(q('#out', root).textContent));
+    q('#dl', root).addEventListener('click', () => { if (q('#out', root).textContent) U.download('formatted.json', q('#out', root).textContent, 'application/json'); });
+    q('#sample', root).addEventListener('click', () => {
+      q('#in', root).value = JSON.stringify({ platform: 'Toolzy', version: '1.23.0', privacyFirst: true, categories: ['PDF', 'Image', 'Developer', 'SEO'], metrics: { tools: 145, latencyMs: 12 } });
+      q('#fmt', root).click();
+    });
   });
 
   reg('json-validator', root => {
@@ -782,7 +823,33 @@
     `<div class="row"><div><label class="field__label">Loan amount</label><input id="p" class="input" type="number" value="500000"></div>
      <div><label class="field__label">Interest rate (% p.a.)</label><input id="r" class="input" type="number" value="9" step="0.1"></div>
      <div><label class="field__label">Tenure (months)</label><input id="n" class="input" type="number" value="60"></div></div>`,
-    g => { const p = +g('p').value, r = +g('r').value / 1200, n = +g('n').value; const emi = r ? p * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1) : p / n; const total = emi * n; return grid(stat('Monthly EMI', money(emi)) + stat('Total interest', money(total - p)) + stat('Total payment', money(total))); }));
+    g => {
+      const p = +g('p').value, r = +g('r').value / 1200, n = Math.max(1, +g('n').value);
+      const emi = r ? p * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1) : p / n;
+      const total = emi * n, interest = total - p;
+      const pPct = total > 0 ? Math.round((p / total) * 100) : 100;
+      let bal = p, rows = '';
+      const years = Math.min(30, Math.ceil(n / 12));
+      for (let yr = 1; yr <= years; yr++) {
+        let yPri = 0, yInt = 0;
+        const mEnd = Math.min(n, yr * 12);
+        for (let m = (yr - 1) * 12 + 1; m <= mEnd; m++) {
+          const mInt = bal * r;
+          const mPri = emi - mInt;
+          yInt += mInt; yPri += mPri; bal = Math.max(0, bal - mPri);
+        }
+        rows += `<tr><td>Year ${yr}</td><td>${money(yPri)}</td><td>${money(yInt)}</td><td>${money(bal)}</td></tr>`;
+      }
+      return grid(stat('Monthly EMI', money(emi)) + stat('Total Interest', money(interest)) + stat('Total Payment', money(total))) +
+        `<div class="mt-4" style="height:12px;border-radius:999px;background:var(--warning);overflow:hidden;display:flex">
+           <div style="width:${pPct}%;background:var(--accent)" title="Principal ${pPct}%"></div>
+         </div>
+         <div class="row mt-2" style="font-size:12.5px;justify-content:space-between">
+           <span><b style="color:var(--accent)">● Principal:</b> ${pPct}% (${money(p)})</span>
+           <span><b style="color:var(--warning)">● Interest:</b> ${100 - pPct}% (${money(interest)})</span>
+         </div>
+         <div class="docs-table-wrap mt-4"><table class="docs-table"><thead><tr><th>Year</th><th>Principal Paid</th><th>Interest Paid</th><th>Remaining Balance</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    }));
 
   reg('loan-calculator', root => calc(root,
     `<div class="row"><div><label class="field__label">Principal</label><input id="p" class="input" type="number" value="200000"></div>
@@ -1252,11 +1319,69 @@
   }
 
   reg('compress-image', root => {
-    root.innerHTML = imgResultUI(root, `<label class="field__label">Quality: <b id="qv">70</b>%</label><input id="q" type="range" min="10" max="100" value="70" style="width:100%">`);
-    let img, origSize;
-    makeDropzone(q('#drop', root), { accept: 'image/*', onFiles: async f => { origSize = f[0].size; img = await loadImageFile(f[0]); q('#opts', root).classList.remove('hidden'); render(); } });
-    const render = () => { if (!img) return; const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight; c.getContext('2d').drawImage(img, 0, 0); q('#qv', root).textContent = q('#q', root).value; showImageResult(root, c, 'compressed.jpg', 'image/jpeg', +q('#q', root).value / 100, origSize); };
-    q('#q', root).addEventListener('input', render);
+    root.innerHTML = `<div id="drop"></div>
+      <div id="opts" class="hidden mt-4">
+        <div class="row">
+          <div style="flex:2"><label class="field__label">Quality: <b id="qv">75</b>%</label><input id="q" type="range" min="10" max="100" value="75" style="width:100%"></div>
+          <div><label class="field__label">Output Format</label><select id="fmt" class="select"><option value="image/jpeg">JPG (Smallest photos)</option><option value="image/webp">WebP (Modern web)</option><option value="image/png">PNG (Lossless)</option></select></div>
+          <div><label class="field__label">Max Width</label><select id="maxW" class="select"><option value="0">Original dimensions</option><option value="1920">1920px (Full HD)</option><option value="1280">1280px (Web HD)</option><option value="800">800px (Thumbnail)</option></select></div>
+        </div>
+      </div>
+      <div id="result" class="mt-4"></div>`;
+
+    let files = []; // { file, img }
+    makeDropzone(q('#drop', root), {
+      accept: 'image/*', multiple: true,
+      hint: 'Upload one or multiple JPG, PNG or WebP images. Batch-compressed 100% on your device.',
+      onFiles: async fl => {
+        files = [];
+        for (const f of Array.from(fl)) {
+          if (!/^image\//.test(f.type)) continue;
+          try { files.push({ file: f, img: await loadImageFile(f) }); } catch (_) {}
+        }
+        if (files.length) { q('#opts', root).classList.remove('hidden'); render(); }
+      }
+    });
+
+    const render = async () => {
+      if (!files.length) return;
+      q('#qv', root).textContent = q('#q', root).value;
+      const qual = +q('#q', root).value / 100;
+      const mime = q('#fmt', root).value;
+      const ext = mime === 'image/webp' ? 'webp' : mime === 'image/png' ? 'png' : 'jpg';
+      const maxW = +q('#maxW', root).value || 0;
+      const resEl = q('#result', root);
+      resEl.innerHTML = '';
+
+      for (const item of files) {
+        const { file, img } = item;
+        const scale = (maxW > 0 && img.naturalWidth > maxW) ? (maxW / img.naturalWidth) : 1;
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.naturalWidth * scale);
+        c.height = Math.round(img.naturalHeight * scale);
+        const ctx = c.getContext('2d');
+        if (mime === 'image/jpeg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height); }
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        const blob = await canvasToBlob(c, mime, qual);
+        const url = URL.createObjectURL(blob);
+        const savedPct = Math.round((1 - blob.size / file.size) * 100);
+        const outName = file.name.replace(/\.[^.]+$/, '') + '-compressed.' + ext;
+
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.style.cssText = 'align-items:center;border:1px solid var(--border);background:var(--surface-2);border-radius:14px;padding:14px;margin-bottom:12px';
+        row.innerHTML = `
+          <img src="${url}" style="width:88px;height:88px;object-fit:cover;border-radius:10px;border:1px solid var(--border);flex:none;background:#fff" alt="preview">
+          <div style="flex:2;min-width:200px">
+            <div style="font-weight:700">${esc(file.name)}</div>
+            <div class="muted" style="font-size:13px;margin-top:4px">${fmtBytes(file.size)} → <b style="color:var(--success)">${fmtBytes(blob.size)}</b> (${savedPct > 0 ? savedPct + '% saved' : 'optimised'}) · ${c.width}×${c.height}px</div>
+          </div>
+          <button class="btn btn--primary btn--sm" style="flex:none">Download .${ext}</button>`;
+        row.querySelector('button').addEventListener('click', () => U.download(outName, blob));
+        resEl.appendChild(row);
+      }
+    };
+    ['#q', '#fmt', '#maxW'].forEach(s => q(s, root).addEventListener('input', render));
   });
 
   reg('resize-image', root => {
@@ -1274,15 +1399,106 @@
   reg('crop-image', root => {
     root.innerHTML = `<div id="drop"></div>
       <div id="opts" class="hidden mt-4">
-        <div class="row"><div><label class="field__label">X</label><input id="x" class="input" type="number" value="0"></div>
-        <div><label class="field__label">Y</label><input id="y" class="input" type="number" value="0"></div>
-        <div><label class="field__label">Width</label><input id="w" class="input" type="number"></div>
-        <div><label class="field__label">Height</label><input id="h" class="input" type="number"></div></div>
-        <div class="btn-row mt-4"><button class="btn btn--primary" id="go">Crop</button></div>
+        <div class="chips mb-4" id="ratios">
+          <button type="button" class="chip is-active" data-r="0">Freeform</button>
+          <button type="button" class="chip" data-r="1">1:1 Square</button>
+          <button type="button" class="chip" data-r="1.7778">16:9 Landscape</button>
+          <button type="button" class="chip" data-r="1.3333">4:3 Standard</button>
+          <button type="button" class="chip" data-r="0.5625">9:16 Vertical</button>
+          <button type="button" class="chip" data-r="1.91">1.91:1 Social OG</button>
+        </div>
+        <p class="muted" style="font-size:13px">Drag on the image below to draw your crop box, or fine-tune exact pixels:</p>
+        <div style="display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:12px;margin:8px 0 14px">
+          <canvas id="cropCv" style="max-width:100%;max-height:420px;cursor:crosshair;border-radius:8px"></canvas>
+        </div>
+        <div class="row">
+          <div><label class="field__label">X</label><input id="x" class="input" type="number" value="0"></div>
+          <div><label class="field__label">Y</label><input id="y" class="input" type="number" value="0"></div>
+          <div><label class="field__label">Width</label><input id="w" class="input" type="number"></div>
+          <div><label class="field__label">Height</label><input id="h" class="input" type="number"></div>
+        </div>
+        <div class="btn-row mt-4"><button class="btn btn--primary" id="go">Crop &amp; Preview</button></div>
       </div><div id="result" class="mt-4"></div>`;
-    let img;
-    makeDropzone(q('#drop', root), { accept: 'image/*', onFiles: async f => { img = await loadImageFile(f[0]); q('#w', root).value = Math.round(img.naturalWidth / 2); q('#h', root).value = Math.round(img.naturalHeight / 2); q('#opts', root).classList.remove('hidden'); } });
-    q('#go', root).addEventListener('click', () => { if (!img) return; const x = +q('#x', root).value, y = +q('#y', root).value, w = +q('#w', root).value, h = +q('#h', root).value; const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, x, y, w, h, 0, 0, w, h); showImageResult(root, c, 'cropped.png', 'image/png'); });
+
+    let img, ratio = 0, box = { x: 0, y: 0, w: 100, h: 100 };
+    const cv = q('#cropCv', root), ctx = cv.getContext('2d');
+
+    function syncInputs() {
+      q('#x', root).value = Math.round(box.x);
+      q('#y', root).value = Math.round(box.y);
+      q('#w', root).value = Math.round(box.w);
+      q('#h', root).value = Math.round(box.h);
+      drawOverlay();
+    }
+
+    function drawOverlay() {
+      if (!img) return;
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(img, 0, 0);
+      ctx.fillStyle = 'rgba(9, 13, 20, 0.52)';
+      ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(box.x, box.y, box.w, box.h);
+      ctx.clip();
+      ctx.drawImage(img, 0, 0);
+      ctx.restore();
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = Math.max(2, Math.round(cv.width / 300));
+      ctx.strokeRect(box.x, box.y, box.w, box.h);
+    }
+
+    makeDropzone(q('#drop', root), {
+      accept: 'image/*',
+      onFiles: async f => {
+        img = await loadImageFile(f[0]);
+        cv.width = img.naturalWidth;
+        cv.height = img.naturalHeight;
+        box = { x: Math.round(cv.width * 0.1), y: Math.round(cv.height * 0.1), w: Math.round(cv.width * 0.8), h: Math.round(cv.height * 0.8) };
+        q('#opts', root).classList.remove('hidden');
+        syncInputs();
+      }
+    });
+
+    let dragging = false, sx = 0, sy = 0;
+    const toPt = e => {
+      const r = cv.getBoundingClientRect();
+      const c = e.touches ? e.touches[0] : e;
+      return { x: Math.max(0, Math.min(cv.width, (c.clientX - r.left) * cv.width / r.width)), y: Math.max(0, Math.min(cv.height, (c.clientY - r.top) * cv.height / r.height)) };
+    };
+    cv.addEventListener('mousedown', e => { dragging = true; const p = toPt(e); sx = p.x; sy = p.y; });
+    cv.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const p = toPt(e);
+      let w = Math.abs(p.x - sx), h = Math.abs(p.y - sy);
+      if (ratio > 0) h = w / ratio;
+      box = { x: Math.min(sx, p.x), y: Math.min(sy, p.y), w: Math.max(10, w), h: Math.max(10, h) };
+      syncInputs();
+    });
+    window.addEventListener('mouseup', () => { dragging = false; });
+
+    qa('#ratios .chip', root).forEach(btn => btn.addEventListener('click', () => {
+      qa('#ratios .chip', root).forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      ratio = +btn.dataset.r;
+      if (img && ratio > 0) {
+        box.h = Math.min(cv.height - box.y, Math.round(box.w / ratio));
+        syncInputs();
+      }
+    }));
+
+    ['#x', '#y', '#w', '#h'].forEach(s => q(s, root).addEventListener('input', () => {
+      box = { x: +q('#x', root).value || 0, y: +q('#y', root).value || 0, w: Math.max(1, +q('#w', root).value || 1), h: Math.max(1, +q('#h', root).value || 1) };
+      drawOverlay();
+    }));
+
+    q('#go', root).addEventListener('click', () => {
+      if (!img) return;
+      const c = document.createElement('canvas');
+      c.width = Math.round(box.w); c.height = Math.round(box.h);
+      c.getContext('2d').drawImage(img, box.x, box.y, box.w, box.h, 0, 0, c.width, c.height);
+      showImageResult(root, c, 'cropped.png', 'image/png');
+    });
   });
 
   function transformImage(root, kind) {

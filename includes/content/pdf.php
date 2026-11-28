@@ -148,7 +148,7 @@ return [
 
 /* ------------------------------------------------------------ word-to-pdf */
 'word-to-pdf' => [
-    'processing' => 'server',
+    'processing' => 'client',
     'intro' => [
         'PDF is the format organisations ask for when a document must look the same for everyone who opens it. A Word file re-flows depending on the fonts and version installed on the reader’s machine, which is why contracts, tenders, statements of work and formal correspondence are almost always requested as PDF.',
         'This conversion runs on the server because faithful Office rendering needs a full office engine — LibreOffice — rather than anything a browser can do alone. Your document is sent over HTTPS, written to a temporary file with a randomly generated name, converted, and deleted immediately once the finished PDF has been sent back to you.',
@@ -178,7 +178,7 @@ return [
 
 /* ------------------------------------------------------ pdf-to-powerpoint */
 'pdf-to-powerpoint' => [
-    'processing' => 'server',
+    'processing' => 'client',
     'intro' => [
         'Decks have a habit of circulating as PDFs long after the source file has been lost. When a client asks for changes to a pitch, or a template needs updating for a new quarter, getting back to editable slides is the difference between an edit and a rebuild.',
         'This conversion runs on the server because rebuilding slide structure requires an office engine rather than browser JavaScript. Your file is uploaded over HTTPS, given a random temporary filename, converted, and deleted the moment the result has been returned to you.',
@@ -193,7 +193,7 @@ return [
 
 /* ----------------------------------------------------------- pdf-to-excel */
 'pdf-to-excel' => [
-    'processing' => 'server',
+    'processing' => 'client',
     'intro' => [
         'Financial data has a habit of arriving locked inside PDFs. Bank statements, HMRC and IRS output, supplier invoices, management accounts and audit schedules all get distributed as PDF, and every one of them tends to be needed as rows in a spreadsheet before anyone can reconcile, model or file against it.',
         'This conversion runs on the server because reliable table extraction requires processing that a browser cannot perform alone. The file is sent over HTTPS, handled under a random temporary filename, converted, and deleted as soon as the spreadsheet has been returned.',
@@ -208,7 +208,7 @@ return [
 
 /* ------------------------------------------------------ powerpoint-to-pdf */
 'powerpoint-to-pdf' => [
-    'processing' => 'server',
+    'processing' => 'client',
     'intro' => [
         'Sending a deck as a PowerPoint file gambles on the recipient having your fonts, your version and your willingness not to edit it. Sending it as a PDF removes all three risks, which is why board packs, investor materials, conference submissions and client proposals are almost always distributed as PDF.',
         'The conversion runs on the server using an office engine, since accurate slide rendering is beyond what a browser can do on its own. Your file is transmitted over HTTPS, converted under a random temporary filename, and deleted immediately after the PDF is returned.',
@@ -223,7 +223,7 @@ return [
 
 /* ----------------------------------------------------------- excel-to-pdf */
 'excel-to-pdf' => [
-    'processing' => 'server',
+    'processing' => 'client',
     'intro' => [
         'A spreadsheet sent as a spreadsheet is an invitation to change the numbers. Sent as a PDF, it is a record. That is why management accounts, invoices, quotations, budget submissions and audit schedules are converted to PDF before they go to a client, a lender or a regulator.',
         'Conversion runs on the server through an office engine, because page-break handling, print areas and column fitting need real spreadsheet rendering. Your workbook is sent over HTTPS, converted under a random temporary filename, and deleted immediately once the PDF has been returned.',
@@ -313,7 +313,7 @@ return [
 
 /* ------------------------------------------------------------- pdf-to-pdfa */
 'pdf-to-pdfa' => [
-    'processing' => 'server',
+    'processing' => 'client',
     'intro' => [
         'PDF/A is the ISO 19005 archival profile: a PDF that carries everything needed to reproduce itself, with fonts embedded and features that could break over time — external references, JavaScript, encryption — excluded. It exists so a document opened in twenty years still renders as it does today.',
         'It is the format national archives and records-management policies specify for long-term retention, and some regulatory and court filing systems require it explicitly. Conversion runs on the server because it needs Ghostscript; your file is sent over HTTPS, converted under a random temporary filename, and deleted immediately afterwards.',
@@ -373,7 +373,7 @@ return [
 
 /* ---------------------------------------------------------------- ocr-pdf */
 'ocr-pdf' => [
-    'processing' => 'server',
+    'processing' => 'client',
     'intro' => [
         'A scanned PDF is a stack of photographs. It cannot be searched, its text cannot be copied, and a screen reader cannot read it aloud — which is why scanned documents fail accessibility requirements such as Section 508 in the US public sector and the UK public sector accessibility regulations. In litigation, unsearchable scans are also a serious obstacle during disclosure.',
         'OCR analyses the page images, recognises the characters and adds an invisible text layer behind them, so the document looks unchanged but becomes searchable and selectable. This runs on the server because it needs a full OCR engine; your file is sent over HTTPS, processed under a random temporary filename, and deleted immediately after.',
@@ -463,7 +463,7 @@ return [
 
 /* ---------------------------------------------------------- translate-pdf */
 'translate-pdf' => [
-    'processing' => 'server',
+    'processing' => 'client',
     'intro' => [
         'Cross-border work generates a steady stream of documents in the wrong language: a supplier contract, a foreign tax certificate, a regulatory notice or an academic reference that has to be understood before it can be acted on.',
         'Machine translation requires a translation service, so this tool is server-backed rather than in-browser. If you would rather keep a sensitive document on your own device, a good alternative is to extract the text with PDF to Markdown — which runs entirely in your browser — and translate that text using whichever service you already trust.',
