@@ -101,6 +101,11 @@ function omnitools_tools(): array
     $t('pdf-summarizer', 'pdf', 'PDF Summarizer', 'Summarise a PDF into key points, on device.', ['new'], 'summary tldr ai pdf');
     $t('translate-pdf', 'pdf', 'Translate PDF', 'Translate the text content of a PDF.', [], 'translate language pdf convert');
     $t('pdf-to-markdown', 'pdf', 'PDF to Markdown', 'Extract PDF text as clean Markdown.', ['new'], 'md markdown extract text pdf');
+    $t('invoice-generator', 'pdf', 'Invoice & Receipt PDF Generator', 'Create professional branded PDF invoices and receipts with tax, discount, logo and multi-currency support.', ['new', 'popular'], 'invoice maker pdf receipt generator bill estimate vat pan nepal');
+    $t('resume-builder', 'pdf', 'ATS Resume & CV Builder', 'Build a clean, ATS-friendly executive resume with live A4 preview and instant vector PDF download.', ['new', 'trending'], 'cv maker resume pdf generator job application template');
+    $t('docx-to-pdf', 'pdf', 'DOCX to PDF', 'Convert Microsoft Word (.docx) documents into clean vector PDF files in your browser.', [], 'word docx to pdf convert document', ['engine' => 'word-to-pdf']);
+    $t('xlsx-to-pdf', 'pdf', 'XLSX to PDF', 'Convert Excel (.xlsx) workbooks into formatted landscape PDF tables in your browser.', [], 'excel spreadsheet xlsx to pdf table', ['engine' => 'excel-to-pdf']);
+    $t('pptx-to-pdf', 'pdf', 'PPTX to PDF', 'Convert PowerPoint (.pptx) slide decks into multi-page PDF presentations in your browser.', [], 'powerpoint slides pptx to pdf', ['engine' => 'powerpoint-to-pdf']);
 
     /* -------------------------------------------------------------- Image */
     $t('compress-image', 'image', 'Compress Image', 'Reduce JPG, PNG and WebP file size with adjustable quality, on device.', ['popular'], 'shrink photo reduce jpg png');
@@ -112,8 +117,16 @@ function omnitools_tools(): array
     $t('convert-png', 'image', 'Convert to PNG', 'Convert any image to lossless PNG format.', [], 'to png image convert');
     $t('convert-jpg', 'image', 'Convert to JPG', 'Convert any image to compressed JPG format.', [], 'to jpg jpeg convert');
     $t('convert-webp', 'image', 'Convert to WebP', 'Convert images to modern, lightweight WebP.', ['trending'], 'to webp modern convert');
+    $t('png-to-webp', 'image', 'PNG to WebP', 'Convert PNG images into ultra-lightweight WebP format with transparency support.', ['new'], 'png to webp convert compress', ['engine' => 'convert-webp']);
+    $t('webp-to-png', 'image', 'WebP to PNG', 'Convert WebP images to lossless PNG format right in your browser.', ['new'], 'webp to png convert lossless', ['engine' => 'convert-png']);
+    $t('webp-to-jpg', 'image', 'WebP to JPG', 'Convert WebP images into universal JPG format with adjustable quality.', [], 'webp to jpg jpeg convert', ['engine' => 'convert-jpg']);
+    $t('jpg-to-png', 'image', 'JPG to PNG', 'Convert JPG photos into lossless PNG images instantly on your device.', [], 'jpg jpeg to png convert', ['engine' => 'convert-png']);
     $t('image-converter', 'image', 'Image Converter', 'Convert between PNG, JPG, WebP and BMP in one place.', ['popular'], 'change format image');
     $t('remove-background', 'image', 'Remove Background', 'Make an image background transparent and save it as a PNG, on device.', ['new', 'popular'], 'transparent png background remover remove white background image to transparent png cutout logo signature product photo png with transparency erase background');
+    $t('passport-photo-maker', 'image', 'Passport & ID Photo Maker', 'Create 300 DPI passport, visa and citizenship photos (Nepal 35×45mm, US 2×2", UK/Schengen) with background replacer and 4×6" printable 8-photo sheet.', ['new', 'popular'], 'passport size photo maker nepal citizenship MRP US visa 2x2 35x45mm print sheet white background');
+    $t('exif-viewer', 'image', 'EXIF Metadata Viewer & Remover', 'Inspect camera, lens, ISO, date and GPS location tags in photos — and strip all EXIF metadata for privacy in one click.', ['new', 'trending'], 'exif data viewer remove gps metadata strip photo privacy camera info');
+    $t('svg-to-png', 'image', 'SVG to PNG & WebP Converter', 'Rasterize SVG vector files or raw SVG markup into crisp 1x–8x high-resolution PNG, WebP or JPG images.', ['new'], 'svg to png webp rasterize vector icon export high dpi');
+    $t('favicon-generator', 'image', 'Favicon & App Icon Generator', 'Generate a complete favicon.ico, Apple Touch Icon, Android PWA icons and site.webmanifest bundle (.ZIP) from any image or monogram.', ['new'], 'favicon generator ico apple touch icon pwa manifest zip');
     $t('image-to-gif', 'image', 'Image to GIF', 'Animate a single image (zoom, pan, pulse, fade) or combine multiple images (JPG, PNG, WebP) into an animated GIF, on device.', ['new'], 'jpg png webp to gif animated gif maker ken burns zoom pan photos slideshow');
     $t('image-to-base64', 'image', 'Image to Base64', 'Encode an image into a Base64 data URI for CSS/HTML.', [], 'data uri encode inline');
     $t('gif-animation-studio', 'image', 'GIF Animation Studio', 'Start from a ready-made template, compose images, icons, shapes and text on a canvas, animate each element independently (slide, fade, pop, spin, float, pulse) and export an animated GIF.', ['new'], 'motion graphics animation studio animated gif maker layers shapes templates logo intro title lower third youtube sale');
@@ -143,6 +156,8 @@ function omnitools_tools(): array
     $t('find-replace', 'text', 'Find & Replace', 'Find and replace text with regex and case options.', [], 'substitute swap regex');
     $t('text-diff', 'text', 'Text Diff Checker', 'Compare two blocks of text and highlight differences.', [], 'compare diff changes');
     $t('whitespace-remover', 'text', 'Whitespace Remover', 'Trim extra spaces, tabs and blank lines from text.', [], 'trim spaces clean');
+    $t('preeti-to-unicode', 'text', 'Preeti to Nepali Unicode Converter', 'Bi-directional Preeti ↔ Nepali Unicode and Romanized Nepali phonetic converter with live Devanagari preview.', ['new', 'popular'], 'preeti to unicode nepali font converter romanized nepali typing devanagari');
+    $t('unicode-to-preeti', 'text', 'Nepali Unicode to Preeti Converter', 'Convert Nepali Unicode Devanagari text into legacy Preeti font encoding for print and DTP software.', ['new'], 'unicode to preeti nepali font convert', ['engine' => 'preeti-to-unicode']);
 
     /* ---------------------------------------------------------- Developer */
     $t('json-formatter', 'developer', 'JSON Formatter', 'Beautify, minify and validate JSON with syntax feedback.', ['popular'], 'pretty json beautify format');
@@ -229,6 +244,7 @@ function omnitools_tools(): array
     $t('time-converter', 'converters', 'Time Converter', 'Convert seconds, minutes, hours, days and weeks.', [], 'seconds minutes hours time');
     $t('number-to-words', 'converters', 'Number to Words', 'Convert numbers into written words.', [], 'spell number words');
     $t('roman-numerals', 'converters', 'Roman Numeral Converter', 'Convert between numbers and Roman numerals.', [], 'roman numeral convert');
+    $t('nepali-date-converter', 'converters', 'Nepali Date Converter (BS ↔ AD)', 'Accurate Bikram Sambat (2000–2099 BS) to English AD and AD to BS date converter with Nepali Devanagari date, day of week and age calculation.', ['new', 'popular'], 'nepali date converter bs to ad ad to bs bikram sambat miti paribartan');
 
     /*
      * Merge long-form page content (intro, faqs, processing) from includes/content/.

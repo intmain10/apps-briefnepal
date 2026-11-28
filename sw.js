@@ -1,6 +1,6 @@
 /* Cardly service worker — minimal offline shell + runtime caching.
    Scope: served from the site root (cardly.briefnepal.com). */
-const CACHE = 'cardly-v1';
+const CACHE = 'toolzy-cardly-v2';
 const PRECACHE = [
   '/',
   '/about',

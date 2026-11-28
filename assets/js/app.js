@@ -57,6 +57,75 @@
   };
   window.OmniUtil = OmniUtil;
 
+  /* ------------------ In-Memory File Handoff ("Chain to Next Tool") + Paste */
+  const OmniHandoff = {
+    _db() {
+      return new Promise((res, rej) => {
+        if (!window.indexedDB) return rej(new Error('No IDB'));
+        const req = indexedDB.open('omnitools_handoff', 1);
+        req.onupgradeneeded = () => req.result.createObjectStore('files');
+        req.onsuccess = () => res(req.result);
+        req.onerror = () => rej(req.error);
+      });
+    },
+    async save(blob, filename) {
+      try {
+        const db = await this._db();
+        const tx = db.transaction('files', 'readwrite');
+        tx.objectStore('files').put({ blob, filename, ts: Date.now() }, 'latest');
+      } catch (_) {}
+    },
+    async consume(onFiles) {
+      if (!/[?&]handoff=1/.test(location.search)) return false;
+      try {
+        const db = await this._db();
+        const rec = await new Promise((res) => {
+          const r = db.transaction('files', 'readonly').objectStore('files').get('latest');
+          r.onsuccess = () => res(r.result);
+          r.onerror = () => res(null);
+        });
+        if (!rec || !rec.blob || (Date.now() - rec.ts > 600000)) return false;
+        const file = new File([rec.blob], rec.filename || 'handoff-file', { type: rec.blob.type });
+        setTimeout(() => {
+          onFiles([file]);
+          OmniUtil.toast('Loaded "' + file.name + '" from previous tool');
+        }, 60);
+        return true;
+      } catch (_) { return false; }
+    },
+    chainHtml(kind) {
+      const cur = (location.pathname || '').replace(/^\/+|\/+$/g, '');
+      const links = kind === 'pdf'
+        ? [
+            ['compress-pdf', '🗜️ Compress PDF'],
+            ['sign-pdf', '✍️ Sign PDF'],
+            ['page-numbers-pdf', '🔢 Add Page Numbers'],
+            ['watermark-pdf', '💧 Watermark'],
+            ['protect-pdf', '🔒 Protect (AES-256)'],
+            ['organize-pdf', '🗂️ Organize Pages'],
+            ['pdf-to-jpg', '🖼️ PDF to JPG']
+          ]
+        : [
+            ['remove-background', '✂️ Remove Background'],
+            ['compress-image', '🗜️ Compress Image'],
+            ['resize-image', '📐 Resize Image'],
+            ['crop-image', '🔲 Crop Image'],
+            ['convert-webp', '⚡ Convert to WebP'],
+            ['jpg-to-pdf', '📄 Image to PDF']
+          ];
+      const pills = links
+        .filter(([slug]) => slug !== cur)
+        .slice(0, 5)
+        .map(([slug, label]) => `<a class="bento-pill" href="${BASE}/${slug}?handoff=1">${label} →</a>`)
+        .join('');
+      return `<div class="handoff-bar mt-4">
+        <div class="handoff-bar__label">⚡ Continue with this file in:</div>
+        <div class="bento-pills">${pills}</div>
+      </div>`;
+    }
+  };
+  window.OmniHandoff = OmniHandoff;
+
   /* --------------------------------------------------------------- Theme */
   const themeToggle = $('#themeToggle');
   function setTheme(t) {

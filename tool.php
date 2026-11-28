@@ -177,13 +177,17 @@ $howtoSteps = [
     ['name' => 'Get your result', 'text' => 'Click the action button to download or copy your result. It is 100% free.'],
 ];
 
+$isEmbed = !empty($_GET['embed']);
+$engineSlug = (string)($tool['engine'] ?? $slug);
+
 $page = [
     'title'       => $metaTitle,
     'description' => $metaDesc,
     'canonical'   => url($slug),
     'is_tool'     => true,
     'is_pdf'      => ($tool['category'] === 'pdf'),
-    'body_class'  => 'page-tool',
+    'bare'        => $isEmbed,
+    'body_class'  => 'page-tool' . ($isEmbed ? ' is-embed' : ''),
     'breadcrumb'  => [
         ['name' => 'Home', 'url' => url()],
         ['name' => $cat['name'], 'url' => url('category/' . $cat['slug'])],
@@ -242,6 +246,23 @@ $page = [
 require __DIR__ . '/includes/header.php';
 ?>
 
+<?php if ($isEmbed): ?>
+<div class="container" style="padding:14px">
+  <div class="tool-workspace-frame" style="--cat-color:<?= eattr($cat['color']) ?>">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-bottom:1px solid var(--border);background:var(--surface-2)">
+      <div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px">
+        <span style="width:24px;height:24px;border-radius:7px;background:<?= eattr($cat['color']) ?>;color:#fff;display:grid;place-items:center"><?= icon_svg($cat['icon'], 'icon icon-sm') ?></span>
+        <?= e($tool['name']) ?>
+      </div>
+      <a href="<?= eattr(url($slug)) ?>" target="_blank" rel="noopener" style="font-size:12px;font-weight:600;color:var(--accent)">⚡ Powered by <?= e(SITE_NAME) ?> ↗</a>
+    </div>
+    <div class="tool-workspace" data-tool="<?= eattr($engineSlug) ?>" data-slug="<?= eattr($slug) ?>">
+      <div class="text-center" style="padding:40px"><div class="spinner" style="margin:0 auto"></div><p class="muted mt-4">Loading tool…</p></div>
+    </div>
+  </div>
+</div>
+<?php require __DIR__ . '/includes/footer.php'; exit; endif; ?>
+
 <div class="container tool-studio">
   <!-- Compact Breadcrumb -->
   <nav class="breadcrumb" aria-label="Breadcrumb">
@@ -265,19 +286,34 @@ require __DIR__ . '/includes/header.php';
             <?= icon_svg($isServerTool ? 'upload' : 'check', 'icon icon-sm') ?>
             <?= $isServerTool ? 'Encrypted Server Processing' : '100% On-Device · Private' ?>
           </span>
+          <span class="tool-hero__paste-pill" title="Press Ctrl+V / ⌘V anywhere to paste files or clipboard content">
+            📋 Ctrl+V Paste Ready
+          </span>
         </div>
         <h1><?= e($tool['name']) ?></h1>
         <p class="tool-hero__desc"><?= e($tool['desc']) ?></p>
       </div>
-      <button class="icon-btn tool-hero__fav" id="favBtn" data-slug="<?= eattr($slug) ?>" aria-label="Add to favourites" title="Save to favourites">
-        <?= icon_svg('heart') ?>
-      </button>
+      <div style="display:flex;gap:6px;margin-left:auto;position:relative;z-index:1">
+        <button class="icon-btn tool-hero__fav" id="embedBtn" aria-label="Embed this tool" title="Embed this tool on your website">
+          <?= icon_svg('code', 'icon icon-sm') ?>
+        </button>
+        <button class="icon-btn tool-hero__fav" id="favBtn" data-slug="<?= eattr($slug) ?>" aria-label="Add to favourites" title="Save to favourites">
+          <?= icon_svg('heart') ?>
+        </button>
+      </div>
+    </div>
+    <div id="embedDrawer" class="hidden" style="margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <span style="font-size:13px;font-weight:600">Embed <b><?= e($tool['name']) ?></b> on your website or blog:</span>
+        <button type="button" class="btn btn--primary btn--sm" id="copyEmbedBtn">Copy Embed Code</button>
+      </div>
+      <input id="embedCodeInput" class="input mt-2" readonly style="font-family:var(--font-mono);font-size:12.5px" value="<?= eattr('<iframe src="' . url($slug) . '?embed=1" width="100%" height="540" style="border:0;border-radius:16px;overflow:hidden" loading="lazy"></iframe>') ?>">
     </div>
   </header>
 
   <!-- Primary Interactive Workspace (Full-Width, Zero Distractions) -->
   <div class="tool-workspace-frame reveal-item" style="--cat-color:<?= eattr($cat['color']) ?>">
-    <div class="tool-workspace" data-tool="<?= eattr($slug) ?>">
+    <div class="tool-workspace" data-tool="<?= eattr($engineSlug) ?>" data-slug="<?= eattr($slug) ?>">
       <div class="text-center" style="padding:40px"><div class="spinner" style="margin:0 auto"></div><p class="muted mt-4">Loading tool…</p></div>
     </div>
   </div>
@@ -367,6 +403,18 @@ require __DIR__ . '/includes/header.php';
     set();
     if (window.OmniUtil) OmniUtil.toast(favs.includes(slug) ? 'Added to favourites' : 'Removed from favourites');
   });
+  var eBtn = document.getElementById('embedBtn');
+  var eDrw = document.getElementById('embedDrawer');
+  var cBtn = document.getElementById('copyEmbedBtn');
+  var eInp = document.getElementById('embedCodeInput');
+  if (eBtn && eDrw) {
+    eBtn.addEventListener('click', function () { eDrw.classList.toggle('hidden'); });
+  }
+  if (cBtn && eInp) {
+    cBtn.addEventListener('click', function () {
+      if (window.OmniUtil) OmniUtil.copy(eInp.value);
+    });
+  }
 })();
 </script>
 

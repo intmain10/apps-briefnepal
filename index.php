@@ -166,8 +166,8 @@ require __DIR__ . '/includes/header.php';
         <a href="<?= eattr(url('split-pdf')) ?>" class="bento-pill">Split PDF</a>
         <a href="<?= eattr(url('compress-pdf')) ?>" class="bento-pill">Compress</a>
         <a href="<?= eattr(url('pdf-to-word')) ?>" class="bento-pill">PDF → Word</a>
-        <a href="<?= eattr(url('pdf-to-excel')) ?>" class="bento-pill">PDF → Excel</a>
-        <a href="<?= eattr(url('organize-pdf')) ?>" class="bento-pill">Organize</a>
+        <a href="<?= eattr(url('invoice-generator')) ?>" class="bento-pill">Invoice PDF</a>
+        <a href="<?= eattr(url('resume-builder')) ?>" class="bento-pill">ATS Resume</a>
         <a href="<?= eattr(url('sign-pdf')) ?>" class="bento-pill">Sign PDF</a>
       </div>
     </div>
@@ -180,13 +180,13 @@ require __DIR__ . '/includes/header.php';
         </span>
         <a href="<?= eattr(url('category/image')) ?>" class="bento-cell__more">All Image <?= icon_svg('arrow', 'icon icon-sm') ?></a>
       </div>
-      <h2 class="bento-cell__title">Instant Cutouts &amp; Batch Compression</h2>
-      <p class="bento-cell__desc">Remove backgrounds, crop visually, convert to WebP, or animate multi-layer GIFs on device.</p>
+      <h2 class="bento-cell__title">Passport Photos, Cutouts &amp; WebP</h2>
+      <p class="bento-cell__desc">Create 300 DPI passport photos, remove backgrounds, strip EXIF/GPS, or animate multi-layer GIFs on device.</p>
       <div class="bento-pills">
+        <a href="<?= eattr(url('passport-photo-maker')) ?>" class="bento-pill">Passport Photo</a>
         <a href="<?= eattr(url('remove-background')) ?>" class="bento-pill">Remove BG</a>
         <a href="<?= eattr(url('compress-image')) ?>" class="bento-pill">Compress</a>
-        <a href="<?= eattr(url('crop-image')) ?>" class="bento-pill">Visual Crop</a>
-        <a href="<?= eattr(url('gif-animation-studio')) ?>" class="bento-pill">GIF Studio</a>
+        <a href="<?= eattr(url('exif-viewer')) ?>" class="bento-pill">EXIF Remover</a>
       </div>
     </div>
 
@@ -194,17 +194,17 @@ require __DIR__ . '/includes/header.php';
     <div class="bento-cell bento-cell--hero reveal-item" style="--cell-accent:#3b82f6">
       <div class="bento-cell__head">
         <span class="bento-tag" style="color:#3b82f6;background:color-mix(in srgb,#3b82f6 12%,transparent)">
-          <?= icon_svg('code', 'icon icon-sm') ?> Dev, SEO &amp; Finance
+          <?= icon_svg('code', 'icon icon-sm') ?> Dev, Nepal &amp; Finance
         </span>
         <a href="<?= eattr(url('category/developer')) ?>" class="bento-cell__more">Explore <?= icon_svg('arrow', 'icon icon-sm') ?></a>
       </div>
-      <h3 class="bento-cell__title">Developer &amp; Creator Workbench</h3>
-      <p class="bento-cell__desc">Format JSON &amp; SQL, decode JWTs, test Regex, generate QR codes, or run EMI &amp; SIP schedules.</p>
+      <h3 class="bento-cell__title">Developer, Nepal &amp; Creator Utilities</h3>
+      <p class="bento-cell__desc">Convert Preeti ↔ Unicode, BS ↔ AD Nepali dates, format JSON/SQL, generate favicons, or run EMI schedules.</p>
       <div class="bento-pills">
+        <a href="<?= eattr(url('preeti-to-unicode')) ?>" class="bento-pill">Preeti ↔ Unicode</a>
+        <a href="<?= eattr(url('nepali-date-converter')) ?>" class="bento-pill">BS ↔ AD Date</a>
         <a href="<?= eattr(url('json-formatter')) ?>" class="bento-pill">JSON Formatter</a>
-        <a href="<?= eattr(url('jwt-decoder')) ?>" class="bento-pill">JWT Decoder</a>
-        <a href="<?= eattr(url('qr-code-generator')) ?>" class="bento-pill">QR Generator</a>
-        <a href="<?= eattr(url('word-counter')) ?>" class="bento-pill">Word Counter</a>
+        <a href="<?= eattr(url('favicon-generator')) ?>" class="bento-pill">Favicon Maker</a>
         <a href="<?= eattr(url('emi-calculator')) ?>" class="bento-pill">EMI Schedule</a>
       </div>
     </div>

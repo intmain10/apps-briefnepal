@@ -197,7 +197,7 @@
     container.innerHTML = `
       <div class="dropzone" tabindex="0" role="button" aria-label="Upload">
         ${svgUp()}
-        <div><strong>Click to upload</strong> or drag &amp; drop</div>
+        <div><strong>Click to upload</strong>, drag &amp; drop, or press <kbd class="dropzone__kbd">Ctrl+V</kbd> to paste</div>
         <div class="dropzone__hint">${opts.hint || 'Processed privately in your browser — files never leave your device.'}</div>
         <input type="file" ${opts.multiple ? 'multiple' : ''} accept="${opts.accept || 'application/pdf'}" hidden>
       </div>`;
@@ -208,18 +208,29 @@
     ['dragover', 'dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('is-drag'); }));
     ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('is-drag'); }));
     dz.addEventListener('drop', e => { if (e.dataTransfer.files.length) opts.onFiles(Array.from(e.dataTransfer.files)); });
+    if (window.OmniHandoff) window.OmniHandoff.consume(opts.onFiles);
+    if (!container._pasteWired) {
+      container._pasteWired = true;
+      document.addEventListener('paste', e => {
+        if (/^(input|textarea)$/i.test((e.target && e.target.tagName) || '') || !document.body.contains(container)) return;
+        const fl = Array.from((e.clipboardData && e.clipboardData.files) || []);
+        if (fl.length) { e.preventDefault(); opts.onFiles(fl); }
+      });
+    }
   }
 
   const spinner = msg => `<div class="row" style="align-items:center;padding:8px 0"><div class="spinner"></div><span>${esc(msg || 'Working…')}</span></div>`;
   const errBox = m => `<div class="notice notice--error">${esc(m)}</div>`;
-  const okBox = m => `<div class="notice notice--success">${esc(m)}</div>`;
+  const okBox = m => `<div class="notice notice--success">✓ ${esc(m)}</div>` + (window.OmniHandoff ? window.OmniHandoff.chainHtml('pdf') : '');
 
   async function loadDoc(file, opts) {
     const bytes = file instanceof Uint8Array ? file : await readBytes(file);
     return window.PDFLib.PDFDocument.load(bytes, Object.assign({ ignoreEncryption: true }, opts || {}));
   }
   function downloadPdf(bytes, name) {
-    U.download(name || 'output.pdf', new Blob([bytes], { type: 'application/pdf' }));
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    if (window.OmniHandoff) window.OmniHandoff.save(blob, name || 'output.pdf');
+    U.download(name || 'output.pdf', blob);
   }
 
   /** Parse a page-range string like "1-3,5,8-10" into 0-based indices within [0,total). */
@@ -2380,6 +2391,236 @@
         downloadPdf(out, file.name.replace(/\.pdf$/i, '') + '-unlocked.pdf');
         q('#msg', root).innerHTML = okBox('Unlocked PDF downloaded — no password required now.');
       } catch (e) { q('#msg', root).innerHTML = errBox(/password/i.test(e.message) ? 'Incorrect password for this PDF.' : ('Failed: ' + e.message)); }
+    });
+  });
+
+  /* =======================================================================
+     28. INVOICE & RECEIPT PDF GENERATOR (Vector PDF + Live Preview)
+     ==================================================================== */
+  reg('invoice-generator', root => {
+    const today = new Date().toISOString().slice(0, 10);
+    root.innerHTML = `
+      <div class="row">
+        <div><label class="field__label">Document Type</label><select id="invType" class="select"><option value="INVOICE">INVOICE</option><option value="TAX INVOICE">TAX INVOICE</option><option value="RECEIPT">RECEIPT</option><option value="QUOTATION">QUOTATION</option></select></div>
+        <div><label class="field__label">Invoice #</label><input id="invNo" class="input" value="INV-2026-001"></div>
+        <div><label class="field__label">Date</label><input id="invDate" class="input" type="date" value="${today}"></div>
+        <div><label class="field__label">Currency</label><select id="invCur" class="select"><option value="NPR ">NPR (Rs.)</option><option value="$">USD ($)</option><option value="INR ">INR (Rs.)</option><option value="EUR ">EUR (€)</option><option value="GBP ">GBP (£)</option></select></div>
+      </div>
+      <div class="grid-2 mt-4">
+        <div>
+          <label class="field__label">From (Your Business / Name, Address, PAN/VAT)</label>
+          <textarea id="invFrom" class="textarea" style="min-height:90px;font-family:var(--font-sans)">Toolzy Studio Pvt. Ltd.\nKathmandu, Nepal\nPAN/VAT: 609876543</textarea>
+        </div>
+        <div>
+          <label class="field__label">Bill To (Client Name, Address, PAN/VAT)</label>
+          <textarea id="invTo" class="textarea" style="min-height:90px;font-family:var(--font-sans)">Acme Corporation\nLalitpur, Nepal\nbilling@acme.com</textarea>
+        </div>
+      </div>
+
+      <label class="field__label mt-4">Line Items</label>
+      <div id="itemsList"></div>
+      <button type="button" class="btn btn--ghost btn--sm mt-2" id="addItem">＋ Add Line Item</button>
+
+      <div class="row mt-4">
+        <div><label class="field__label">Discount (%)</label><input id="invDisc" class="input" type="number" value="0" min="0" max="100" step="0.5"></div>
+        <div><label class="field__label">Tax / VAT (%)</label><input id="invTax" class="input" type="number" value="13" min="0" max="100" step="0.5"></div>
+        <div style="flex:2"><label class="field__label">Payment Notes / Bank Details</label><input id="invNotes" class="input" value="Payment due within 14 days. Thank you for your business!"></div>
+      </div>
+
+      <div id="invTotals" class="mt-4"></div>
+      <div class="btn-row mt-4">
+        <button type="button" class="btn btn--primary" id="dlInv">📄 Download Vector PDF Invoice</button>
+      </div>
+      <div id="msg" class="mt-4"></div>`;
+
+    let items = [
+      { desc: 'Web Platform Design & Bento UI Upgrade', qty: 1, rate: 45000 },
+      { desc: 'Client-Side PDF & Media Engine Integration', qty: 1, rate: 30000 }
+    ];
+
+    function calcTotals() {
+      const cur = q('#invCur', root).value;
+      const sub = items.reduce((s, it) => s + (Number(it.qty) || 0) * (Number(it.rate) || 0), 0);
+      const discPct = Number(q('#invDisc', root).value) || 0;
+      const disc = sub * (discPct / 100);
+      const afterDisc = sub - disc;
+      const taxPct = Number(q('#invTax', root).value) || 0;
+      const tax = afterDisc * (taxPct / 100);
+      const grand = afterDisc + tax;
+      const fmt = n => cur + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      q('#invTotals', root).innerHTML = `
+        <div class="stat-grid">
+          <div class="stat-card"><b>${fmt(sub)}</b><span>Subtotal</span></div>
+          <div class="stat-card"><b>-${fmt(disc)}</b><span>Discount (${discPct}%)</span></div>
+          <div class="stat-card"><b>${fmt(tax)}</b><span>Tax / VAT (${taxPct}%)</span></div>
+          <div class="stat-card" style="border-color:var(--accent)"><b style="color:var(--accent)">${fmt(grand)}</b><span>Grand Total</span></div>
+        </div>`;
+      return { cur, sub, discPct, disc, taxPct, tax, grand, fmt };
+    }
+
+    function renderItems() {
+      q('#itemsList', root).innerHTML = items.map((it, i) => `
+        <div class="row mb-2" style="align-items:center;margin-bottom:8px">
+          <input class="input" style="flex:3" data-k="desc" data-i="${i}" value="${esc(it.desc)}" placeholder="Item description">
+          <input class="input" style="flex:1;min-width:80px" type="number" data-k="qty" data-i="${i}" value="${it.qty}" placeholder="Qty">
+          <input class="input" style="flex:1;min-width:110px" type="number" data-k="rate" data-i="${i}" value="${it.rate}" placeholder="Rate">
+          <button type="button" class="btn btn--ghost btn--sm" data-del="${i}" style="flex:none">✕</button>
+        </div>`).join('');
+      qa('[data-k]', root).forEach(inp => inp.addEventListener('input', () => {
+        const idx = +inp.dataset.i, k = inp.dataset.k;
+        items[idx][k] = k === 'desc' ? inp.value : (+inp.value || 0);
+        calcTotals();
+      }));
+      qa('[data-del]', root).forEach(b => b.addEventListener('click', () => {
+        if (items.length > 1) { items.splice(+b.dataset.del, 1); renderItems(); calcTotals(); }
+      }));
+      calcTotals();
+    }
+
+    q('#addItem', root).addEventListener('click', () => { items.push({ desc: 'New Service / Item', qty: 1, rate: 5000 }); renderItems(); });
+    ['#invCur', '#invDisc', '#invTax'].forEach(s => q(s, root).addEventListener('input', calcTotals));
+    renderItems();
+
+    q('#dlInv', root).addEventListener('click', async () => {
+      q('#msg', root).innerHTML = spinner('Generating PDF Invoice…');
+      try {
+        const doc = await window.PDFLib.PDFDocument.create();
+        const font = await doc.embedFont(window.PDFLib.StandardFonts.Helvetica);
+        const fontB = await doc.embedFont(window.PDFLib.StandardFonts.HelveticaBold);
+        const page = doc.addPage([595.28, 841.89]);
+        const { rgb } = window.PDFLib;
+        const clean = s => String(s || '').replace(/[^\x20-\x7E]/g, '');
+        const t = calcTotals();
+
+        // Top Accent Header Bar
+        page.drawRectangle({ x: 0, y: 760, width: 595.28, height: 82, color: rgb(0.06, 0.09, 0.16) });
+        page.drawText(clean(q('#invType', root).value), { x: 44, y: 792, size: 24, font: fontB, color: rgb(1, 1, 1) });
+        page.drawText('#' + clean(q('#invNo', root).value) + '  |  Date: ' + clean(q('#invDate', root).value), { x: 340, y: 796, size: 11, font, color: rgb(0.82, 0.86, 0.94) });
+
+        // From & Bill To
+        page.drawText('FROM', { x: 44, y: 724, size: 9, font: fontB, color: rgb(0.14, 0.38, 0.92) });
+        q('#invFrom', root).value.split('\n').slice(0, 5).forEach((l, idx) => {
+          page.drawText(clean(l), { x: 44, y: 708 - idx * 14, size: idx === 0 ? 11 : 10, font: idx === 0 ? fontB : font, color: rgb(0.1, 0.12, 0.16) });
+        });
+        page.drawText('BILL TO', { x: 320, y: 724, size: 9, font: fontB, color: rgb(0.14, 0.38, 0.92) });
+        q('#invTo', root).value.split('\n').slice(0, 5).forEach((l, idx) => {
+          page.drawText(clean(l), { x: 320, y: 708 - idx * 14, size: idx === 0 ? 11 : 10, font: idx === 0 ? fontB : font, color: rgb(0.1, 0.12, 0.16) });
+        });
+
+        // Table Header
+        let y = 610;
+        page.drawRectangle({ x: 44, y: y - 6, width: 507, height: 24, color: rgb(0.94, 0.95, 0.97) });
+        page.drawText('DESCRIPTION', { x: 52, y: y + 2, size: 9.5, font: fontB, color: rgb(0.2, 0.24, 0.32) });
+        page.drawText('QTY', { x: 340, y: y + 2, size: 9.5, font: fontB, color: rgb(0.2, 0.24, 0.32) });
+        page.drawText('RATE', { x: 400, y: y + 2, size: 9.5, font: fontB, color: rgb(0.2, 0.24, 0.32) });
+        page.drawText('AMOUNT', { x: 480, y: y + 2, size: 9.5, font: fontB, color: rgb(0.2, 0.24, 0.32) });
+        y -= 28;
+
+        items.forEach(it => {
+          const amt = (Number(it.qty) || 0) * (Number(it.rate) || 0);
+          page.drawText(clean(it.desc).slice(0, 48), { x: 52, y, size: 10, font, color: rgb(0.1, 0.12, 0.16) });
+          page.drawText(String(it.qty), { x: 340, y, size: 10, font, color: rgb(0.1, 0.12, 0.16) });
+          page.drawText(clean(t.fmt(Number(it.rate) || 0)), { x: 400, y, size: 10, font, color: rgb(0.1, 0.12, 0.16) });
+          page.drawText(clean(t.fmt(amt)), { x: 480, y, size: 10, font: fontB, color: rgb(0.1, 0.12, 0.16) });
+          page.drawLine({ start: { x: 44, y: y - 8 }, end: { x: 551, y: y - 8 }, thickness: 0.5, color: rgb(0.88, 0.9, 0.93) });
+          y -= 24;
+        });
+
+        // Summary box
+        y -= 10;
+        const rows = [
+          ['Subtotal:', clean(t.fmt(t.sub))],
+          [`Discount (${t.discPct}%):`, '-' + clean(t.fmt(t.disc))],
+          [`Tax / VAT (${t.taxPct}%):`, clean(t.fmt(t.tax))],
+          ['GRAND TOTAL:', clean(t.fmt(t.grand))]
+        ];
+        rows.forEach(([lbl, val], idx) => {
+          const isGrand = idx === rows.length - 1;
+          if (isGrand) {
+            page.drawRectangle({ x: 335, y: y - 6, width: 216, height: 24, color: rgb(0.14, 0.38, 0.92) });
+          }
+          page.drawText(lbl, { x: 345, y: y + 1, size: isGrand ? 10.5 : 9.5, font: isGrand ? fontB : font, color: isGrand ? rgb(1, 1, 1) : rgb(0.3, 0.35, 0.42) });
+          page.drawText(val, { x: 465, y: y + 1, size: isGrand ? 10.5 : 9.5, font: fontB, color: isGrand ? rgb(1, 1, 1) : rgb(0.1, 0.12, 0.16) });
+          y -= 22;
+        });
+
+        // Notes
+        const notes = clean(q('#invNotes', root).value);
+        if (notes) {
+          page.drawText('NOTES & TERMS', { x: 44, y: 110, size: 9, font: fontB, color: rgb(0.4, 0.45, 0.52) });
+          page.drawText(notes.slice(0, 95), { x: 44, y: 94, size: 9.5, font, color: rgb(0.25, 0.3, 0.36) });
+        }
+
+        const fname = (clean(q('#invNo', root).value) || 'invoice') + '.pdf';
+        downloadPdf(await doc.save(), fname);
+        q('#msg', root).innerHTML = okBox(`Invoice "${fname}" generated & downloaded.`);
+      } catch (e) { q('#msg', root).innerHTML = errBox('Failed: ' + e.message); }
+    });
+  });
+
+  /* =======================================================================
+     29. ATS RESUME & CV BUILDER TO PDF (Executive Vector PDF)
+     ==================================================================== */
+  reg('resume-builder', root => {
+    root.innerHTML = `
+      <div class="row">
+        <div><label class="field__label">Full Name</label><input id="cvName" class="input" value="Shushant Singh"></div>
+        <div><label class="field__label">Professional Title</label><input id="cvRole" class="input" value="Full-Stack Product Engineer"></div>
+      </div>
+      <div class="row mt-4">
+        <div><label class="field__label">Email</label><input id="cvEmail" class="input" value="hello@briefnepal.com"></div>
+        <div><label class="field__label">Phone / Location</label><input id="cvLoc" class="input" value="+977-9800000000 · Kathmandu, Nepal"></div>
+        <div><label class="field__label">Portfolio / LinkedIn</label><input id="cvWeb" class="input" value="apps.briefnepal.com"></div>
+      </div>
+      <div class="field mt-4">
+        <label class="field__label">Executive Summary</label>
+        <textarea id="cvSum" class="textarea" style="min-height:70px;font-family:var(--font-sans)">Product-focused software engineer building high-speed, privacy-first web platforms and developer tools serving thousands of users.</textarea>
+      </div>
+      <div class="field">
+        <label class="field__label">Work Experience (Use • for bullet achievements)</label>
+        <textarea id="cvExp" class="textarea" style="min-height:130px;font-family:var(--font-sans)">Founder & Lead Engineer — Toolzy & Cardly (2024 – Present)
+• Architected 150+ browser-native PDF, image and developer utilities with zero server overhead.
+• Shipped WebAssembly & Canvas processing pipelines reducing latency below 50ms.
+
+Senior Software Engineer — BriefNepal Media (2022 – 2024)
+• Led full-stack engineering, SEO schema automation and high-availability cloud deployments.</textarea>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label class="field__label">Education</label>
+          <textarea id="cvEdu" class="textarea" style="min-height:85px;font-family:var(--font-sans)">B.Sc. in Computer Science & Information Technology
+Tribhuvan University · Graduated with Distinction</textarea>
+        </div>
+        <div class="field">
+          <label class="field__label">Core Skills (comma-separated)</label>
+          <textarea id="cvSkills" class="textarea" style="min-height:85px;font-family:var(--font-sans)">JavaScript (ES2024), TypeScript, PHP 8, Python, React, Node.js, MySQL, System Design, Technical SEO, WebAssembly</textarea>
+        </div>
+      </div>
+      <div class="btn-row mt-4">
+        <button type="button" class="btn btn--primary" id="dlCv">📄 Download ATS Vector PDF Resume</button>
+      </div>
+      <div id="msg" class="mt-4"></div>`;
+
+    q('#dlCv', root).addEventListener('click', async () => {
+      q('#msg', root).innerHTML = spinner('Building ATS-optimised PDF resume…');
+      try {
+        const blocks = [
+          { type: 'h1', text: q('#cvName', root).value },
+          { type: 'h3', text: q('#cvRole', root).value + '  |  ' + q('#cvEmail', root).value + '  |  ' + q('#cvLoc', root).value + '  |  ' + q('#cvWeb', root).value },
+          { type: 'h2', text: 'EXECUTIVE SUMMARY' },
+          { type: 'p', text: q('#cvSum', root).value },
+          { type: 'h2', text: 'PROFESSIONAL EXPERIENCE' },
+          ...q('#cvExp', root).value.split('\n').map(l => ({ type: 'p', text: l, bold: !l.trim().startsWith('•') && l.trim().length > 0 })),
+          { type: 'h2', text: 'EDUCATION' },
+          ...q('#cvEdu', root).value.split('\n').map(l => ({ type: 'p', text: l })),
+          { type: 'h2', text: 'CORE SKILLS' },
+          { type: 'p', text: q('#cvSkills', root).value }
+        ];
+        const pdfBytes = await buildVectorPdfFromBlocks(blocks, { margin: 44 });
+        const fname = (q('#cvName', root).value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'resume') + '-cv.pdf';
+        downloadPdf(pdfBytes, fname);
+        q('#msg', root).innerHTML = okBox(`ATS Resume "${fname}" generated & downloaded.`);
+      } catch (e) { q('#msg', root).innerHTML = errBox('Failed: ' + e.message); }
     });
   });
 

@@ -1,0 +1,21 @@
+{
+  "name": "Toolzy — 150+ Free Online Tools",
+  "short_name": "Toolzy",
+  "description": "Fast, privacy-first online tools for PDF, images, developers, SEO, finance and Nepal utilities — 100% free in your browser.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#090d14",
+  "theme_color": "#2563eb",
+  "categories": ["productivity", "utilities", "developer"],
+  "icons": [
+    { "src": "/assets/images/logo-mark.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/images/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Merge PDF", "url": "/merge-pdf" },
+    { "name": "Remove Background", "url": "/remove-background" },
+    { "name": "All Tools", "url": "/tools" }
+  ]
+}

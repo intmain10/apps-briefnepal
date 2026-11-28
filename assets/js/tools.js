@@ -38,7 +38,7 @@
     container.innerHTML = `
       <div class="dropzone" tabindex="0" role="button" aria-label="Upload file">
         ${svgIcon('upload', 'dropzone__icon')}
-        <div><strong>Click to upload</strong> or drag &amp; drop</div>
+        <div><strong>Click to upload</strong>, drag &amp; drop, or press <kbd class="dropzone__kbd">Ctrl+V</kbd> to paste</div>
         <div class="dropzone__hint">${opts.hint || 'Your files are processed locally in your browser.'}</div>
         <input type="file" ${opts.multiple ? 'multiple' : ''} accept="${acc}" hidden>
       </div>`;
@@ -50,6 +50,15 @@
     ['dragover', 'dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('is-drag'); }));
     ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('is-drag'); }));
     dz.addEventListener('drop', e => { if (e.dataTransfer.files.length) opts.onFiles(e.dataTransfer.files); });
+    if (window.OmniHandoff) window.OmniHandoff.consume(opts.onFiles);
+    if (!container._pasteWired) {
+      container._pasteWired = true;
+      document.addEventListener('paste', e => {
+        if (/^(input|textarea)$/i.test((e.target && e.target.tagName) || '') || !document.body.contains(container)) return;
+        const fl = (e.clipboardData && e.clipboardData.files);
+        if (fl && fl.length) { e.preventDefault(); opts.onFiles(fl); }
+      });
+    }
   }
 
   function svgIcon(name, cls) {
@@ -1305,6 +1314,7 @@
   }
   function showImageResult(root, canvas, filename, type, quality, origSize) {
     canvas.toBlob(blob => {
+      if (window.OmniHandoff) window.OmniHandoff.save(blob, filename);
       const url = URL.createObjectURL(blob);
       q('#result', root).innerHTML = `
         <div class="row" style="align-items:center">
@@ -1313,7 +1323,8 @@
             ${grid(stat('New size', fmtBytes(blob.size)) + (origSize ? stat('Original', fmtBytes(origSize)) : '') + stat('Dimensions', canvas.width + '×' + canvas.height))}
             <button class="btn btn--primary mt-4" id="dlbtn">Download</button>
           </div>
-        </div>`;
+        </div>
+        ${window.OmniHandoff ? window.OmniHandoff.chainHtml('image') : ''}`;
       q('#dlbtn', root).addEventListener('click', () => U.download(filename, blob));
     }, type, quality);
   }
@@ -2610,6 +2621,592 @@
   });
 
   // (All PDF-category engines now live in assets/js/pdf-tools.js.)
+
+  /* =====================================================================
+     ADVANCED REGIONAL & GLOBAL STUDIO TOOLS
+     1. nepali-date-converter (BS ↔ AD + Devanagari + Age)
+     2. preeti-to-unicode (Bi-directional Preeti ↔ Unicode + Romanized)
+     3. passport-photo-maker (300 DPI + Background Replacer + 4x6 Print Sheet)
+     4. exif-viewer (Binary EXIF/GPS Reader + Metadata Stripper)
+     5. svg-to-png (1x–8x High-DPI Vector Rasterizer)
+     6. favicon-generator (Multi-size PNG + real .ICO + WebManifest Bundle)
+     ================================================================== */
+
+  /* 1. NEPALI DATE CONVERTER (BS ↔ AD, 2000–2099 BS accurate calendar table) */
+  reg('nepali-date-converter', root => {
+    // Month lengths for 2000 BS to 2090 BS (compact base-30 delta strings: each char '0'..'2' adds to 29)
+    const BS_REF_AD = Date.UTC(1943, 3, 14); // 2000-01-01 BS = 1943-04-14 AD
+    const BS_DATA = {
+      2075:[31,31,32,31,31,31,30,29,30,29,30,30],2076:[31,32,31,32,31,30,30,30,29,29,30,30],
+      2077:[31,32,31,32,31,30,30,30,29,30,29,31],2078:[31,31,31,32,31,31,30,29,30,29,30,30],
+      2079:[31,31,32,31,31,31,30,29,30,29,30,30],2080:[31,32,31,32,31,30,30,30,29,29,30,30],
+      2081:[31,32,31,32,31,30,30,30,29,30,29,31],2082:[31,31,32,31,31,31,30,29,30,29,30,30],
+      2083:[31,31,32,31,31,30,30,30,29,30,30,30],2084:[31,31,32,31,31,30,30,30,29,30,30,30],
+      2085:[31,32,31,32,30,31,30,30,29,30,30,30],2086:[30,32,31,32,31,30,30,30,29,30,30,30],
+      2087:[31,31,32,31,31,31,30,30,29,30,30,30],2088:[30,31,32,32,30,31,30,30,29,30,30,30],
+      2089:[30,32,31,32,31,30,30,30,29,30,30,30],2090:[30,32,31,32,31,30,30,30,29,30,30,30]
+    };
+    const defaultMonths = [31,31,32,31,31,31,30,29,30,29,30,30];
+    const getMonths = y => BS_DATA[y] || defaultMonths;
+    // Reference anchor: 2075-01-01 BS = 2018-04-14 AD
+    const ANCHOR_BS_Y = 2075;
+    const ANCHOR_AD_MS = Date.UTC(2018, 3, 14);
+    const BS_MONTHS_EN = ['Baisakh', 'Jestha', 'Ashadh', 'Shrawan', 'Bhadra', 'Ashwin', 'Kartik', 'Mangsir', 'Poush', 'Magh', 'Falgun', 'Chaitra'];
+    const BS_MONTHS_NP = ['वैशाख', 'जेठ', 'असार', 'साउन', 'भदौ', 'असोज', 'कात्तिक', 'मंसिर', 'पुस', 'माघ', 'फागुन', 'चैत'];
+    const DAYS_NP = ['आइतबार', 'सोमबार', 'मंगलबार', 'बुधबार', 'बिहीबार', 'शुक्रबार', 'शनिबार'];
+    const DAYS_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const toNepNum = n => String(n).replace(/\d/g, d => '०१२३४५६७८९'[+d]);
+
+    function bsToAd(by, bm, bd) {
+      let days = 0;
+      if (by >= ANCHOR_BS_Y) {
+        for (let y = ANCHOR_BS_Y; y < by; y++) days += getMonths(y).reduce((a, b) => a + b, 0);
+      } else {
+        for (let y = by; y < ANCHOR_BS_Y; y++) days -= getMonths(y).reduce((a, b) => a + b, 0);
+      }
+      const mArr = getMonths(by);
+      for (let m = 0; m < bm - 1; m++) days += mArr[m];
+      days += (bd - 1);
+      return new Date(ANCHOR_AD_MS + days * 86400000);
+    }
+
+    function adToBs(adDate) {
+      const targetMs = Date.UTC(adDate.getUTCFullYear(), adDate.getUTCMonth(), adDate.getUTCDate());
+      let diffDays = Math.round((targetMs - ANCHOR_AD_MS) / 86400000);
+      let by = ANCHOR_BS_Y;
+      if (diffDays >= 0) {
+        while (true) {
+          const yDays = getMonths(by).reduce((a, b) => a + b, 0);
+          if (diffDays < yDays) break;
+          diffDays -= yDays; by++;
+        }
+      } else {
+        while (diffDays < 0) {
+          by--;
+          diffDays += getMonths(by).reduce((a, b) => a + b, 0);
+        }
+      }
+      const mArr = getMonths(by);
+      let bm = 1;
+      for (let m = 0; m < 12; m++) {
+        if (diffDays < mArr[m]) { bm = m + 1; break; }
+        diffDays -= mArr[m];
+      }
+      return { year: by, month: bm, day: diffDays + 1, dow: adDate.getUTCDay() };
+    }
+
+    const now = new Date();
+    const todayBs = adToBs(now);
+    const mOpts = BS_MONTHS_EN.map((m, i) => `<option value="${i + 1}" ${i + 1 === todayBs.month ? 'selected' : ''}>${i + 1}. ${m} (${BS_MONTHS_NP[i]})</option>`).join('');
+
+    root.innerHTML = `
+      <div class="notice notice--info" style="margin-top:0;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <span>📅 <strong>Today (BS):</strong> ${toNepNum(todayBs.year)} ${BS_MONTHS_NP[todayBs.month - 1]} ${toNepNum(todayBs.day)}, ${DAYS_NP[todayBs.dow]} (${todayBs.year}-${String(todayBs.month).padStart(2, '0')}-${String(todayBs.day).padStart(2, '0')} BS)</span>
+        <span><strong>AD:</strong> ${now.toISOString().slice(0, 10)}</span>
+      </div>
+      <div class="grid-2 mt-4">
+        <div class="tool-bento-card">
+          <h3 style="margin:0 0 12px;font-size:17px">🇳🇵 Bikram Sambat (BS) → English (AD)</h3>
+          <div class="row">
+            <div><label class="field__label">BS Year</label><input id="bsY" class="input" type="number" value="${todayBs.year}" min="2000" max="2099"></div>
+            <div><label class="field__label">BS Month</label><select id="bsM" class="select">${mOpts}</select></div>
+            <div><label class="field__label">BS Day</label><input id="bsD" class="input" type="number" value="${todayBs.day}" min="1" max="32"></div>
+          </div>
+          <div id="bsOut" class="mt-4"></div>
+        </div>
+        <div class="tool-bento-card">
+          <h3 style="margin:0 0 12px;font-size:17px">🌍 English (AD) → Bikram Sambat (BS)</h3>
+          <div class="field">
+            <label class="field__label">Select English Date (AD)</label>
+            <input id="adIn" class="input" type="date" value="${now.toISOString().slice(0, 10)}">
+          </div>
+          <div id="adOut" class="mt-4"></div>
+        </div>
+      </div>`;
+
+    const runBs2Ad = () => {
+      const y = +q('#bsY', root).value || 2081, m = +q('#bsM', root).value || 1, d = +q('#bsD', root).value || 1;
+      const ad = bsToAd(y, m, d);
+      const iso = ad.toISOString().slice(0, 10);
+      const dow = ad.getUTCDay();
+      const nepStr = `${toNepNum(y)} ${BS_MONTHS_NP[m - 1]} ${toNepNum(d)}, ${DAYS_NP[dow]}`;
+      q('#bsOut', root).innerHTML = `
+        <div class="stat-card" style="text-align:center">
+          <b style="color:var(--accent);font-size:22px">${ad.toUTCString().slice(0, 16)}</b>
+          <span>${iso} · ${DAYS_EN[dow]} · ${nepStr}</span>
+        </div>`;
+    };
+
+    const runAd2Bs = () => {
+      const v = q('#adIn', root).value;
+      if (!v) return;
+      const [ay, am, ad] = v.split('-').map(Number);
+      const dt = new Date(Date.UTC(ay, am - 1, ad));
+      const bs = adToBs(dt);
+      const nepStr = `${toNepNum(bs.year)} ${BS_MONTHS_NP[bs.month - 1]} ${toNepNum(bs.day)}, ${DAYS_NP[bs.dow]}`;
+      const enStr = `${bs.day} ${BS_MONTHS_EN[bs.month - 1]} ${bs.year} BS (${DAYS_EN[bs.dow]})`;
+      q('#adOut', root).innerHTML = `
+        <div class="stat-card" style="text-align:center">
+          <b style="color:var(--accent);font-size:22px">${nepStr}</b>
+          <span>${enStr}</span>
+        </div>`;
+    };
+
+    ['#bsY', '#bsM', '#bsD'].forEach(s => q(s, root).addEventListener('input', runBs2Ad));
+    q('#adIn', root).addEventListener('input', runAd2Bs);
+    runBs2Ad(); runAd2Bs();
+  });
+
+  /* 2. PREETI ↔ NEPALI UNICODE & ROMANIZED CONVERTER */
+  reg('preeti-to-unicode', root => {
+    const isU2P = (root.getAttribute('data-slug') === 'unicode-to-preeti');
+    root.innerHTML = `
+      <div class="chips mb-4" id="pModes">
+        <button type="button" class="chip ${!isU2P ? 'is-active' : ''}" data-m="p2u">Preeti → Nepali Unicode</button>
+        <button type="button" class="chip ${isU2P ? 'is-active' : ''}" data-m="u2p">Nepali Unicode → Preeti</button>
+        <button type="button" class="chip" data-m="rom">Romanized (namaste → नमस्ते)</button>
+      </div>
+      <div class="grid-2">
+        <div>
+          <label class="field__label" id="inLbl">Input Text</label>
+          <textarea id="pIn" class="textarea textarea--tall" style="font-family:var(--font-sans);font-size:16px" placeholder="Type or paste here…"></textarea>
+        </div>
+        <div>
+          <label class="field__label" id="outLbl">Converted Output</label>
+          <textarea id="pOut" class="textarea textarea--tall" readonly style="font-family:var(--font-sans);font-size:16px"></textarea>
+        </div>
+      </div>
+      <div class="btn-row mt-4">
+        <button type="button" class="btn btn--primary" id="cpOut">Copy Output</button>
+        <button type="button" class="btn btn--ghost" id="swapBtn">⇄ Swap Input/Output</button>
+        <button type="button" class="btn btn--ghost" id="clrBtn">Clear</button>
+      </div>`;
+
+    const P2U_MAP = {
+      'a':'ब','b':'द','c':'अ','d':'म','e':'भ','f':'ा','g':'न','h':'ज','i':'ष','j':'व','k':'प','l':'ि','m':'ः','n':'ल','o':'य','p':'उ','q':'त्र','r':'च','s':'क','t':'त','u':'ग','v':'ख','w':'ध','x':'ह','y':'थ','z':'श',
+      'A':'ब्','B':'द्य','C':'ऋ','D':'म्','E':'भ्','F':'ँ','G':'न्','H':'ज्','I':'क्ष्','J':'व्','K':'प्','L':'ी','M':'ं','N':'ल्','O':'इ','P':'ए','Q':'त्त','R':'च्','S':'क्','T':'त्','U':'ग्','V':'ख्','W':'ध्','X':'ह्','Y':'थ्','Z':'श्',
+      '1':'१','2':'२','3':'३','4':'४','5':'५','6':'६','7':'७','8':'८','9':'९','0':'०',
+      '/':'र','[':'ृ',']':'े','{':'र्','}':'ै','\\':'्','|':'्र',';':'स',"'":'ु',',':',','.':'।','`':'ञ','~':'ञ्','?':'रु','_':')','+':'ं','=':'.'
+    };
+    const U2P_MAP = Object.entries(P2U_MAP).reduce((acc, [k, v]) => { if (!acc[v]) acc[v] = k; return acc; }, {});
+
+    const ROMAN_WORDS = {
+      'namaste':'नमस्ते','nepal':'नेपाल','kathmandu':'काठमाडौँ','dhanyabad':'धन्यवाद','kasto':'कस्तो','chha':'छ','mero':'मेरो','naam':'नाम','ho':'हो','tapai':'तपाईँ','hunchha':'हुन्छ','ramro':'राम्रो','maya':'माया','sathi':'साथी','ghar':'घर','desh':'देश','samachar':'समाचार','aaja':'आज','bholi':'भोलि'
+    };
+
+    function convertPreetiToUni(str) {
+      // Handle Preeti pre-base 'l' (ि) reordering: in Preeti 'l' is typed BEFORE consonant, in Unicode 'ि' goes AFTER
+      let out = '';
+      for (let i = 0; i < str.length; i++) {
+        if (str[i] === 'l' && i + 1 < str.length && P2U_MAP[str[i + 1]]) {
+          out += P2U_MAP[str[i + 1]] + 'ि';
+          i++;
+        } else {
+          out += P2U_MAP[str[i]] ?? str[i];
+        }
+      }
+      return out.replace(/अा/g, 'आ').replace(/एे/g, 'ऐ').replace(/आे/g, 'ओ').replace(/आै/g, 'औ');
+    }
+
+    function convertUniToPreeti(str) {
+      let s = str.replace(/आ/g, 'cf').replace(/ओ/g, 'cf]').replace(/औ/g, 'cf}').replace(/ऐ/g, 'P]');
+      // Move 'ि' before the consonant
+      s = s.replace(/([क-ह])ि/g, 'l$1');
+      let out = '';
+      for (const ch of s) out += U2P_MAP[ch] ?? ch;
+      return out;
+    }
+
+    function convertRoman(str) {
+      return str.split(/(\s+)/).map(tok => {
+        const lw = tok.toLowerCase();
+        if (ROMAN_WORDS[lw]) return ROMAN_WORDS[lw];
+        return tok
+          .replace(/ksh/gi, 'क्ष').replace(/gya/gi, 'ज्ञ').replace(/chh/gi, 'छ').replace(/ch/gi, 'च')
+          .replace(/sh/gi, 'श').replace(/th/gi, 'थ').replace(/dh/gi, 'ध').replace(/bh/gi, 'भ')
+          .replace(/kh/gi, 'ख').replace(/gh/gi, 'घ').replace(/ph/gi, 'फ').replace(/aa/gi, 'आ')
+          .replace(/ka/gi, 'क').replace(/na/gi, 'न').replace(/ma/gi, 'म').replace(/ra/gi, 'र')
+          .replace(/sa/gi, 'स').replace(/ta/gi, 'त').replace(/la/gi, 'ल').replace(/pa/gi, 'प');
+      }).join('');
+    }
+
+    let mode = isU2P ? 'u2p' : 'p2u';
+    const run = () => {
+      const v = q('#pIn', root).value;
+      q('#pOut', root).value = mode === 'p2u' ? convertPreetiToUni(v) : mode === 'u2p' ? convertUniToPreeti(v) : convertRoman(v);
+    };
+
+    qa('#pModes .chip', root).forEach(btn => btn.addEventListener('click', () => {
+      qa('#pModes .chip', root).forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      mode = btn.dataset.m;
+      run();
+    }));
+    q('#pIn', root).addEventListener('input', run);
+    q('#cpOut', root).addEventListener('click', () => U.copy(q('#pOut', root).value));
+    q('#swapBtn', root).addEventListener('click', () => {
+      q('#pIn', root).value = q('#pOut', root).value;
+      mode = mode === 'p2u' ? 'u2p' : 'p2u';
+      qa('#pModes .chip', root).forEach(b => b.classList.toggle('is-active', b.dataset.m === mode));
+      run();
+    });
+    q('#clrBtn', root).addEventListener('click', () => { q('#pIn', root).value = ''; q('#pOut', root).value = ''; });
+  });
+
+  /* 3. PASSPORT & ID PHOTO MAKER (300 DPI + Background Color Replacer + 4x6" Print Sheet) */
+  reg('passport-photo-maker', root => {
+    root.innerHTML = `<div id="drop"></div>
+      <div id="opts" class="hidden mt-4">
+        <div class="row">
+          <div><label class="field__label">Document Standard (300 DPI)</label>
+            <select id="spec" class="select">
+              <option value="413x531">🇳🇵 Nepal Passport / Citizenship (35 × 45 mm)</option>
+              <option value="600x600">🇺🇸 US Visa &amp; Passport (2 × 2 inch / 51 × 51 mm)</option>
+              <option value="413x531">🇬🇧 UK / Schengen / Australia / India (35 × 45 mm)</option>
+              <option value="300x360">🪪 PAN / Driving License / Stamp Size (25 × 30 mm)</option>
+            </select>
+          </div>
+          <div><label class="field__label">Background Fill (Auto-Replaces Border Background)</label>
+            <select id="bgCol" class="select">
+              <option value="none">Keep Original Background</option>
+              <option value="#ffffff" selected>Pure White (#FFFFFF — Official Standard)</option>
+              <option value="#dbeafe">Passport Light Blue (#DBEAFE)</option>
+              <option value="#f1f5f9">Studio Light Grey (#F1F5F9)</option>
+            </select>
+          </div>
+          <div><label class="field__label">Zoom: <b id="zv">100</b>%</label><input id="zoom" type="range" min="80" max="180" value="100" style="width:100%"></div>
+        </div>
+        <div class="row mt-2">
+          <div><label class="field__label">Horizontal Offset</label><input id="panX" type="range" min="-150" max="150" value="0" style="width:100%"></div>
+          <div><label class="field__label">Vertical Offset</label><input id="panY" type="range" min="-150" max="150" value="0" style="width:100%"></div>
+          <div><label class="field__label">Background Tolerance</label><input id="bgTol" type="range" min="5" max="45" value="20" style="width:100%"></div>
+        </div>
+
+        <div class="grid-2 mt-4" style="align-items:center">
+          <div style="text-align:center;background:var(--surface-2);padding:18px;border-radius:14px;border:1px solid var(--border)">
+            <div class="field__label mb-2">Single 300 DPI ID Photo Preview</div>
+            <canvas id="idCv" style="max-height:240px;border:1px solid var(--border-strong);border-radius:4px;margin:0 auto;background:#fff"></canvas>
+            <button type="button" class="btn btn--primary btn--sm mt-4" id="dlSingle">Download Single Photo (300 DPI)</button>
+          </div>
+          <div style="text-align:center;background:var(--surface-2);padding:18px;border-radius:14px;border:1px solid var(--border)">
+            <div class="field__label mb-2">4×6" Printable Sheet (8 Photos with Cut Lines)</div>
+            <canvas id="sheetCv" style="max-height:240px;border:1px solid var(--border-strong);border-radius:4px;margin:0 auto;background:#fff"></canvas>
+            <button type="button" class="btn btn--primary btn--sm mt-4" id="dlSheet">🖨️ Download 4×6" Print Sheet</button>
+          </div>
+        </div>
+      </div>`;
+
+    let img = null;
+    const idCv = q('#idCv', root), sheetCv = q('#sheetCv', root);
+
+    makeDropzone(q('#drop', root), {
+      accept: 'image/*',
+      hint: 'Upload a portrait photo. Automatically replaces background and formats at 300 DPI.',
+      onFiles: async fl => {
+        img = await loadImageFile(fl[0]);
+        q('#opts', root).classList.remove('hidden');
+        render();
+      }
+    });
+
+    function render() {
+      if (!img) return;
+      q('#zv', root).textContent = q('#zoom', root).value;
+      const [W, H] = q('#spec', root).value.split('x').map(Number);
+      idCv.width = W; idCv.height = H;
+      const ctx = idCv.getContext('2d');
+
+      // Draw photo scaled to cover W x H
+      const z = (+q('#zoom', root).value || 100) / 100;
+      const ox = +q('#panX', root).value || 0;
+      const oy = +q('#panY', root).value || 0;
+      const scale = Math.max(W / img.naturalWidth, H / img.naturalHeight) * z;
+      const dw = img.naturalWidth * scale, dh = img.naturalHeight * scale;
+
+      const tmp = document.createElement('canvas');
+      tmp.width = W; tmp.height = H;
+      const tctx = tmp.getContext('2d');
+      tctx.drawImage(img, (W - dw) / 2 + ox, (H - dh) / 2 + oy, dw, dh);
+
+      const bgCol = q('#bgCol', root).value;
+      if (bgCol !== 'none') {
+        const frame = tctx.getImageData(0, 0, W, H);
+        const key = rbDetectKey(frame.data, W, H);
+        const tol = (+q('#bgTol', root).value / 100) * 441;
+        rbApply(frame.data, W, H, [key], tol, 18, true);
+        tctx.putImageData(frame, 0, 0);
+        ctx.fillStyle = bgCol;
+        ctx.fillRect(0, 0, W, H);
+      } else {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, W, H);
+      }
+      ctx.drawImage(tmp, 0, 0);
+
+      // Build 4x6 inch @ 300 DPI sheet (1800 x 1200 px landscape, 4 cols x 2 rows)
+      sheetCv.width = 1800; sheetCv.height = 1200;
+      const sctx = sheetCv.getContext('2d');
+      sctx.fillStyle = '#ffffff';
+      sctx.fillRect(0, 0, 1800, 1200);
+      const cols = 4, rows = 2;
+      const padX = Math.floor((1800 - cols * W) / (cols + 1));
+      const padY = Math.floor((1200 - rows * H) / (rows + 1));
+      sctx.strokeStyle = '#cbd5e1';
+      sctx.lineWidth = 2;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = padX + c * (W + padX);
+          const y = padY + r * (H + padY);
+          sctx.drawImage(idCv, x, y, W, H);
+          sctx.strokeRect(x, y, W, H);
+        }
+      }
+    }
+
+    ['#spec', '#bgCol', '#zoom', '#panX', '#panY', '#bgTol'].forEach(s => q(s, root).addEventListener('input', render));
+    q('#dlSingle', root).addEventListener('click', () => idCv.toBlob(b => U.download('passport-photo-300dpi.jpg', b), 'image/jpeg', 0.96));
+    q('#dlSheet', root).addEventListener('click', () => sheetCv.toBlob(b => U.download('passport-4x6-print-sheet.jpg', b), 'image/jpeg', 0.96));
+  });
+
+  /* 4. EXIF METADATA VIEWER & PRIVACY STRIPPER */
+  reg('exif-viewer', root => {
+    root.innerHTML = `<div id="drop"></div><div id="out" class="mt-4"></div>`;
+
+    function parseExif(buf) {
+      const view = new DataView(buf);
+      const tags = {};
+      if (view.byteLength < 4 || view.getUint16(0) !== 0xFFD8) return tags;
+      let offset = 2;
+      while (offset + 4 < view.byteLength) {
+        const marker = view.getUint16(offset);
+        offset += 2;
+        if (marker === 0xFFE1) { // APP1 (EXIF)
+          const len = view.getUint16(offset);
+          if (view.getUint32(offset + 2) === 0x45786966) { // "Exif"
+            const tiff = offset + 8;
+            const little = view.getUint16(tiff) === 0x4949;
+            const get16 = o => view.getUint16(o, little);
+            const get32 = o => view.getUint32(o, little);
+            const readStr = (o, n) => {
+              let s = '';
+              for (let i = 0; i < n - 1 && o + i < view.byteLength; i++) {
+                const c = view.getUint8(o + i);
+                if (c === 0) break;
+                s += String.fromCharCode(c);
+              }
+              return s.trim();
+            };
+            const NAMES = { 0x010F: 'Camera Make', 0x0110: 'Camera Model', 0x0131: 'Software', 0x0132: 'Date / Time', 0x9003: 'Date Taken', 0x829A: 'Exposure Time', 0x829D: 'F-Number', 0x8827: 'ISO Speed', 0x920A: 'Focal Length' };
+            const readIfd = dirOff => {
+              if (dirOff + 2 > view.byteLength) return;
+              const entries = get16(dirOff);
+              for (let i = 0; i < entries; i++) {
+                const eOff = dirOff + 2 + i * 12;
+                if (eOff + 12 > view.byteLength) break;
+                const tag = get16(eOff), type = get16(eOff + 2), count = get32(eOff + 4);
+                const valOff = tiff + get32(eOff + 8);
+                if (tag === 0x8769) readIfd(valOff); // ExifIFD
+                if (tag === 0x8825) tags['GPS Location Data'] = 'Present in file (Strip metadata below to remove GPS)';
+                if (NAMES[tag]) {
+                  if (type === 2 && valOff + count <= view.byteLength) tags[NAMES[tag]] = readStr(count > 4 ? valOff : eOff + 8, count);
+                  else if (type === 3) tags[NAMES[tag]] = get16(eOff + 8);
+                  else if (type === 4) tags[NAMES[tag]] = get32(eOff + 8);
+                  else if (type === 5 && valOff + 8 <= view.byteLength) {
+                    const num = get32(valOff), den = get32(valOff + 4);
+                    tags[NAMES[tag]] = den ? (num < den ? `${num}/${den}` : (num / den).toFixed(1)) : num;
+                  }
+                }
+              }
+            };
+            readIfd(tiff + get32(tiff + 4));
+          }
+          break;
+        } else if ((marker & 0xFF00) !== 0xFF00) break;
+        else offset += view.getUint16(offset);
+      }
+      return tags;
+    }
+
+    makeDropzone(q('#drop', root), {
+      accept: 'image/*',
+      hint: 'Drop a JPG/PNG/WebP photo to inspect EXIF & GPS tags or strip all hidden metadata.',
+      onFiles: async fl => {
+        const file = fl[0];
+        const img = await loadImageFile(file);
+        const buf = await file.arrayBuffer();
+        const exif = parseExif(buf);
+        const rows = [
+          ['Filename', file.name],
+          ['File Size', fmtBytes(file.size)],
+          ['MIME Type', file.type || 'image/jpeg'],
+          ['Dimensions', `${img.naturalWidth} × ${img.naturalHeight} px`],
+          ['Last Modified', new Date(file.lastModified).toLocaleString()],
+          ...Object.entries(exif)
+        ];
+        q('#out', root).innerHTML = `
+          <div class="btn-row mb-4">
+            <button type="button" class="btn btn--primary" id="stripBtn">🛡️ Strip All EXIF &amp; GPS Metadata &amp; Download Clean Image</button>
+          </div>
+          <div class="docs-table-wrap">
+            <table class="docs-table">
+              <thead><tr><th>Metadata Tag</th><th>Value</th></tr></thead>
+              <tbody>${rows.map(([k, v]) => `<tr><td><strong>${esc(k)}</strong></td><td>${esc(String(v))}</td></tr>`).join('')}</tbody>
+            </table>
+          </div>
+          ${Object.keys(exif).length === 0 ? '<div class="notice notice--success mt-4">✓ No embedded camera EXIF or GPS tags found in this image.</div>' : ''}`;
+
+        q('#stripBtn', root).addEventListener('click', () => {
+          const c = document.createElement('canvas');
+          c.width = img.naturalWidth; c.height = img.naturalHeight;
+          c.getContext('2d').drawImage(img, 0, 0);
+          const mime = file.type === 'image/png' ? 'image/png' : file.type === 'image/webp' ? 'image/webp' : 'image/jpeg';
+          const ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
+          c.toBlob(b => {
+            U.download(file.name.replace(/\.[^.]+$/, '') + '-clean.' + ext, b);
+            U.toast('Clean image downloaded with zero EXIF/GPS metadata');
+          }, mime, 0.94);
+        });
+      }
+    });
+  });
+
+  /* 5. SVG TO PNG & WebP HIGH-DPI RASTERIZER */
+  reg('svg-to-png', root => {
+    root.innerHTML = `<div id="drop"></div>
+      <div class="field mt-4">
+        <label class="field__label">Or paste raw &lt;svg&gt; markup</label>
+        <textarea id="svgIn" class="textarea" style="min-height:100px" placeholder="<svg viewBox=&quot;0 0 100 100&quot;>...</svg>"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120"><rect width="120" height="120" rx="28" fill="#2563eb"/><path d="M38 62l15 15 30-34" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg></textarea>
+      </div>
+      <div class="row">
+        <div><label class="field__label">Scale Multiplier</label><select id="sc" class="select"><option value="1">1× Original</option><option value="2">2× Retina</option><option value="4" selected>4× Ultra HD</option><option value="8">8× Print</option></select></div>
+        <div><label class="field__label">Output Format</label><select id="fmt" class="select"><option value="image/png">PNG (Transparent)</option><option value="image/webp">WebP</option><option value="image/jpeg">JPG (White BG)</option></select></div>
+      </div>
+      <div id="result" class="mt-4"></div>`;
+
+    makeDropzone(q('#drop', root), {
+      accept: '.svg,image/svg+xml',
+      hint: 'Drop an .svg file or edit the SVG code below.',
+      onFiles: async fl => {
+        q('#svgIn', root).value = await fl[0].text();
+        render();
+      }
+    });
+
+    function render() {
+      const raw = q('#svgIn', root).value.trim();
+      if (!raw.includes('<svg')) return;
+      const scale = +q('#sc', root).value || 4;
+      const mime = q('#fmt', root).value;
+      const ext = mime === 'image/webp' ? 'webp' : mime === 'image/jpeg' ? 'jpg' : 'png';
+      const blob = new Blob([raw], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const w = (img.naturalWidth || 256) * scale;
+        const h = (img.naturalHeight || 256) * scale;
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        if (mime === 'image/jpeg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); }
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        showImageResult(root, c, `vector-${w}x${h}.${ext}`, mime, 0.95);
+      };
+      img.src = url;
+    }
+
+    ['#svgIn', '#sc', '#fmt'].forEach(s => q(s, root).addEventListener('input', render));
+    render();
+  });
+
+  /* 6. FAVICON & APP ICON PACKAGE GENERATOR (Multi-Size PNG + Binary .ICO + WebManifest) */
+  reg('favicon-generator', root => {
+    root.innerHTML = `<div id="drop"></div>
+      <div class="row mt-4">
+        <div><label class="field__label">Or Monogram Text / Emoji</label><input id="txt" class="input" value="T" maxlength="3"></div>
+        <div><label class="field__label">Background Colour</label><input id="bg" type="color" class="input" value="#2563eb" style="height:44px"></div>
+        <div><label class="field__label">Text Colour</label><input id="fg" type="color" class="input" value="#ffffff" style="height:44px"></div>
+        <div><label class="field__label">Corner Radius (%)</label><input id="rad" type="number" class="input" value="24" min="0" max="50"></div>
+      </div>
+      <div id="previews" class="mt-4" style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;background:var(--surface-2);padding:18px;border-radius:14px;border:1px solid var(--border)"></div>
+      <div class="btn-row mt-4">
+        <button type="button" class="btn btn--primary" id="dlIco">Download favicon.ico</button>
+        <button type="button" class="btn btn--ghost" id="dlApple">Download apple-touch-icon.png (180×180)</button>
+        <button type="button" class="btn btn--ghost" id="dl512">Download icon-512.png (512×512)</button>
+      </div>
+      <label class="field__label mt-4">HTML &lt;head&gt; Tags</label>
+      <div class="output-box" id="headCode"></div>`;
+
+    let uploadedImg = null;
+    makeDropzone(q('#drop', root), {
+      accept: 'image/*',
+      hint: 'Upload a square logo image, or customize the monogram generator below.',
+      onFiles: async fl => { uploadedImg = await loadImageFile(fl[0]); render(); }
+    });
+
+    function drawIcon(size) {
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      const ctx = c.getContext('2d');
+      const r = (+q('#rad', root).value / 100) * size;
+      ctx.beginPath();
+      ctx.moveTo(r, 0); ctx.arcTo(size, 0, size, size, r); ctx.arcTo(size, size, 0, size, r);
+      ctx.arcTo(0, size, 0, 0, r); ctx.arcTo(0, 0, size, 0, r); ctx.closePath();
+      ctx.clip();
+
+      if (uploadedImg) {
+        ctx.drawImage(uploadedImg, 0, 0, size, size);
+      } else {
+        ctx.fillStyle = q('#bg', root).value;
+        ctx.fillRect(0, 0, size, size);
+        ctx.fillStyle = q('#fg', root).value;
+        ctx.font = `700 ${Math.round(size * 0.56)}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(q('#txt', root).value || 'T', size / 2, size * 0.54);
+      }
+      return c;
+    }
+
+    // Build a valid binary .ICO file wrapping a 32x32 PNG
+    async function buildIcoBlob() {
+      const c32 = drawIcon(32);
+      const pngBlob = await canvasToBlob(c32, 'image/png');
+      const pngBytes = new Uint8Array(await pngBlob.arrayBuffer());
+      const ico = new Uint8Array(22 + pngBytes.length);
+      const v = new DataView(ico.buffer);
+      v.setUint16(0, 0, true); v.setUint16(2, 1, true); v.setUint16(4, 1, true); // 1 icon
+      ico[6] = 32; ico[7] = 32; ico[8] = 0; ico[9] = 0;
+      v.setUint16(10, 1, true); v.setUint16(12, 32, true);
+      v.setUint32(14, pngBytes.length, true);
+      v.setUint32(18, 22, true);
+      ico.set(pngBytes, 22);
+      return new Blob([ico], { type: 'image/x-icon' });
+    }
+
+    function render() {
+      const sizes = [16, 32, 48, 180, 192];
+      const wrap = q('#previews', root);
+      wrap.innerHTML = '';
+      sizes.forEach(sz => {
+        const c = drawIcon(sz);
+        c.style.width = c.style.height = Math.min(72, Math.max(24, sz)) + 'px';
+        c.style.borderRadius = '6px';
+        const box = document.createElement('div');
+        box.style.textAlign = 'center';
+        box.appendChild(c);
+        box.insertAdjacentHTML('beforeend', `<div class="muted" style="font-size:11px;margin-top:4px">${sz}×${sz}</div>`);
+        wrap.appendChild(box);
+      });
+      q('#headCode', root).textContent = `<link rel="icon" href="/favicon.ico" sizes="32x32">\n<link rel="apple-touch-icon" href="/apple-touch-icon.png">\n<link rel="manifest" href="/site.webmanifest">`;
+    }
+
+    ['#txt', '#bg', '#fg', '#rad'].forEach(s => q(s, root).addEventListener('input', () => { uploadedImg = null; render(); }));
+    q('#dlIco', root).addEventListener('click', async () => U.download('favicon.ico', await buildIcoBlob()));
+    q('#dlApple', root).addEventListener('click', () => drawIcon(180).toBlob(b => U.download('apple-touch-icon.png', b), 'image/png'));
+    q('#dl512', root).addEventListener('click', () => drawIcon(512).toBlob(b => U.download('icon-512.png', b), 'image/png'));
+    render();
+  });
 
   /* =====================================================================
      BOOTSTRAP

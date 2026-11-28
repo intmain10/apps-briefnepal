@@ -107,6 +107,11 @@ if (!empty($breadcrumb)) {
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Cardly">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<?php else: /* Toolzy PWA manifest */ ?>
+<link rel="manifest" href="/toolzy-manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Toolzy">
 <?php endif; ?>
 
 <!-- Preload theme to avoid flash of incorrect theme -->
